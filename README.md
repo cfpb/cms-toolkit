@@ -2,12 +2,12 @@
 WordPress CMS Toolkit
 ==============
 
-This plugin provides tools for extending WordPress for as a CMS. This includes 
-things like the function `build_post_type()` a helper function for WordPress 
-core's `register_post_type` function. The goal was the promote DRY coding 
-practices and a simplified process for creating admin meta boxes. While it is 
+This plugin provides tools for extending WordPress for use as a Content Management System (CMS). Tools include 
+things like the function `build_post_type()`, a helper function for WordPress 
+core's `register_post_type` function. The goal of the Toolkit is to promote DRY coding 
+practices while simplifying the process of creating admin meta boxes. While CMS Toolkit is 
 currently integrated with WordPress as a plugin, it may be more helpful to 
-think of it as a library. A collection of methods which, when installed, are 
+think of it as a library - a collection of methods which, when installed, are 
 available throughout the application and make building complex functionality 
 in WordPress a little easier.
 
@@ -36,7 +36,7 @@ back to 5.2.7, make sure your host is running the correct version. See [namespac
 
 To activate the plugin follow the steps below:
 
-1. Login to wordpress account.
+1. Login to WordPress account.
 2. Go to Plugins screen and find __"CFPB_Utilities"__ in the list
 3. Click __Activate Plugin__ to activate it.
 

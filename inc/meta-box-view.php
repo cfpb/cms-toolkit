@@ -10,6 +10,7 @@ class View {
 		'taxonomyselect',
 		'tax_as_meta',
 		'post_select',
+		'post_multiselect',
 	);
 	private $inputs  = array(
 	    'text_area',

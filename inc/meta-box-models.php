@@ -2,10 +2,8 @@
 /**
 * Metaboxes.php creates a custom metabox for the regulations taxonomy. Needs more
 * modularity.
-*
-* Complexity: 9, candidate for refactoring (pdepend -summary-xml=QA/metaboxes-summary.xml inc/metaboxes.php)
-*
-* */
+* 
+**/
 // On 'add_meta_boxes', rip out the old metaboxes and replace them with regulation_meta_box() (below).
 namespace CFPB\Utils\MetaBox;
 use \CFPB\Utils\Taxonomy as TaxUtils;
@@ -24,7 +22,7 @@ class Models {
     public $Callbacks; // obj A class containing other validation methods
     public $View; // obj A class containing template patterns
     public $error;
-    private $selects = array( 'select', 'multiselect', 'taxonomyselect', 'tax_as_meta', 'post_select' );
+    private $selects = array( 'select', 'multiselect', 'taxonomyselect', 'tax_as_meta', 'post_select', 'post_multiselect' );
     private $inputs  = array(
         'text_area',
         'number',
@@ -58,8 +56,8 @@ class Models {
     * @param str       $title the title as the user wants it displayed
     * @param str       $slug the title as it should be represented in code
     * @param str/array $for the post types that should get this meta box
-    * @param str 		$part the section on the screen where the box should be
-    * @param array 	$fields an array of html form fields the box contains
+    * @param str        $part the section on the screen where the box should be
+    * @param array  $fields an array of html form fields the box contains
     *
     * All parameters are required
     *
@@ -159,6 +157,27 @@ public function validate_link( $field, $post_id ) {
     }
 }
 
+public function validate_select( $field, $post_id ) {
+    $key = $field['meta_key'];
+    $data = $_POST[$key];
+    $existing = get_post_meta( $post_id, $key, false );
+    $count = count($existing);
+
+    if ( is_array($data) ) {
+        foreach ( $data as $d ) {
+            $term = sanitize_text_field( array_pop($d) );
+            $e_key = array_search($term, $existing);
+            if ( $e_key ) {
+                update_post_meta( $post_id, $key, $term, $prev_value = $existing[$e_key] );
+            } else {
+                add_post_meta( $post_id, $key, $d );
+            }
+        }
+    } else {
+        var_dump($data);
+    }
+}
+
 public function validate_taxonomyselect($field, $post_id) {
     $key = $field['slug'];
     if ( isset($_POST[$key] )) {
@@ -213,6 +232,8 @@ public function validate( ) {
     foreach ( $this->fields as $field ) {
         if ( $field['type'] === 'taxonomyselect') {
             $this->validate_taxonomyselect( $field, $post_id );
+        } elseif ( in_array( $field['type'], $this->selects ) ) {
+            $this->validate_select( $field, $post_id );
         } elseif ( $field['type'] === 'date' ) {
             $this->validate_date( $field, $post_id );
         } elseif ( $field['type'] === 'link' ) {

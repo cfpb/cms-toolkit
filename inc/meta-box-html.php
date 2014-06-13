@@ -4,7 +4,7 @@ use \WP_Error;
 class HTML {
 
 	public $elements = array(
-		'selects' => array( 'select', 'multiselect', 'taxonomyselect', 'tax_as_meta', 'post_select' ),
+		'selects' => array( 'select', 'multiselect', 'taxonomyselect', 'tax_as_meta', 'post_select', 'post_multiselect' ),
 		'inputs' => array( 'text_area', 'number', 'text', 'boolean', 'email', 'url', 'date', 'radio', 'link', ),
 		'hidden' => array( 'nonce', 'hidden', 'separator' ),
 		);
@@ -89,13 +89,19 @@ class HTML {
 			);
 		}
 
-		if ( $field['type'] == 'post_select' ) {
+		if ( $field['type'] == 'post_select' || $field['type'] == 'post_multiselect' ) {
 			$args = $field['params'];
+			if ( $field['type'] == 'post_multiselect') {
+				$multi = 'multiple';
+			} else {
+				$multi = null;
+			}
 			$posts = get_posts($args);
 			HTML::post_select(
 				$slug = $field['slug'],
 				$posts = $posts,
 				$value = $field['value'],
+				$multi,
 				$placeholder = $field['placeholder'] );
 		}
 	}
@@ -249,9 +255,9 @@ class HTML {
 	<?php
 	}
 
-	protected function post_select( $slug, $posts, $value, $placeholder = '--' ) { ?>
+	protected function post_select( $slug, $posts, $value, $multi, $placeholder = '--' ) { ?>
 		<p>
-			<select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>" >
+			<select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>" <?php echo $multi; ?> >
 				<?php if ( ! empty( $value ) ):
 					if ( is_numeric( $value) ):
 						$set_value = get_post($value)->post_title;

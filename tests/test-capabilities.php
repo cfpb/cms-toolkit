@@ -139,14 +139,4 @@ class CapabilitiesTest extends PHPUnit_Framework_TestCase {
 		// Assert
 		$this->assertEquals($expected, $actual, 'The user is an administrator and ' . $actual . ' added to array.');
 	}
-
-	function testCFPB_Custom_CapsExpectsFiltersAdded() {
-		// Arrange
-		\WP_Mock::wpFunction('add_filter', array());
-		// Act
-		\CFPB\Utils\Capabilities\Custom_Caps::filter_roles();
-
-		// Assert
-
-	}
 }

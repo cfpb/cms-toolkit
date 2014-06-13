@@ -250,7 +250,7 @@ public function validate( ) {
                 } elseif ( $field['type'] === 'email' ) {
                     $postvalues[$key] = sanitize_email( $data[$key] ); // if we're expecting an email, make sure we get an email
                 } elseif ( ! empty( $data[$key] ) ) {
-                    $postvalues[$key] = strval( $data[$key] ); // make sure whatever we get for anything else is a string
+                    $postvalues[$key] = (string)$data[$key]; // make sure whatever we get for anything else is a string
                 }
             }
         }

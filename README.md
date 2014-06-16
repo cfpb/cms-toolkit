@@ -2,6 +2,8 @@
 WordPress CMS Toolkit
 ==============
 
+[![Build Status](https://travis-ci.org/gboone/cms-toolkit.svg?branch=master)](https://travis-ci.org/gboone/cms-toolkit)
+
 This plugin provides tools for extending WordPress for as a CMS. This includes 
 things like the function `build_post_type()` a helper function for WordPress 
 core's `register_post_type` function. The goal was the promote DRY coding 

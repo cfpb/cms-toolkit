@@ -230,10 +230,11 @@ class HTML {
 			wp_dropdown_categories( 'taxonomy=' . $taxonomy . '&hide_empty=0&orderby=name&name=' . $taxonomy . '&show_option_none=Select ' . $taxonomy . '&selected='. array_pop($IDs) );
 		else :	// otherwise use all the values set in $param to generate the option
 			if ( $multi == true ):
-				?> <select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>" multiple>
+				?> 
+				<label for="<?php echo esc_attr($slug) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" multiple></label>
 			<?php
 			else : ?>
-				<select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>">
+				<label for="<?php echo esc_attr($slug) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>"></label>
 				<?php
 				if ( empty( $value ) ): ?>
 					<option selected value=""><?php echo esc_html( $placeholder ) ?></option>
@@ -257,7 +258,7 @@ class HTML {
 
 	protected function post_select( $slug, $posts, $value, $multi, $placeholder = '--' ) { ?>
 		<p>
-			<select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>" <?php echo $multi; ?> >
+			<label for="<?php echo esc_attr( $slug ) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" <?php echo $multi; ?> ></label>
 				<?php if ( ! empty( $value ) ):
 					if ( is_numeric( $value) ):
 						$set_value = get_post($value)->post_title;

@@ -22,7 +22,14 @@ class Models {
     public $Callbacks; // obj A class containing other validation methods
     public $View; // obj A class containing template patterns
     public $error;
-    private $selects = array( 'select', 'multiselect', 'taxonomyselect', 'tax_as_meta', 'post_select', 'post_multiselect' );
+    private $selects = array(
+        'select',
+        'multiselect',
+        'taxonomyselect',
+        'tax_as_meta',
+        'post_select',
+        'post_multiselect'
+    );
     private $inputs  = array(
         'text_area',
         'number',
@@ -162,19 +169,17 @@ public function validate_select( $field, $post_id ) {
     $data = $_POST[$key];
     $existing = get_post_meta( $post_id, $key, false );
     $count = count($existing);
-
-    if ( is_array($data) ) {
-        foreach ( $data as $d ) {
-            $term = sanitize_text_field( array_pop($d) );
-            $e_key = array_search($term, $existing);
-            if ( $e_key ) {
-                update_post_meta( $post_id, $key, $term, $prev_value = $existing[$e_key] );
-            } else {
-                add_post_meta( $post_id, $key, $d );
-            }
+    foreach ( (array)$data as $d ) {
+        if ( empty($d) ) {
+            return;
         }
-    } else {
-        var_dump($data);
+        $term = sanitize_text_field( $d );
+        $e_key = array_search($term, $existing);
+        if ( $e_key ) {
+            update_post_meta( $post_id, $key, $term, $prev_value = $existing[$e_key] );
+        } else {
+            add_post_meta( $post_id, $key, $d );
+        }
     }
 }
 
@@ -235,6 +240,10 @@ public function validate( ) {
     } else {
         return;
     }
+    global $post;
+    if ( !in_array( $post->post_type, $this->post_type ) ) {
+        return;
+    }
     $data = array_intersect_key($_POST, $this->fields);
     $postvalues = array();
     foreach ( $this->fields as $field ) {
@@ -270,9 +279,9 @@ public function validate( ) {
                 /*
                     Very unlikely you'll ever hit this path but if the data is somewhow not as we expect it to be, return an error
                  */
-                } else {
-                    $error = new $this->error('_invalid_data', 'Data sent to validate must be a string or convertable');
-                    echo "<pre>{$error->get_error_message('_invalid_data')}</pre>";
+                // } else {
+                //     $error = new $this->error('_invalid_data', 'Data sent to validate must be a string or convertable');
+                //     echo "<pre>{$error->get_error_message('_invalid_data')}</pre>";
                 }
             }
         }

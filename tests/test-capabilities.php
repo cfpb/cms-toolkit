@@ -85,7 +85,7 @@ class CapabilitiesTest extends PHPUnit_Framework_TestCase {
 		// Act
 		$actual = Custom_Caps::map_meta_cap( $caps, $cap, $user_id, $args );
 		// Assert
-		$this->assertEquals($expected, $actual, 'The user is an administrator but don_not_allow was added to array.');
+		$this->assertEquals($expected, $actual, 'The user is an administrator and do_not_allow added to array.');
 	}
 
 	function testNonAdminDeleteUserMapMetaCapExpectsCapabilityRemoved() {
@@ -137,6 +137,6 @@ class CapabilitiesTest extends PHPUnit_Framework_TestCase {
 		// Act
 		$actual = Custom_Caps::map_meta_cap( $caps, $cap, $user_id, $args );
 		// Assert
-		$this->assertEquals($expected, $actual, 'The user is an administrator but don_not_allow was added to array.');
+		$this->assertEquals($expected, $actual, 'The user is an administrator and do_not_allow added to array.');
 	}
 }

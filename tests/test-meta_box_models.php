@@ -330,15 +330,21 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * tests whether a non-string is not accepted but a string is returned.
+	 * tests whether an array is not accepted and an error is returned.
 	 * @group strings
 	 * @group isolated
 	 * @group user_input
 	 * @group stable
+	 * @group wip
 	 */
 	function testTextAreaFieldNonStringExpectsSringReturned() {
 		// arrange
+		$stub = $this->getMock('\WP_Error', array('get_error_message'));
+		// $stub->expects($this->once())
+		//      ->method('get_error_message')
+		     // ->will($this->returnValue('Error'));
 		$TestValidTextField = new TestValidTextAreaField();
+		$TestValidTextField->error_handler($stub);
 		$_POST = array(
 			'post_ID' => 1,
 			'one' => array('one' => 'two'),
@@ -348,11 +354,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$actual = $TestValidTextField->validate($_POST);
 
 		// assert
-		$this->assertEquals(
-			array('one' => 'Array'),
-			$actual,
-			'Expected array with key \'one\' be with value \'Array\''
-		);
+		$this->assertTrue(is_array($actual));
 	}
 
 	/**

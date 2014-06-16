@@ -271,15 +271,15 @@ class HTML {
 					<option selected value="<?php echo esc_attr($value); ?>" ><?php echo esc_attr( $set_value ); ?></option>
 					<option value=""><?php echo $placeholder; ?></option>
 					<?php foreach ( $posts as $p ):
-							if ( $p->ID != $value && ! empty( $p->post_name ) ): ?>
-							<option value="<?php echo esc_attr( $p->ID ); ?>" ><?php echo esc_attr( $p->post_title ); ?></option>
+							if ( $p->post_name != $value && ! empty( $p->post_name ) ): ?>
+							<option value="<?php echo esc_attr( $p->post_name ); ?>" ><?php echo esc_attr( $p->post_title ); ?></option>
 					<?php endif; ?>
 					<?php endforeach; ?>
 				<?php else: ?>
 					<option selected value=""><?php echo $placeholder; ?></option>
 				<?php foreach ( $posts as $p ):
-					if ( $p->ID != $value && ! empty( $p->post_name ) ): ?>
-					<option value="<?php echo esc_attr( $p->ID ); ?>" ><?php echo esc_attr( $p->post_title ); ?></option>
+					if ( $p->post_name != $value && ! empty( $p->post_name ) ): ?>
+					<option value="<?php echo esc_attr( $p->post_name ); ?>" ><?php echo esc_attr( $p->post_title ); ?></option>
 				<?php endif; ?>
 				<?php endforeach; ?>
 			<?php endif; ?>

@@ -9,9 +9,9 @@ class Custom_Caps
 {
 	// Add our filters
 	public static function filter_roles() {
-		add_filter( 'editable_roles', array( &$this, 'editable_roles' ) );
-		add_filter( 'map_meta_cap', array( &$this, 'map_meta_cap' ), 10, 4 );
-		add_filter( 'ramp-user-access-base', array( &$this, 'ramp_user_access_filter' ) );
+		add_filter( 'editable_roles', array( $this, 'editable_roles' ) );
+		add_filter( 'map_meta_cap', array( $this, 'map_meta_cap' ), 10, 4 );
+		add_filter( 'ramp-user-access-base', array( $this, 'ramp_user_access_filter' ) );
 	}
 	
 	/**

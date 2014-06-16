@@ -4,7 +4,7 @@ use \WP_Error;
 class HTML {
 
 	public $elements = array(
-		'selects' => array( 'select', 'multiselect', 'taxonomyselect', 'tax_as_meta', 'post_select' ),
+		'selects' => array( 'select', 'multiselect', 'taxonomyselect', 'tax_as_meta', 'post_select', 'post_multiselect' ),
 		'inputs' => array( 'text_area', 'number', 'text', 'boolean', 'email', 'url', 'date', 'radio', 'link', ),
 		'hidden' => array( 'nonce', 'hidden', 'separator' ),
 		);
@@ -89,13 +89,19 @@ class HTML {
 			);
 		}
 
-		if ( $field['type'] == 'post_select' ) {
+		if ( $field['type'] == 'post_select' || $field['type'] == 'post_multiselect' ) {
 			$args = $field['params'];
+			if ( $field['type'] == 'post_multiselect') {
+				$multi = 'multiple';
+			} else {
+				$multi = null;
+			}
 			$posts = get_posts($args);
 			HTML::post_select(
 				$slug = $field['slug'],
 				$posts = $posts,
 				$value = $field['value'],
+				$multi,
 				$placeholder = $field['placeholder'] );
 		}
 	}
@@ -224,10 +230,11 @@ class HTML {
 			wp_dropdown_categories( 'taxonomy=' . $taxonomy . '&hide_empty=0&orderby=name&name=' . $taxonomy . '&show_option_none=Select ' . $taxonomy . '&selected='. array_pop($IDs) );
 		else :	// otherwise use all the values set in $param to generate the option
 			if ( $multi == true ):
-				?> <select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>" multiple>
+				?> 
+				<label for="<?php echo esc_attr($slug) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" multiple></label>
 			<?php
 			else : ?>
-				<select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>">
+				<label for="<?php echo esc_attr($slug) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>"></label>
 				<?php
 				if ( empty( $value ) ): ?>
 					<option selected value=""><?php echo esc_html( $placeholder ) ?></option>
@@ -249,9 +256,9 @@ class HTML {
 	<?php
 	}
 
-	protected function post_select( $slug, $posts, $value, $placeholder = '--' ) { ?>
+	protected function post_select( $slug, $posts, $value, $multi, $placeholder = '--' ) { ?>
 		<p>
-			<select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>" >
+			<label for="<?php echo esc_attr( $slug ) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" <?php echo $multi; ?> ></label>
 				<?php if ( ! empty( $value ) ):
 					if ( is_numeric( $value) ):
 						$set_value = get_post($value)->post_title;
@@ -265,15 +272,15 @@ class HTML {
 					<option selected value="<?php echo esc_attr($value); ?>" ><?php echo esc_attr( $set_value ); ?></option>
 					<option value=""><?php echo $placeholder; ?></option>
 					<?php foreach ( $posts as $p ):
-							if ( $p->ID != $value && ! empty( $p->post_name ) ): ?>
-							<option value="<?php echo esc_attr( $p->ID ); ?>" ><?php echo esc_attr( $p->post_title ); ?></option>
+							if ( $p->post_name != $value && ! empty( $p->post_name ) ): ?>
+							<option value="<?php echo esc_attr( $p->post_name ); ?>" ><?php echo esc_attr( $p->post_title ); ?></option>
 					<?php endif; ?>
 					<?php endforeach; ?>
 				<?php else: ?>
 					<option selected value=""><?php echo $placeholder; ?></option>
 				<?php foreach ( $posts as $p ):
-					if ( $p->ID != $value && ! empty( $p->post_name ) ): ?>
-					<option value="<?php echo esc_attr( $p->ID ); ?>" ><?php echo esc_attr( $p->post_title ); ?></option>
+					if ( $p->post_name != $value && ! empty( $p->post_name ) ): ?>
+					<option value="<?php echo esc_attr( $p->post_name ); ?>" ><?php echo esc_attr( $p->post_title ); ?></option>
 				<?php endif; ?>
 				<?php endforeach; ?>
 			<?php endif; ?>

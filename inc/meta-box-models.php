@@ -22,7 +22,14 @@ class Models {
     public $Callbacks; // obj A class containing other validation methods
     public $View; // obj A class containing template patterns
     public $error;
-    private $selects = array( 'select', 'multiselect', 'taxonomyselect', 'tax_as_meta', 'post_select', 'post_multiselect' );
+    private $selects = array(
+        'select',
+        'multiselect',
+        'taxonomyselect',
+        'tax_as_meta',
+        'post_select',
+        'post_multiselect'
+    );
     private $inputs  = array(
         'text_area',
         'number',
@@ -69,7 +76,7 @@ class Models {
         if ( !is_array($this->post_type) ) {
             $this->post_type = array($this->post_type);
         }
-        $this->error = 'WP_Error';
+        $this->error = '\WP_Error';
     }
 
     public function set_callbacks( $Class ) {
@@ -162,19 +169,17 @@ public function validate_select( $field, $post_id ) {
     $data = $_POST[$key];
     $existing = get_post_meta( $post_id, $key, false );
     $count = count($existing);
-
-    if ( is_array($data) ) {
-        foreach ( $data as $d ) {
-            $term = sanitize_text_field( array_pop($d) );
-            $e_key = array_search($term, $existing);
-            if ( $e_key ) {
-                update_post_meta( $post_id, $key, $term, $prev_value = $existing[$e_key] );
-            } else {
-                add_post_meta( $post_id, $key, $d );
-            }
+    foreach ( (array)$data as $d ) {
+        if ( empty($d) ) {
+            return;
         }
-    } else {
-        var_dump($data);
+        $term = sanitize_text_field( $d );
+        $e_key = array_search($term, $existing);
+        if ( $e_key ) {
+            update_post_meta( $post_id, $key, $term, $prev_value = $existing[$e_key] );
+        } else {
+            add_post_meta( $post_id, $key, $d );
+        }
     }
 }
 
@@ -221,15 +226,30 @@ public function validate_date($field, $post_id) {
     }
 }
 
+/**
+ * checks that data is coming through in the types we expect or ferries out form 
+ * data to the appropriate validator. Run before save to ensure you're saving
+ * correct data. Essentially this takes in $_POST and pushes all the good stuff from
+ * $_POST into a separate, cleaned array and returns the cleaned data.
+ * 
+ * @return mixed either returns cleaned post values or errors if data is invalid
+ */
 public function validate( ) {
     if (isset($_POST['post_ID'])){
         $post_id = $_POST['post_ID'];
     } else {
         return;
     }
+    global $post;
+    if ( !in_array( $post->post_type, $this->post_type ) ) {
+        return;
+    }
     $data = array_intersect_key($_POST, $this->fields);
     $postvalues = array();
     foreach ( $this->fields as $field ) {
+        /* if this field is a taxonomy select, date, link or select field, we
+           send it out to another validator
+        */
         if ( $field['type'] === 'taxonomyselect') {
             $this->validate_taxonomyselect( $field, $post_id );
         } elseif ( in_array( $field['type'], $this->selects ) ) {
@@ -239,6 +259,11 @@ public function validate( ) {
         } elseif ( $field['type'] === 'link' ) {
             $this->validate_link($field, $post_id);
         } else {
+            /* 
+                For most field types we just need to make sure we have the data
+                we expect from the form and sanitize them before sending them to
+                save
+            */
             $key = $field['slug'];
             if ( isset( $_POST[$key] ) ) {
                 if ( $field['type'] === 'number' ) {
@@ -249,8 +274,14 @@ public function validate( ) {
                     $postvalues[$key] = esc_url_raw( $data[$key] ); // if we're expecting a url, make sure we get a url
                 } elseif ( $field['type'] === 'email' ) {
                     $postvalues[$key] = sanitize_email( $data[$key] ); // if we're expecting an email, make sure we get an email
-                } elseif ( ! empty( $data[$key] ) ) {
-                    $postvalues[$key] = strval( $data[$key] ); // make sure whatever we get for anything else is a string
+                } elseif ( ! empty( $data[$key] ) && ! is_array($data[$key])) {
+                    $postvalues[$key] = (string)$data[$key]; // make sure whatever we get for anything else is a string
+                /*
+                    Very unlikely you'll ever hit this path but if the data is somewhow not as we expect it to be, return an error
+                 */
+                // } else {
+                //     $error = new $this->error('_invalid_data', 'Data sent to validate must be a string or convertable');
+                //     echo "<pre>{$error->get_error_message('_invalid_data')}</pre>";
                 }
             }
         }

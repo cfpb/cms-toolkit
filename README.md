@@ -2,8 +2,6 @@
 WordPress CMS Toolkit
 ==============
 
-[![Build Status](https://travis-ci.org/cfpb/cms-toolkit.svg?branch=master)](https://travis-ci.org/cfpb/cms-toolkit)
-
 This plugin provides tools for extending WordPress for use as a Content Management System (CMS). Tools include 
 things like the function `build_post_type()`, a helper function for WordPress 
 core's `register_post_type` function. The goal of the Toolkit is to promote DRY coding 

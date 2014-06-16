@@ -13,7 +13,7 @@ think of it as a library - a collection of methods which, when installed, are
 available throughout the application and make building complex functionality 
 in WordPress a little easier.
 
-[![Build Status](https://travis-ci.org/gboone/cms-toolkit.svg?branch=master)](https://travis-ci.org/gboone/cms-toolkit)
+[![Build Status](https://travis-ci.org/cfpb/cms-toolkit.svg?branch=master)](https://travis-ci.org/cfpb/cms-toolkit)
 
 ## Table of Contents
 

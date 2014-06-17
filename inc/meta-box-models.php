@@ -137,27 +137,21 @@ public function validate_link( $field, $post_id ) {
     } else {
         $count = 1;
     }
-    $existing = get_post_meta( $post_id, $key, $single = false );
     for ( $i = 0; $i <= $count; $i++ ) {
         if ( empty( $_POST[$key . '_url_' . $i] ) || empty( $_POST[$key.'_text_' . $i]) ) {
             return;
         }
-        $url = $_POST[$key . '_url_' . $i];
-        $text = $_POST[$key . '_text_' . $i];
+        $url = $_POST["{$key}_url_{$i}"];
+        $text = $_POST["{$key}_text_{$i}"];
         $full_link = array( 0 => $url, 1 => $text );
         $meta_key = $key . "_{$i}";
-        if ( ! empty( $existing ) && $existing != $full_link ) {
-            delete_post_meta( $post_id, $meta_key );
+        $existing = get_post_meta( $post_id, $meta_key, $single = false );
+        if ( empty($existing) ) {
             add_post_meta( $post_id, $meta_key, $url, false );
             add_post_meta( $post_id, $meta_key, $text, false );
-        } elseif ( empty($existing) ) {
-            add_post_meta( $post_id, $meta_key, $url, false );
-            add_post_meta( $post_id, $meta_key, $url, false );
-        } elseif ( $existing != $full_link ) {
+        } else {
             update_post_meta( $post_id, $meta_key, $url, $existing[0] );
             update_post_meta( $post_id, $meta_key, $text, $existing[1] );
-        } else {
-            return;
         }
 
         $meta_key = $key;
@@ -175,9 +169,9 @@ public function validate_select( $field, $post_id ) {
         }
         $term = sanitize_text_field( $d );
         $e_key = array_search($term, $existing);
-        if ( $e_key ) {
+        if ( $e_key && $existing[$e_key] != $d ) {
             update_post_meta( $post_id, $key, $term, $prev_value = $existing[$e_key] );
-        } else {
+        } elseif ( empty($existing) ) {
             add_post_meta( $post_id, $key, $d );
         }
     }
@@ -247,6 +241,9 @@ public function validate( ) {
     $data = array_intersect_key($_POST, $this->fields);
     $postvalues = array();
     foreach ( $this->fields as $field ) {
+        if ( array_key_exists('do_not_validate', $field) ) {
+            return;
+        }
         /* if this field is a taxonomy select, date, link or select field, we
            send it out to another validator
         */

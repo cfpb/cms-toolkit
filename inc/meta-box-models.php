@@ -73,7 +73,7 @@ class Models {
         $this->Callbacks = new Callbacks();
         $this->View      = new View();
         $this->priority  = 'default';
-        if ( !is_array($this->post_type) ) {
+        if ( ! is_array($this->post_type) ) {
             $this->post_type = array($this->post_type);
         }
         $this->error = '\WP_Error';
@@ -162,23 +162,19 @@ public function validate_select( $field, $post_id ) {
     $key = $field['meta_key'];
     $data = $_POST[$key];
     $existing = get_post_meta( $post_id, $key, false );
-    $count = count($existing);
-    foreach ( (array)$data as $d ) {
-        if ( empty($d) ) {
-            return;
-        }
+    foreach ( $data as $d ) {
         $term = sanitize_text_field( $d );
         $e_key = array_search($term, $existing);
-        if ( $e_key && $existing[$e_key] != $d ) {
-            update_post_meta( $post_id, $key, $term, $prev_value = $existing[$e_key] );
-        } elseif ( empty($existing) ) {
-            add_post_meta( $post_id, $key, $d );
+        if ( isset($d) ) {
+            update_post_meta( $post_id, $key, $term );
+        } else {
+            error_log('Did nothing.', 0);
         }
     }
 }
 
 public function validate_taxonomyselect($field, $post_id) {
-    $key = $field['meta_key'];
+    $key = $field['slug'];
     if ( isset($_POST[$key] )) {
         $term = sanitize_text_field( $_POST[$key] );
         $term_exists = get_term_by('id', $term, $field['taxonomy']);
@@ -196,7 +192,7 @@ public function validate_taxonomyselect($field, $post_id) {
         $field['taxonomy'],
         $append = $field['multiple']
     );
-}
+    }
 }
 }
 
@@ -231,9 +227,9 @@ public function validate_date($field, $post_id) {
 public function validate( ) {
     global $post;
     $post_id = $post->ID;
-    if ( !in_array( $post->post_type, $this->post_type ) ) {
-        return error_log('Not on a post type registered for this box', 0);
-    }
+    // if ( ! in_array( $post->post_type, $this->post_type ) ) {
+    //     return error_log('Not on a post type registered for this box. Post type is ' . $post->post_type . ' but object has ' . array_pop($this->post_type), 0);
+    // }
 
     $data = array_intersect_key($_POST, $this->fields);
     $postvalues = array();
@@ -270,12 +266,6 @@ public function validate( ) {
                     $postvalues[$key] = sanitize_email( $data[$key] ); // if we're expecting an email, make sure we get an email
                 } elseif ( ! empty( $data[$key] ) && ! is_array($data[$key])) {
                     $postvalues[$key] = (string)$data[$key]; // make sure whatever we get for anything else is a string
-                /*
-                    Very unlikely you'll ever hit this path but if the data is somewhow not as we expect it to be, return an error
-                 */
-                // } else {
-                //     $error = new $this->error('_invalid_data', 'Data sent to validate must be a string or convertable');
-                //     echo "<pre>{$error->get_error_message('_invalid_data')}</pre>";
                 }
             }
         }

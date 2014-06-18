@@ -234,7 +234,7 @@ class HTML {
 				<label for="<?php echo esc_attr($slug) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" multiple></label>
 			<?php
 			else : ?>
-				<label for="<?php echo esc_attr($slug) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>"></label>
+				<label for="<?php echo esc_attr($slug) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]"></label>
 				<?php
 				if ( empty( $value ) ): ?>
 					<option selected value=""><?php echo esc_html( $placeholder ) ?></option>
@@ -290,15 +290,18 @@ class HTML {
 	}
 
 	protected function taxonomy_as_meta( $slug, $params, $taxonomy, $key, $placeholder = '--', $value ) {?>
-		<select name='<?php echo esc_attr( $slug )?>'><?php
+		<select name='<?php echo esc_attr( $slug )?>[]'><?php
 			if ( isset( $value ) ):?>
 				<option selected value="<?php echo esc_attr( $value ) ?>" id="<?php echo esc_attr( $key ) ?>"><?php echo esc_html( $value ) ?></option><?php
-			endif;?>
+			else:?>
 			<option value="" id="no_<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>"><?php echo esc_html( $placeholder ) ?></option><?php
-			foreach ( $params as $term_id ):
-				$term = get_term_by( $field = 'id', $value = strval( $term_id ), $taxonomy, $output = OBJECT, $filter = 'raw' ); ?>
-				<option value="<?php echo esc_attr( $term->name ) ?>" name="<?php echo esc_attr( $slug ) ?>" class="<?php echo esc_attr( $term_id ) ?>"><?php echo esc_html( $term->name )  ?> (<?php echo esc_html( $term->count ) ?>)</option><?php
-			endforeach;?>
+			endif;
+				foreach ( $params as $term_id ):
+					$term = get_term_by( $field = 'id', $value = strval( $term_id ), $taxonomy, $output = OBJECT, $filter = 'raw' ); 
+					if ($term):?>
+					<option value="<?php echo esc_attr( $term->slug ) ?>"><?php echo esc_html( $term->name )  ?> (<?php echo esc_html( $term->count ) ?>)</option><?php
+					endif;
+				endforeach;?>
 		</select>
 		</p><?php
 	}

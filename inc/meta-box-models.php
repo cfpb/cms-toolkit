@@ -73,7 +73,7 @@ class Models {
         $this->Callbacks = new Callbacks();
         $this->View      = new View();
         $this->priority  = 'default';
-        if ( !is_array($this->post_type) ) {
+        if ( ! is_array($this->post_type) ) {
             $this->post_type = array($this->post_type);
         }
         $this->error = '\WP_Error';
@@ -137,27 +137,21 @@ public function validate_link( $field, $post_id ) {
     } else {
         $count = 1;
     }
-    $existing = get_post_meta( $post_id, $key, $single = false );
     for ( $i = 0; $i <= $count; $i++ ) {
         if ( empty( $_POST[$key . '_url_' . $i] ) || empty( $_POST[$key.'_text_' . $i]) ) {
             return;
         }
-        $url = $_POST[$key . '_url_' . $i];
-        $text = $_POST[$key . '_text_' . $i];
+        $url = $_POST["{$key}_url_{$i}"];
+        $text = $_POST["{$key}_text_{$i}"];
         $full_link = array( 0 => $url, 1 => $text );
         $meta_key = $key . "_{$i}";
-        if ( ! empty( $existing ) && $existing != $full_link ) {
-            delete_post_meta( $post_id, $meta_key );
+        $existing = get_post_meta( $post_id, $meta_key, $single = false );
+        if ( empty($existing) ) {
             add_post_meta( $post_id, $meta_key, $url, false );
             add_post_meta( $post_id, $meta_key, $text, false );
-        } elseif ( empty($existing) ) {
-            add_post_meta( $post_id, $meta_key, $url, false );
-            add_post_meta( $post_id, $meta_key, $url, false );
         } elseif ( $existing != $full_link ) {
             update_post_meta( $post_id, $meta_key, $url, $existing[0] );
             update_post_meta( $post_id, $meta_key, $text, $existing[1] );
-        } else {
-            return;
         }
 
         $meta_key = $key;
@@ -168,17 +162,13 @@ public function validate_select( $field, $post_id ) {
     $key = $field['meta_key'];
     $data = $_POST[$key];
     $existing = get_post_meta( $post_id, $key, false );
-    $count = count($existing);
-    foreach ( (array)$data as $d ) {
-        if ( empty($d) ) {
-            return;
-        }
+    foreach ( $data as $d ) {
         $term = sanitize_text_field( $d );
         $e_key = array_search($term, $existing);
-        if ( $e_key ) {
-            update_post_meta( $post_id, $key, $term, $prev_value = $existing[$e_key] );
+        if ( isset($d) ) {
+            update_post_meta( $post_id, $key, $term );
         } else {
-            add_post_meta( $post_id, $key, $d );
+            error_log('Did nothing.', 0);
         }
     }
 }
@@ -202,7 +192,7 @@ public function validate_taxonomyselect($field, $post_id) {
         $field['taxonomy'],
         $append = $field['multiple']
     );
-}
+    }
 }
 }
 
@@ -235,22 +225,22 @@ public function validate_date($field, $post_id) {
  * @return mixed either returns cleaned post values or errors if data is invalid
  */
 public function validate( ) {
-    if (isset($_POST['post_ID'])){
-        $post_id = $_POST['post_ID'];
-    } else {
-        return;
-    }
     global $post;
-    if ( !in_array( $post->post_type, $this->post_type ) ) {
-        return;
-    }
+    $post_id = $post->ID;
+    // if ( ! in_array( $post->post_type, $this->post_type ) ) {
+    //     return error_log('Not on a post type registered for this box. Post type is ' . $post->post_type . ' but object has ' . array_pop($this->post_type), 0);
+    // }
+
     $data = array_intersect_key($_POST, $this->fields);
     $postvalues = array();
     foreach ( $this->fields as $field ) {
+        if ( array_key_exists('do_not_validate', $field) ) {
+            return;
+        }
         /* if this field is a taxonomy select, date, link or select field, we
            send it out to another validator
         */
-        if ( $field['type'] === 'taxonomyselect') {
+        if ( $field['type'] == 'taxonomyselect') {
             $this->validate_taxonomyselect( $field, $post_id );
         } elseif ( in_array( $field['type'], $this->selects ) ) {
             $this->validate_select( $field, $post_id );
@@ -276,12 +266,6 @@ public function validate( ) {
                     $postvalues[$key] = sanitize_email( $data[$key] ); // if we're expecting an email, make sure we get an email
                 } elseif ( ! empty( $data[$key] ) && ! is_array($data[$key])) {
                     $postvalues[$key] = (string)$data[$key]; // make sure whatever we get for anything else is a string
-                /*
-                    Very unlikely you'll ever hit this path but if the data is somewhow not as we expect it to be, return an error
-                 */
-                // } else {
-                //     $error = new $this->error('_invalid_data', 'Data sent to validate must be a string or convertable');
-                //     echo "<pre>{$error->get_error_message('_invalid_data')}</pre>";
                 }
             }
         }

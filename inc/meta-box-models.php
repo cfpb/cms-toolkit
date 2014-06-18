@@ -149,7 +149,7 @@ public function validate_link( $field, $post_id ) {
         if ( empty($existing) ) {
             add_post_meta( $post_id, $meta_key, $url, false );
             add_post_meta( $post_id, $meta_key, $text, false );
-        } else {
+        } elseif ( $existing != $full_link ) {
             update_post_meta( $post_id, $meta_key, $url, $existing[0] );
             update_post_meta( $post_id, $meta_key, $text, $existing[1] );
         }
@@ -178,7 +178,7 @@ public function validate_select( $field, $post_id ) {
 }
 
 public function validate_taxonomyselect($field, $post_id) {
-    $key = $field['slug'];
+    $key = $field['meta_key'];
     if ( isset($_POST[$key] )) {
         $term = sanitize_text_field( $_POST[$key] );
         $term_exists = get_term_by('id', $term, $field['taxonomy']);
@@ -229,15 +229,12 @@ public function validate_date($field, $post_id) {
  * @return mixed either returns cleaned post values or errors if data is invalid
  */
 public function validate( ) {
-    if (isset($_POST['post_ID'])){
-        $post_id = $_POST['post_ID'];
-    } else {
-        return;
-    }
     global $post;
+    $post_id = $post->ID;
     if ( !in_array( $post->post_type, $this->post_type ) ) {
-        return;
+        return error_log('Not on a post type registered for this box', 0);
     }
+
     $data = array_intersect_key($_POST, $this->fields);
     $postvalues = array();
     foreach ( $this->fields as $field ) {
@@ -247,7 +244,7 @@ public function validate( ) {
         /* if this field is a taxonomy select, date, link or select field, we
            send it out to another validator
         */
-        if ( $field['type'] === 'taxonomyselect') {
+        if ( $field['type'] == 'taxonomyselect') {
             $this->validate_taxonomyselect( $field, $post_id );
         } elseif ( in_array( $field['type'], $this->selects ) ) {
             $this->validate_select( $field, $post_id );

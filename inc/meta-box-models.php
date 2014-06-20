@@ -242,12 +242,6 @@ public function validate_date($field, $post_id) {
  * @return mixed either returns cleaned post values or errors if data is invalid
  */
 public function validate( $post_ID ) {
-    $post = get_post($post_ID);
-    $post_id = $post->ID;
-    // if ( ! in_array( $post->post_type, $this->post_type ) ) {
-    //     return error_log('Not on a post type registered for this box. Post type is ' . $post->post_type . ' but object has ' . array_pop($this->post_type), 0);
-    // }
-
     $data = array_intersect_key($_POST, $this->fields);
     $postvalues = array();
     foreach ( $this->fields as $field ) {
@@ -258,13 +252,13 @@ public function validate( $post_ID ) {
            send it out to another validator
         */
         if ( $field['type'] == 'taxonomyselect') {
-            $this->validate_taxonomyselect( $field, $post_id );
+            $this->validate_taxonomyselect( $field, $post_ID );
         } elseif ( in_array( $field['type'], $this->selects ) ) {
-            $this->validate_select( $field, $post_id );
+            $this->validate_select( $field, $post_ID );
         } elseif ( $field['type'] === 'date' ) {
-            $this->validate_date( $field, $post_id );
+            $this->validate_date( $field, $post_ID );
         } elseif ( $field['type'] === 'link' ) {
-            $this->validate_link($field, $post_id);
+            $this->validate_link($field, $post_ID);
         } else {
             /* 
                 For most field types we just need to make sure we have the data
@@ -287,7 +281,6 @@ public function validate( $post_ID ) {
             }
         }
     }
-
     return $postvalues;
 }
 
@@ -307,6 +300,8 @@ public function save( $post_ID, $postvalues ) {
 
 public function validate_and_save( $post_ID ) {
     $validate = $this->validate( $post_ID );
+    $type = gettype($validate);
+    $count = count($validate);
     $this->save( $post_ID, $validate );
 }
 /**

@@ -37,8 +37,10 @@ function cfpb_build_plugin() {
 
 function cfpb_cms_toolkit_scripts() {
 	wp_enqueue_script('cms_tookit', plugins_url('/js/functions.js', __FILE__), 'jquery', '1.0', true );
-	wp_register_style( 'cms_toolkit_styles', plugins_url('/css/styles.css', __FILE__ ), null, '1.0');
+	wp_enqueue_script( 'multi-select_js', plugins_url( '/js/jquery.multi-select.js', __FILE__ ), 'jquery', '1.0', $in_footer = true );
+	wp_register_style( 'cms_toolkit_styles',  plugins_url( '/css/styles.css', __FILE__ ), null, '1.0');
 	wp_enqueue_style( 'cms_toolkit_styles' );
+	wp_enqueue_style( 'multi-select_styles' );
 }
 
 add_action( 'plugins_loaded', 'cfpb_build_plugin', $priority = 1 );

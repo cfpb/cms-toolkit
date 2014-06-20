@@ -160,15 +160,32 @@ public function validate_link( $field, $post_id ) {
 
 public function validate_select( $field, $post_id ) {
     $key = $field['meta_key'];
-    $data = $_POST[$key];
     $existing = get_post_meta( $post_id, $key, false );
-    foreach ( $data as $d ) {
-        $term = sanitize_text_field( $d );
-        $e_key = array_search($term, $existing);
-        if ( isset($d) ) {
-            update_post_meta( $post_id, $key, $term );
-        } else {
-            error_log('Did nothing.', 0);
+    $data = $_POST[$key];
+    if ( array_key_exists($key, $_POST) ) {
+        foreach ( $data as $d ) {
+            // Adding or updating terms
+            $term = sanitize_text_field( $d );
+            $e_key = array_search($term, $existing);
+            if ( ! in_array($d, (array)$existing) ) {
+                // if the term is not in $existing, it's a new term, add it
+                // we use add_post_meta instead of update so we can have more
+                // than one value on the array
+                add_post_meta( $post_id, $key, $term );
+            }
+        }
+        // delete terms if they're not in the $_POST data
+        foreach ( (array)$existing as $e ) {
+            if ( ! in_array($e, $data) ) {
+                delete_post_meta( $post_id, $key, $meta_value = $e );
+            }
+        }
+    }  else {
+        if ( ! empty($existing) ) {
+            delete_post_meta( $post_id, $key );
+            // if there's no $_POST data but the post has meta data
+            // it means someone removed the term from the multiselect
+            // and we shoudl delete the metadata. 
         }
     }
 }
@@ -224,8 +241,8 @@ public function validate_date($field, $post_id) {
  * 
  * @return mixed either returns cleaned post values or errors if data is invalid
  */
-public function validate( ) {
-    global $post;
+public function validate( $post_ID ) {
+    $post = get_post($post_ID);
     $post_id = $post->ID;
     // if ( ! in_array( $post->post_type, $this->post_type ) ) {
     //     return error_log('Not on a post type registered for this box. Post type is ' . $post->post_type . ' but object has ' . array_pop($this->post_type), 0);
@@ -289,7 +306,7 @@ public function save( $post_ID, $postvalues ) {
 }
 
 public function validate_and_save( $post_ID ) {
-    $validate = $this->validate( );
+    $validate = $this->validate( $post_ID );
     $this->save( $post_ID, $validate );
 }
 /**

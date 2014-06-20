@@ -6,9 +6,9 @@ php:
 before_script: 
   - composer self-update
   - composer install
+  - rm -rf report/
 script:
   - phpunit --coverage-text --coverage-html report/
 after_failure:
 after_success:
 after_script:
-  - rm -rf report/

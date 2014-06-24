@@ -139,14 +139,18 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 
 	function testEmailExpectsSanitizeMethodCalled() {
 		// arrange
+		global $post;
 		\WP_Mock::wpPassthruFunction('sanitize_email', array('times' => 1));
+		// \WP_Mock::wpPassthruFunction(
+		// 	'get_post', 
+		// 	array('times' => 1, 'return' => $post)
+		// );
 		$TestValidEmailField = new TestValidEmailField();
 		$_POST = array(
 			'one' => 'foo@bar.baz',
-			'post_ID' => 1,
 		);
 		// act
-		$actual = $TestValidEmailField->validate();
+		$actual = $TestValidEmailField->validate($post->ID);
 	}
 
 	/**
@@ -201,7 +205,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$form->set_callbacks($stub);
 		$_POST =array('post_ID' => 1, 'category_year' => '1970');
 		// act
-		$actual = $form->validate();
+		$actual = $form->validate($_POST['post_ID']);
 
 		// assert
 	}
@@ -222,7 +226,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$actual = $TestNumberField->validate();
+		$actual = $TestNumberField->validate($_POST['post_ID']);
 
 		// assert
 		$expected = array('field_one' => 2);
@@ -252,7 +256,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$actual = $TestNumberField->validate();
+		$actual = $TestNumberField->validate($_POST['post_ID']);
 		// assert
 		$expected = array();
 		$this->assertEquals(
@@ -281,7 +285,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$actual = $TestValidTextField->validate();
+		$actual = $TestValidTextField->validate($_POST['post_ID']);
 
 		// assert
 		$this->assertEquals(
@@ -301,7 +305,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	function testTextFieldGivenNumberExpectsNumericStringValueReturned() {
 
 		// arrange
-
+		global $post;
 		$TestValidTextField = new TestValidTextField();
 		$TestValidTextField->fields['one']['type'] = 'text';
 		$_POST = array(
@@ -310,7 +314,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$actual = $TestValidTextField->validate($_POST);
+		$actual = $TestValidTextField->validate($_POST['post_ID']);
 
 		// assert
 		$this->assertEquals(array('one' => '1'), $actual);
@@ -326,15 +330,22 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 */
 	function testTextAreaFieldExpectsStringReturned() {
 		// arrange
-
+		global $post;
+		$post = new \StdClass();
+		$post->ID = 1;
+		$post->post_type = 'post';
 		$TestValidTextAreaField = new TestValidTextAreaField();
+		// \WP_Mock::wpFunction(
+		// 	'get_post',
+		// 	array('times' => 1, 'returns' => $post)
+		// );
 		$_POST = array(
 			'post_ID' => 1,
 			'one' => 'Foo',
 		);
 
 		// act
-		$actual = $TestValidTextAreaField->validate($_POST);
+		$actual = $TestValidTextAreaField->validate($post->ID);
 
 		//assert
 		$this->assertEquals(array('one' => 'Foo'), $actual);
@@ -350,10 +361,13 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	function testTextAreaFieldNonStringExpectsSringReturned() {
 		// arrange
 		global $post; 
-		$post = new StdClass;
-		$post->post_type = 'post';
-		$post->ID = 1;
+		// $post = new StdClass;
+		// $post->post_type = 'post';
+		// $post->ID = 1;
 		$stub = $this->getMock('\WP_Error', array('get_error_message'));
+		// \WP_Mock::wpFunction(
+		// 	'get_post',
+		// 	array('times' => 1, 'return' => $post));
 		$TestValidTextAreaField = new TestValidTextAreaField();
 		$TestValidTextAreaField->error_handler($stub);
 		$_POST = array(
@@ -362,7 +376,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$actual = $TestValidTextAreaField->validate($_POST);
+		$actual = $TestValidTextAreaField->validate($post->ID);
 
 		// assert
 		$this->assertTrue(is_array($actual));
@@ -378,11 +392,15 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 */
 	function testURLFieldExpectsEscRawURLCall() {
 		// arrange
-
+		global $post;
 		\WP_Mock::wpPassthruFunction(
 			'esc_url_raw',
 			array('times' => 1, 'return' => 'http://google.com')
 		);
+		// \WP_Mock::wpFunction(
+		// 	'get_post',
+		// 	array('times' => 1,'return' => $post,)
+		// );
 		$TestValidEmailField = new TestValidEmailField();
 		$TestValidEmailField->fields['one']['type'] = 'url';
 		$_POST = array(
@@ -390,7 +408,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$actual = $TestValidEmailField->validate($_POST);
+		$actual = $TestValidEmailField->validate($post->ID);
 	}
 
 	/**
@@ -862,22 +880,26 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 */
 	function testTermExistsExpectsStringUsed() {
 		// Arrange
+		global $post;
 		$form = new TestNumberField();
 		$form->fields['field_one']['type'] = 'taxonomyselect';
 		$form->fields['field_one']['taxonomy'] = 'category';
 		$form->fields['field_one']['multiple'] = false;
-		$_POST = array( 'post_ID' => 1, 'field_one' => 'term' );
+		$_POST = array( 'field_one' => 'term' );
 		$existing = new \StdClass;
 		$existing->name = 'Sluggo';
 		\WP_Mock::wpFunction('sanitize_text_field', array('times' => 1));
 		\WP_Mock::wpFunction(
 			'get_term_by', 
 			array('times' => 1, 'return' => $existing));
+		// \WP_Mock::wpFunction(
+		// 	'get_post',
+		// 	array('times' => 1, 'return' => $post));
 		\WP_Mock::wpFunction('wp_set_object_terms', array( 'times' => 1 ) );
 
 		// Act
 		// $form->validate_taxonomyselect($form->fields['field_one'], $post->ID);
-		$form->validate();
+		$form->validate($post->ID);
 
 		// Assert: test will fail if wp_set_object_terms, get_term_by or
 		// sanitize_text_field do not fire or fire more than once

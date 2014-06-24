@@ -96,11 +96,13 @@ class HTML {
 			} else {
 				$multi = null;
 			}
+			global $post;
+			$value = get_post_meta( $post->ID, $field['meta_key'], $single = false );
 			$posts = get_posts($args);
 			HTML::post_select(
 				$slug = $field['slug'],
 				$posts = $posts,
-				$value = $field['value'],
+				$value,
 				$multi,
 				$placeholder = $field['placeholder'] );
 		}
@@ -223,18 +225,15 @@ class HTML {
 	 *              if no value selected. Default: '--'
 	 *
 	**/
-	protected function select( $slug, $params = array(), $taxonomy = false, $multi = false, $value = null, $placeholder = '--' ) { ?>
+	protected function select( $slug, $params = array(), $taxonomy = false, $multi = null, $value = null, $placeholder = '--' ) { ?>
 		<p><?php
 		if ( $taxonomy != false ): // if a taxonomy is set, use wp_dropdown category to generate the select box
 			$IDs = wp_get_object_terms( get_the_ID(), $taxonomy, array( 'fields' => 'ids' ) );
 			wp_dropdown_categories( 'taxonomy=' . $taxonomy . '&hide_empty=0&orderby=name&name=' . $taxonomy . '&show_option_none=Select ' . $taxonomy . '&selected='. array_pop($IDs) );
 		else :	// otherwise use all the values set in $param to generate the option
-			if ( $multi == true ):
+				$mutli = isset($multi) ? 'mutliple' : null;
 				?> 
-				<label for="<?php echo esc_attr($slug) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" multiple></label>
-			<?php
-			else : ?>
-				<label for="<?php echo esc_attr($slug) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]"></label>
+				<label for="<?php echo esc_attr($slug) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" <?php echo $multiple ?>></label>
 				<?php
 				if ( empty( $value ) ): ?>
 					<option selected value=""><?php echo esc_html( $placeholder ) ?></option>
@@ -243,7 +242,6 @@ class HTML {
 					<option value=""><?php echo esc_html( $placeholder ) ?></option>
 					<option selected="selected" value="<?php echo esc_attr( $value ) ?>" ><?php echo esc_html( $value ) ?></option><?php
 				endif;
-			endif;
 
 			foreach ( $params as $option ): ?>
 				<option value="<?php echo esc_attr( $option ) ?>"><?php echo esc_html( $option ) ?></option>
@@ -256,41 +254,33 @@ class HTML {
 	<?php
 	}
 
-	protected function post_select( $slug, $posts, $value, $multi, $placeholder = '--' ) { ?>
+	protected function post_select( $slug, $posts, $value, $multi, $placeholder = '--' ) { 
+		global $post;
+		$selected = null;?>
 		<p>
-			<label for="<?php echo esc_attr( $slug ) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" <?php echo $multi; ?> ></label>
-				<?php if ( ! empty( $value ) ):
-					if ( is_numeric( $value) ):
-						$set_value = get_post($value)->post_title;
-					elseif ( filter_var($value, FILTER_VALIDATE_URL) ):
-						$id = url_to_postid( $value );
-						$set_value = get_post($id)->post_title;
-					else:
-						$set_value = $value;
-					endif;
-					?>
-					<option selected value="<?php echo esc_attr($value); ?>" ><?php echo esc_attr( $set_value ); ?></option>
-					<option value=""><?php echo $placeholder; ?></option>
-					<?php foreach ( $posts as $p ):
-							if ( $p->post_name != $value && ! empty( $p->post_name ) ): ?>
-							<option value="<?php echo esc_attr( $p->post_name ); ?>" ><?php echo esc_attr( $p->post_title ); ?></option>
-					<?php endif; ?>
-					<?php endforeach; ?>
-				<?php else: ?>
-					<option selected value=""><?php echo $placeholder; ?></option>
+			<label for="<?php echo esc_attr( $slug ) ?>"><select class="<?php echo esc_attr($multi)?>" id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" <?php echo $multi; ?> ></label>
+				<?php if ( $multi == null ):
+						if ( empty( $value )  ): ?>
+							<option value='' selected>-- Nothing selected --</option>
+						<?php else: ?>
+					<option value=''>-- Nothing selected --</option>
+					<?php endif; 
+				endif; ?>
 				<?php foreach ( $posts as $p ):
-					if ( $p->post_name != $value && ! empty( $p->post_name ) ): ?>
-					<option value="<?php echo esc_attr( $p->post_name ); ?>" ><?php echo esc_attr( $p->post_title ); ?></option>
-				<?php endif; ?>
+					if ( in_array($p->post_name, (array)$value) ):
+						$selected = "selected";
+					else:
+						$selected = null;
+					endif;?>
+					<option <?php echo $selected ?> value="<?php echo esc_attr( $p->post_name )?>"><?php echo $p->post_title; ?></option>
 				<?php endforeach; ?>
-			<?php endif; ?>
-			</select>
+			</select>			
 		</p>
 		<?php
 	}
 
-	protected function taxonomy_as_meta( $slug, $params, $taxonomy, $key, $placeholder = '--', $value ) {?>
-		<select name='<?php echo esc_attr( $slug )?>[]'><?php
+	protected function taxonomy_as_meta( $slug, $params, $taxonomy, $key, $placeholder = '--', $value, $multi=null ) {?>
+		<select class="<?php echo esc_attr($mutli) ?>" name='<?php echo esc_attr( $slug )?>[]' <?php echo esc_attr( $multi )?> ><?php
 			if ( isset( $value ) ):?>
 				<option selected value="<?php echo esc_attr( $value ) ?>" id="<?php echo esc_attr( $key ) ?>"><?php echo esc_html( $value ) ?></option><?php
 			else:?>

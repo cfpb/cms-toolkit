@@ -15,3 +15,10 @@ function clear_link_manager(id) {
     labels.show();
     span.remove();
 }
+
+jQuery(document).ready(function($){
+    $('select.multiple').multiSelect({
+        selectableHeader: "<label>Click a post name to select it.</label>",
+        selectionHeader: "<label>Click a post name to remove it.</label>",
+    });
+} );

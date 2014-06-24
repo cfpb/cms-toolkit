@@ -160,15 +160,32 @@ public function validate_link( $field, $post_id ) {
 
 public function validate_select( $field, $post_id ) {
     $key = $field['meta_key'];
-    $data = $_POST[$key];
     $existing = get_post_meta( $post_id, $key, false );
-    foreach ( $data as $d ) {
-        $term = sanitize_text_field( $d );
-        $e_key = array_search($term, $existing);
-        if ( isset($d) ) {
-            update_post_meta( $post_id, $key, $term );
-        } else {
-            error_log('Did nothing.', 0);
+    $data = $_POST[$key];
+    if ( array_key_exists($key, $_POST) ) {
+        foreach ( $data as $d ) {
+            // Adding or updating terms
+            $term = sanitize_text_field( $d );
+            $e_key = array_search($term, $existing);
+            if ( ! in_array($d, (array)$existing) ) {
+                // if the term is not in $existing, it's a new term, add it
+                // we use add_post_meta instead of update so we can have more
+                // than one value on the array
+                add_post_meta( $post_id, $key, $term );
+            }
+        }
+        // delete terms if they're not in the $_POST data
+        foreach ( (array)$existing as $e ) {
+            if ( ! in_array($e, $data) ) {
+                delete_post_meta( $post_id, $key, $meta_value = $e );
+            }
+        }
+    }  else {
+        if ( ! empty($existing) ) {
+            delete_post_meta( $post_id, $key );
+            // if there's no $_POST data but the post has meta data
+            // it means someone removed the term from the multiselect
+            // and we should delete the metadata. 
         }
     }
 }
@@ -224,13 +241,7 @@ public function validate_date($field, $post_id) {
  * 
  * @return mixed either returns cleaned post values or errors if data is invalid
  */
-public function validate( ) {
-    global $post;
-    $post_id = $post->ID;
-    // if ( ! in_array( $post->post_type, $this->post_type ) ) {
-    //     return error_log('Not on a post type registered for this box. Post type is ' . $post->post_type . ' but object has ' . array_pop($this->post_type), 0);
-    // }
-
+public function validate( $post_ID ) {
     $data = array_intersect_key($_POST, $this->fields);
     $postvalues = array();
     foreach ( $this->fields as $field ) {
@@ -241,13 +252,13 @@ public function validate( ) {
            send it out to another validator
         */
         if ( $field['type'] == 'taxonomyselect') {
-            $this->validate_taxonomyselect( $field, $post_id );
+            $this->validate_taxonomyselect( $field, $post_ID );
         } elseif ( in_array( $field['type'], $this->selects ) ) {
-            $this->validate_select( $field, $post_id );
+            $this->validate_select( $field, $post_ID );
         } elseif ( $field['type'] === 'date' ) {
-            $this->validate_date( $field, $post_id );
+            $this->validate_date( $field, $post_ID );
         } elseif ( $field['type'] === 'link' ) {
-            $this->validate_link($field, $post_id);
+            $this->validate_link($field, $post_ID);
         } else {
             /* 
                 For most field types we just need to make sure we have the data
@@ -270,7 +281,6 @@ public function validate( ) {
             }
         }
     }
-
     return $postvalues;
 }
 
@@ -289,7 +299,9 @@ public function save( $post_ID, $postvalues ) {
 }
 
 public function validate_and_save( $post_ID ) {
-    $validate = $this->validate( );
+    $validate = $this->validate( $post_ID );
+    $type = gettype($validate);
+    $count = count($validate);
     $this->save( $post_ID, $validate );
 }
 /**

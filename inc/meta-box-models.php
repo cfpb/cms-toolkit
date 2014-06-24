@@ -185,7 +185,7 @@ public function validate_select( $field, $post_id ) {
             delete_post_meta( $post_id, $key );
             // if there's no $_POST data but the post has meta data
             // it means someone removed the term from the multiselect
-            // and we shoudl delete the metadata. 
+            // and we should delete the metadata. 
         }
     }
 }

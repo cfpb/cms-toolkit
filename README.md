@@ -219,6 +219,8 @@ site. Creating a new meta box is as simple as:
 
 ```php
 <?php
+// metabox.php
+namespace testNamespace;
 class TestMetaBox extends \CFPB\Utils\MetaBox\Models {
     public $title = 'Meta Box';
     public $slug = 'meta_box';
@@ -252,10 +254,43 @@ class TestMetaBox extends \CFPB\Utils\MetaBox\Models {
     }
 }
 
-$T = new TestMetaBox();
+?>
+```
 
-add_action( 'add_meta_boxes', array($T, 'generate') );
-add_action( 'save_post', array($T, 'validate_and_save') );
+Then hook your functions into your plugin activation. We recommend using three 
+functions within a class to do this: one function to call `generate` out of your
+meta box class, another to call `validate_and_save`, and a third to add those 
+functions to their appropriate actions. Finally, hook the third function into
+plugins_loaded.
+
+```
+<?php
+// plugin.php
+namespace testNamespace;
+class Base {
+    function hook_the_things() {
+        require_once( 'metabox.php');
+
+        add_action( 'save_post', array( '\testNamespace\TestMetaBox', 'do_the_saves' ) );
+        add_action( 'add_meta_boxes', array( '\testNamespace', 'add_the_box' ) );
+    }
+    function add_the_box() {
+        $TestMetaBox = new \testNamespace\TestMetaBox();
+
+        $TestMetaBox->generate();
+    }
+
+    function do_the_saves( $post_id ) {
+        $post = get_post( $post_id );
+        $TestMetaBox = new \testNamespace\TestMetaBox();
+        if ( in_array($post->post_type, $TestMetaBox->post_type)) {
+            $TestMetaBox->validate_and_save($post_id);
+        }
+    }
+}
+add_action( 'plugins_loaded', array( '\testNamespace\Base', 'hook_the_things' ) );
+
+
 ?>
 ```
 The class has a few key parts, the public variables $title, $slug, $post_type, and
@@ -279,7 +314,7 @@ with a mock.
 
 This class also contains methods for validating and saving this form, too. Lines
 106-148 handle form data. To use these validators, just hook `validate_and_save` into
-`save_post` just as you would if you rolled your own meta box.
+`save_post` as illustrated above.
 
 #### Fields
 
@@ -330,9 +365,10 @@ values are listed below. Check the unit tests for examples of how to use each ty
 * `radio` two input fields with values 'true' and 'false' (this may change in the future)
 * `email` an input with the 'email' type
 * `url` an input with the 'url' type
+* `link` two inputs, one with the `url` type and another with `text`, validates as an array like `array(0 => 'url', 1 => 'text')`;
 * `date` generates a trio of fields: a dropdown for months and two input fields for day and year
 * `select` generates a `<select>` field with options specified in the 'params' array. For example `'param' => array( 'one', 'two', 'three',),`
-* `mutliselect` is identical to `select` except that it passes the 'multiple' attribute allowing users to select multiple values
+* `mutliselect` is identical to `select` except that it passes the 'multiple' attribute, generating a multiselect box styled with [multiselect.js](http://loudev.com)
 * `taxonomyselect` generates a `<select>` field with options pulled from the terms attached to the taxonomy specified in `meta_key`
 * `nonce` generates a WordPress Nonce field using 'slug' for the ID
 * `hidden` generates a hidden field with a value you can pass in 'params'

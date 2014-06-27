@@ -161,9 +161,9 @@ public function validate_link( $field, $post_id ) {
 public function validate_select( $field, $post_id ) {
     $key = $field['meta_key'];
     $existing = get_post_meta( $post_id, $key, false );
-    $data = $_POST[$key];
     if ( array_key_exists($key, $_POST) ) {
-        foreach ( $data as $d ) {
+        $data = $_POST[$key];
+        foreach ( (array)$data as $d ) {
             // Adding or updating terms
             $term = sanitize_text_field( $d );
             $e_key = array_search($term, $existing);

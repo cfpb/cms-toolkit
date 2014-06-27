@@ -128,6 +128,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		\WP_Mock::tearDown();
 	}
 
+/***************************
+ * Validation method tests *
+ ***************************/
+
 	/**
 	 * Tests whether the validate method when called on an email field calls
 	 * 'sanitize_email' from the WP API once
@@ -151,41 +155,6 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 		// act
 		$actual = $TestValidEmailField->validate($post->ID);
-	}
-
-	/**
-	 * Tests whether the validate method when called on a date field calls the
-	 * date method from the Callbacks class.
-	 *
-	 * @group stable
-	 * @group date
-	 * @group isolated
-	 * @group user_input
-	 */
-	function testValidDateFieldExpectsCallbackCalledOnce() {
-		// arrange
-		$stub = $this->getMockBuilder('Callbacks')
-					->setMethods(array('date'))
-					->getMock();
-
-		$stub->expects( $this->once() )
-			 ->method( 'date' )
-			 ->with( $this->anything(), $this->anything(), $this->anything() );
-
-		// $stub->expects( $this->once() )
-		// 	->method( 'method' );
-
-		$form = new TestValidDateField();
-		$form->set_callbacks($stub);
-		$_POST = array(
-			'post_ID' => 1,
-			'category_year' => '1970' ,
-			'category_month' => 'January',
-			'category_day' => '01');
-
-		// act
-		$form->validate_date( $form->fields['category'], $_POST['post_ID']);
-		// $stub->method();
 	}
 
 	/**
@@ -411,6 +380,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$actual = $TestValidEmailField->validate($post->ID);
 	}
 
+/***************
+ * Save method *
+ ***************/
+
 	/**
 	 * Tests whether save will call update_post_meta
 	 *
@@ -496,179 +469,43 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$factory->validate_and_save( 1 );
 	}
 
+/**************************
+ * Specialized validators *
+ **************************/
+
 	/**
-	 * Tests whether calling date_meta_box from this class results in an error
+	 * Tests whether the validate method when called on a date field calls the
+	 * date method from the Callbacks class.
 	 *
 	 * @group stable
+	 * @group date
 	 * @group isolated
-	 * @group wp_error
-	 * @group doing_it_wrong
-	 *
+	 * @group user_input
 	 */
-	function testDateMetaBoxExpectsWP_Error() {
-		//arrange
-		$taxonomy = 'category';
-		$tax_nice_name = 'Category';
-		$multiples = false;
-		$stub = $this->getMock('\WP_Error', array('get_error_message'));
-		$form = new TestValidEmailField();
-		$form->error_handler($stub);
-
-		// Act
-		$form->date_meta_box($taxonomy, $tax_nice_name, $multiples);
-
-		// Assert
-		// $this->assertInstanceOf('WP_Error', $actual);
-	}
-
-	/**
-	 * Tests that a meta box is generated if the given post type exists.
-	 *
-	 * @group isolated
-	 * @group stable
-	 * @group meta_boxes
-	 * @group generate
-	 */
-	function testPostTypeExistsGenerateExpectsMetaBoxAdded() {
-		// Arrange
-		$form = new TestValidBox();
-		\WP_Mock::wpFunction('post_type_exists', array(
-			'times' => 1,
-			'args' => $form->post_type,
-			'return' => true,
-			)
-		);
-		\WP_Mock::wpPassthruFunction('sanitize_key');
-		\WP_Mock::wpFunction('add_meta_box', array(
-			'times' => 1,
-			'return' => true,
-			)
-		);
-
-		// Act
-		$form->generate();
-
-		// Assert: test will fail if add_meta_box is not called, or called more than once
-	}
-
-	/**
-	 * Tests whether post_type exists is called once
-	 *
-	 * @group stable
-	 **/
-	function testPostTypeExistsCheckPostTypeExpectsPostTypeNameReturned() {
-		// Arrange
-		\WP_Mock::wpFunction('sanitize_key', array(
-			'times' => 1,
-			'return' => 'post'
-			)
-		);
-		\WP_Mock::wpFunction('post_type_exists', array(
-			'times' => 1,
-			'arg' => array( \WP_Mock\Functions::type('string') ),
-			'return' => true
-			)
-		);
-		$form = new TestValidBox();
-		$expected = 'post';
-		// Act
-		$actual = $form->check_post_type($form->post_type);
-		// Assert
-		$this->assertEquals($expected, $actual, 'Post type did not verify correctly');
-	}
-	/**
-	 * Tests whether check_post_type returns false if post type doesn't exist
-	 *
-	 * @group stable
-	 * @group isolated
-	 * @group meta_boxes
-	 */
-	function testPostTypeNotExistsCheckPostTypeExpectsPostTypeNameReturned() {
-		// Arrange
-		\WP_Mock::wpFunction('sanitize_key', array(
-			'times' => 0,
-			)
-		);
-		\WP_Mock::wpFunction('post_type_exists', array(
-			'times' => 1,
-			'return' => false
-			)
-		);
-		$form = new TestValidBox();
-		$expected = false;
-		// Act
-		$actual = $form->check_post_type($form->post_type);
-		// Assert
-		$this->assertEquals($expected, $actual, 'Post type did not verify correctly');
-	}
-	/**
-	 * Tests whether a meta box can be attached to more than one post type
-	 *
-	 * @group stable
-	 * @group meta_boxes
-	 *
-	 */
-	function testArrayinPostTypeExpectsBoxesGenerated() {
+	function testValidDateFieldExpectsCallbackCalledOnce() {
 		// arrange
-		$Box = new TestValidBox();
-		$Box->post_type = array('post', 'page');
-		\WP_Mock::wpFunction('post_type_exists', array(
-			'times' => 2,
-			'return' => true,)
-		);
-		\WP_Mock::wpPassthruFunction('sanitize_key');
-		\WP_Mock::wpFunction('add_meta_box', array(
-			'times' => 2,
-			'return' => true,
-			)
-		);
-		// act
-		$Box->generate();
-		// assert
-	}
-	/**
-	 * Tests whether generate will make a meta box if the post type does not exist
-	 *
-	 * @group wp_error
-	 * @group isolated
-	 * @group stable
-	 * @group generate
-	 */
-	function testPostTypeNotExistsGenerateExpectsWPError() {
-		// Arrange
-		$stub = $this->getMockBuilder('TestValidBox')
-			->setMethods(array('check_post_type'))
-			->getMock();
-		$stub->expects($this->once())
-			->method('check_post_type')
-			->with($stub->post_type[0])
-			->will($this->returnValue(false));
-		$error = $this->getMock('\WP_Error', array('get_error_message'));
-		$stub->error_handler(get_class($error));
-		// Act
-		$actual = $stub->generate();
+		$stub = $this->getMockBuilder('Callbacks')
+					->setMethods(array('date'))
+					->getMock();
 
-		// Assert
-	}
+		$stub->expects( $this->once() )
+			 ->method( 'date' )
+			 ->with( $this->anything(), $this->anything(), $this->anything() );
 
-	/**
-	 * Tests whether generate will make a meta box if the post type does not exist
-	 *
-	 * @group wp_error
-	 * @group isolated
-	 * @group stable
-	 * @group generate
-	 */
-	function testInvalidContextGenerateExpectsWPError() {
-		// Arrange
-		$stub = $this->getMock('\WP_Error', array('get_error_message'));
+		// $stub->expects( $this->once() )
+		// 	->method( 'method' );
+
 		$form = new TestValidDateField();
-		$form->error_handler(($stub));
-		$form->context = 'context';
-		// Act
-		$actual = $form->generate();
+		$form->set_callbacks($stub);
+		$_POST = array(
+			'post_ID' => 1,
+			'category_year' => '1970' ,
+			'category_month' => 'January',
+			'category_day' => '01');
 
-		// Assert
+		// act
+		$form->validate_date( $form->fields['category'], $_POST['post_ID']);
+		// $stub->method();
 	}
 
 	/**
@@ -892,19 +729,312 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		\WP_Mock::wpFunction(
 			'get_term_by', 
 			array('times' => 1, 'return' => $existing));
-		// \WP_Mock::wpFunction(
-		// 	'get_post',
-		// 	array('times' => 1, 'return' => $post));
 		\WP_Mock::wpFunction('wp_set_object_terms', array( 'times' => 1 ) );
 
 		// Act
-		// $form->validate_taxonomyselect($form->fields['field_one'], $post->ID);
-		$form->validate($post->ID);
+		$form->validate_taxonomyselect($form->fields['field_one'], $post->ID);
 
 		// Assert: test will fail if wp_set_object_terms, get_term_by or
 		// sanitize_text_field do not fire or fire more than once
 	}
 
+	/**
+	 * Tests whether if no existing metadata, add_post_meta is called by validate_select
+	 *
+	 * @group stable
+	 * @group select
+	 * @group isolated
+	**/
+	function testNoExistingDataValidateSelectExpectsAddPostMetaFiredOnce() {
+		// Arrange
+		global $post;
+		$form = new TestNumberField();
+		$form->fields['field_one']['type'] = 'select';
+		$form->fields['field_one']['multiple'] = false;
+		$_POST = array( 'field_one' => 'metadata');
+		\WP_Mock::wpFunction('sanitize_text_field', array('times' => 1));
+		\WP_Mock::wpFunction(
+			'get_post_meta',
+			array('times' => 1, 'return' => array() )
+		);
+		\WP_Mock::wpFunction('add_post_meta', array( 'times' => 1 ) );
+
+		//Act
+		$form->validate_select($form->fields['field_one'],$post->ID);
+	}
+
+	/**
+	 * Tests whether if no existing metadata, add_post_meta will be called twice by 
+	 * validate_select if multiple values are in $_POST
+	 *
+	 * A multi select field will pass an array of values to the $_POST array, we 
+	 * expect cms-toolkit to iterate over that array adding new post data for each
+	 * entry.
+	 *
+	 * @group stable
+	 * @group select
+	 * @group isolated
+	 */
+	function testNoExistingDataValidateSelectExpectsAddPostMetaTwice() {
+		global $post;
+		$form = new TestNumberField();
+		$form->fields['field_one']['type'] = 'select';
+		$form->fields['field_one']['multiple'] = false;
+		$_POST = array( 'field_one' => array( 'metadata', 'otherdata' ) );
+		\WP_Mock::wpFunction('sanitize_text_field', array('times' => 2));
+		\WP_Mock::wpFunction(
+			'get_post_meta',
+			array('times' => 1, 'return' => array() )
+		);
+		\WP_Mock::wpFunction('add_post_meta', array( 'times' => 2 ) );
+
+		//Act
+		$form->validate_select($form->fields['field_one'],$post->ID);
+
+	}
+
+	/**
+	 * Tests whether, if post has existing custom data but those data are
+	 * not in the $_POST array, delete_post_meta will be called on each
+	 * existing value.
+	 *
+	 * When a select field is submitted it will may contian values that 
+	 * exist already for this post in addition to new ones the user wants
+	 * to add. If a term is in both arrays ($existing and $_POST), we 
+	 * should keep it. If the term is in $existing but not $_POST, then a
+	 * user has removed it or chosen a different value and we should 
+	 * delete the previously stored metadata. This test verifies the latter
+	 * condition specifically where there is no _POST data set at all (a user
+	 * has set the <select> to a null value indicating they wish to delete 
+	 * the value and not replace it.
+	 *
+	 * @group stable
+	 * @group select
+	 * @group isolated
+	 */
+	function testExistingDataButEmptyPostValidateSelectExpectsDeletePostMetaOnce() {
+		global $post;
+		$form = new TestNumberField();
+		$form->fields['field_one']['type'] = 'select';
+		$form->fields['field_one']['multiple'] = false;
+		$_POST = array( 'field_one' => array( ) );
+		\WP_Mock::wpFunction(
+			'get_post_meta',
+			array('times' => 1, 'return' => array('existing') )
+		);
+		\WP_Mock::wpFunction('delete_post_meta', array( 'times' => 1 ) );
+
+		//Act
+		$form->validate_select($form->fields['field_one'],$post->ID);
+
+	}
+
+	/**
+	 * Tests whether, if $_POST contains non-identical values to $existing delete_post_meta
+	 * will be called on each existing value. Similar to L978 _supra_
+	 *
+	 * @group stable
+	 * @group select
+	 * @group isolated
+	 */
+	function testExistingDataMismatchPostValidateSelectExpectsDeletePostMetaAndAddPostMetaOnceEach() {
+		global $post;
+		$form = new TestNumberField();
+		$form->fields['field_one']['type'] = 'select';
+		$form->fields['field_one']['multiple'] = false;
+		$_POST = array( 'field_one' => array( 'non-existent' ) );
+		\WP_Mock::wpFunction(
+			'get_post_meta',
+			array('times' => 1, 'return' => array('existing') )
+		);
+		\WP_Mock::wpFunction( 'sanitize_text_field', array( 'times' => 1 ) );
+		\WP_Mock::wpFunction( 'delete_post_meta', array( 'times' => 1 ) );
+		\WP_Mock::wpFunction( 'add_post_meta', array( 'times' => 1 ) );
+
+		//Act
+		$form->validate_select($form->fields['field_one'],$post->ID);
+
+	}
+/**************
+ * Generators *
+/**************/
+	/**
+	 * Tests whether calling date_meta_box from this class results in an error
+	 *
+	 * @group stable
+	 * @group isolated
+	 * @group wp_error
+	 * @group doing_it_wrong
+	 *
+	 **/
+	function testDateMetaBoxExpectsWP_Error() {
+		//arrange
+		$taxonomy = 'category';
+		$tax_nice_name = 'Category';
+		$multiples = false;
+		$stub = $this->getMock('\WP_Error', array('get_error_message'));
+		$form = new TestValidEmailField();
+		$form->error_handler($stub);
+
+		// Act
+		$form->date_meta_box($taxonomy, $tax_nice_name, $multiples);
+
+		// Assert
+		// $this->assertInstanceOf('WP_Error', $actual);
+	}
+
+	/**
+	 * Tests that a meta box is generated if the given post type exists.
+	 *
+	 * @group isolated
+	 * @group stable
+	 * @group meta_boxes
+	 * @group generate
+	 */
+	function testPostTypeExistsGenerateExpectsMetaBoxAdded() {
+		// Arrange
+		$form = new TestValidBox();
+		\WP_Mock::wpFunction('post_type_exists', array(
+			'times' => 1,
+			'args' => $form->post_type,
+			'return' => true,
+			)
+		);
+		\WP_Mock::wpPassthruFunction('sanitize_key');
+		\WP_Mock::wpFunction('add_meta_box', array(
+			'times' => 1,
+			'return' => true,
+			)
+		);
+
+		// Act
+		$form->generate();
+
+		// Assert: test will fail if add_meta_box is not called, or called more than once
+	}
+
+	/**
+	 * Tests whether post_type exists is called once
+	 *
+	 * @group stable
+	 **/
+	function testPostTypeExistsCheckPostTypeExpectsPostTypeNameReturned() {
+		// Arrange
+		\WP_Mock::wpFunction('sanitize_key', array(
+			'times' => 1,
+			'return' => 'post'
+			)
+		);
+		\WP_Mock::wpFunction('post_type_exists', array(
+			'times' => 1,
+			'arg' => array( \WP_Mock\Functions::type('string') ),
+			'return' => true
+			)
+		);
+		$form = new TestValidBox();
+		$expected = 'post';
+		// Act
+		$actual = $form->check_post_type($form->post_type);
+		// Assert
+		$this->assertEquals($expected, $actual, 'Post type did not verify correctly');
+	}
+	/**
+	 * Tests whether check_post_type returns false if post type doesn't exist
+	 *
+	 * @group stable
+	 * @group isolated
+	 * @group meta_boxes
+	 */
+	function testPostTypeNotExistsCheckPostTypeExpectsPostTypeNameReturned() {
+		// Arrange
+		\WP_Mock::wpFunction('sanitize_key', array(
+			'times' => 0,
+			)
+		);
+		\WP_Mock::wpFunction('post_type_exists', array(
+			'times' => 1,
+			'return' => false
+			)
+		);
+		$form = new TestValidBox();
+		$expected = false;
+		// Act
+		$actual = $form->check_post_type($form->post_type);
+		// Assert
+		$this->assertEquals($expected, $actual, 'Post type did not verify correctly');
+	}
+	/**
+	 * Tests whether a meta box can be attached to more than one post type
+	 *
+	 * @group stable
+	 * @group meta_boxes
+	 *
+	 */
+	function testArrayinPostTypeExpectsBoxesGenerated() {
+		// arrange
+		$Box = new TestValidBox();
+		$Box->post_type = array('post', 'page');
+		\WP_Mock::wpFunction('post_type_exists', array(
+			'times' => 2,
+			'return' => true,)
+		);
+		\WP_Mock::wpPassthruFunction('sanitize_key');
+		\WP_Mock::wpFunction('add_meta_box', array(
+			'times' => 2,
+			'return' => true,
+			)
+		);
+		// act
+		$Box->generate();
+		// assert
+	}
+	/**
+	 * Tests whether generate will make a meta box if the post type does not exist
+	 *
+	 * @group wp_error
+	 * @group isolated
+	 * @group stable
+	 * @group generate
+	 */
+	function testPostTypeNotExistsGenerateExpectsWPError() {
+		// Arrange
+		$stub = $this->getMockBuilder('TestValidBox')
+			->setMethods(array('check_post_type'))
+			->getMock();
+		$stub->expects($this->once())
+			->method('check_post_type')
+			->with($stub->post_type[0])
+			->will($this->returnValue(false));
+		$error = $this->getMock('\WP_Error', array('get_error_message'));
+		$stub->error_handler(get_class($error));
+		// Act
+		$actual = $stub->generate();
+
+		// Assert
+	}
+
+	/**
+	 * Tests whether generate will make a meta box if the post type does not exist
+	 *
+	 * @group wp_error
+	 * @group isolated
+	 * @group stable
+	 * @group generate
+	 */
+	function testInvalidContextGenerateExpectsWPError() {
+		// Arrange
+		$stub = $this->getMock('\WP_Error', array('get_error_message'));
+		$form = new TestValidDateField();
+		$form->error_handler(($stub));
+		$form->context = 'context';
+		// Act
+		$actual = $form->generate();
+
+		// Assert
+	}
+/************************
+ * Dependency injection *
+ ************************/
 	/**
 	 * Tests the ability replace the internal View class
 	 *

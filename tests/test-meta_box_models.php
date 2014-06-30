@@ -131,7 +131,30 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 /***************************
  * Validation method tests *
  ***************************/
-
+	/**
+	 * Tests whether the validate method will save a null value to the array if
+	 * data from $_POST is missing
+	 *
+	 * If a form is submitted with a field deleted, no key for that field is 
+	 * assigned in the $_POST superglobal. This is fine if the field is already 
+	 * empty but if the field is pre-populated it can make getting rid of the 
+	 * data impossible. This passes the key with a null value to make the data
+	 * more reliable for `save`.
+	 *
+	 * @group stable
+	 * @group isolated
+	 * @group delete_data
+	 */
+	function testEmptyPOSTExpectsNullArrayForFieldKey() {
+		// arrange
+		$_POST = array();
+		global $post;
+		$TestValidTextField = new TestValidTextField();
+		// act
+		$actual = $TestValidTextField->validate($post->ID);		
+		// assert
+		$this->assertEquals($actual, array('one' => null));
+	}
 	/**
 	 * Tests whether the validate method when called on an email field calls
 	 * 'sanitize_email' from the WP API once

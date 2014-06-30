@@ -266,7 +266,6 @@ public function validate( $post_ID ) {
                 save
             */
             $key = $field['slug'];
-            if ( isset( $_POST[$key] ) ) {
                 if ( $field['type'] === 'number' ) {
                     if ( is_numeric( $data[$key] ) ) {
                         $postvalues[$key] = intval( $data[$key] ); // if we're expecting a number, make sure we get a number
@@ -277,8 +276,9 @@ public function validate( $post_ID ) {
                     $postvalues[$key] = sanitize_email( $data[$key] ); // if we're expecting an email, make sure we get an email
                 } elseif ( ! empty( $data[$key] ) && ! is_array($data[$key])) {
                     $postvalues[$key] = (string)$data[$key]; // make sure whatever we get for anything else is a string
+                } else {
+                    $postvalues[$key] = null;
                 }
-            }
         }
     }
     return $postvalues;
@@ -292,9 +292,14 @@ public function save( $post_ID, $postvalues ) {
     if ( empty( $postvalues ) ) {
         return;
     }
+
     // save post data for any fields that sent them
     foreach ( $postvalues as $key => $value ) {
-        update_post_meta( $post_ID, $meta_key = $key, $meta_value = $value );
+        if ( $value == null ) {
+            delete_post_meta($post_ID, $key);
+        } else {
+            update_post_meta( $post_ID, $meta_key = $key, $meta_value = $value );
+        }
     }
 }
 

@@ -421,10 +421,15 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$postvalues = array(
 			'one' => 'Some text',
 		);
+		\WP_Mock::wpFunction( 'get_post_meta', array(
+			'times' => 1,
+			'return' => false,
+			)
+		);
 		\WP_Mock::wpFunction( 'update_post_meta', array(
 			'times' => 1,
 			'return' => true,
-			'args' => array(
+			'with' => array(
 				$post_id,
 				'one',
 				'Some text',
@@ -464,6 +469,67 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 
 		// act
 		$form->save( $post_id, $postvalues );
+	}
+
+	/**
+	 * Tests whether save() will call update_post_meta if $_POST is empty, expects
+	 * it not to.
+	 * @group stable
+	 * @group isolated
+	 * @group negative
+	 * @group save
+	 */
+	function testEmptyPostKeySaveExpectsReturn() {
+
+		// arrange
+		$post_id = 100;
+		$postvalues = array('one' => null);
+		\WP_Mock::wpFunction( 'get_post_meta', array(
+			'times' => 1,
+			'return' => false,
+			'with' => array( $post_id, 'one')
+			)
+		);
+		\WP_Mock::wpFunction( 'update_post_meta', array(
+			'times' => 0,)
+		);
+
+		$form = new TestValidTextField();
+
+		// act
+		$form->save( $post_id, $postvalues );
+	}
+	/**
+	 * Tests whether an empty key will call delete_post_meta()
+	 *
+	 * @group stable
+	 * @group save
+	 * @group isolated
+	 */
+	function testEmptyKeyValueExpectsDeltePostMeta() {
+		// arrange
+		$post_id = 1;
+		$postvalues = array('one' => null);
+		$existing = 'exists';
+		\WP_Mock::wpFunction( 
+			'get_post_meta', 
+			array(
+				'times' => 1,
+				'return' => $existing,
+			)
+		);
+		\WP_Mock::wpFunction(
+			'delete_post_meta',
+			array(
+				'times' => 1,
+				'return' => true,
+				'with' => array('post_ID' => 1, 'meta_key' => 'one'),	
+			)
+		);
+		$form = new TestValidTextField();
+		// act
+		$form->save( $post_id, $postvalues);
+		// assert
 	}
 
 	/**

@@ -295,10 +295,13 @@ public function save( $post_ID, $postvalues ) {
 
     // save post data for any fields that sent them
     foreach ( $postvalues as $key => $value ) {
-        if ( $value == null ) {
+        $existing = get_post_meta( $post_ID, $key, $single = true );
+        if ( $value == null && $existing ) {
             delete_post_meta($post_ID, $key);
+        } elseif ( isset($value) ) {
+            update_post_meta( $post_ID, $meta_key = $key, $meta_value = $existing );
         } else {
-            update_post_meta( $post_ID, $meta_key = $key, $meta_value = $value );
+            return;
         }
     }
 }

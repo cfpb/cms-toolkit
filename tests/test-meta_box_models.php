@@ -168,10 +168,6 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		// arrange
 		global $post;
 		\WP_Mock::wpPassthruFunction('sanitize_email', array('times' => 1));
-		// \WP_Mock::wpPassthruFunction(
-		// 	'get_post', 
-		// 	array('times' => 1, 'return' => $post)
-		// );
 		$TestValidEmailField = new TestValidEmailField();
 		$_POST = array(
 			'one' => 'foo@bar.baz',
@@ -401,6 +397,113 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 
 		// act
 		$actual = $TestValidEmailField->validate($post->ID);
+	}
+
+	/**
+	 * Tests whether validate will call the appropriate special validator for 
+	 * a taxonomy select field.
+	 *
+	 * @group stable
+	 * @group isolated
+	 * @group taxonomy_select
+	 */
+	function testTaxonomySelectFieldExpectsTaxonomySelectValidatorCalled() {
+		// arrange
+		global $post;
+		$factory = $this->getMockBuilder('TestNumberField')
+						->setMethods(array('validate_taxonomyselect',))
+						->getMock();
+
+		$factory->expects($this->once())
+				->method('validate_taxonomyselect')
+				->will($this->returnValue(true));
+		$factory->fields['field_one']['type'] = 'taxonomyselect';
+
+		//act
+		$validate = $factory->validate($post->ID);
+
+		// assert
+		// Test will fail if validate_taxonomyselect called more than once
+	}
+
+	/**
+	 * Tests whether validate will call the appropriate special validator for 
+	 * a select field.
+	 *
+	 * @group stable
+	 * @group isolated
+	 * @group taxonomy_select
+	 */
+	function testSelectFieldExpectsTaxonomySelectValidatorCalled() {
+		// arrange
+		global $post;
+		$factory = $this->getMockBuilder('TestNumberField')
+						->setMethods(array('validate_select',))
+						->getMock();
+
+		$factory->expects($this->once())
+				->method('validate_select')
+				->will($this->returnValue(true));
+		$factory->fields['field_one']['type'] = 'select';
+
+		//act
+		$validate = $factory->validate($post->ID);
+
+		// assert
+		// Test will fail if validate_taxonomyselect called more than once
+	}
+
+	/**
+	 * Tests whether validate will call the appropriate special validator for 
+	 * a link field.
+	 *
+	 * @group stable
+	 * @group isolated
+	 * @group taxonomy_select
+	 */
+	function testLinkFieldExpectsTaxonomySelectValidatorCalled() {
+		// arrange
+		global $post;
+		$factory = $this->getMockBuilder('TestNumberField')
+						->setMethods(array('validate_link',))
+						->getMock();
+
+		$factory->expects($this->once())
+				->method('validate_link')
+				->will($this->returnValue(true));
+		$factory->fields['field_one']['type'] = 'link';
+
+		//act
+		$validate = $factory->validate($post->ID);
+
+		// assert
+		// Test will fail if validate_taxonomyselect called more than once
+	}
+
+	/**
+	 * Tests whether a field with do_not_validate in the key will continue to 
+	 * validate. Expects `validate` to return.
+	 *
+	 * @group wip
+	 * @group isolated
+	 * @group negative
+	 * @group validation
+	 * 
+	 */
+	
+	function testDoNotValidateReturnsInsteadOfValidates() {
+		$TestNumberField = new TestNumberField();
+		$_POST = array(
+			'post_ID' => 1,
+			'field_one' => 2,
+		);
+
+		// act
+		$TestNumberField->fields['field_one']['do_not_validate'] = true;
+		$actual = $TestNumberField->validate($_POST['post_ID']);
+
+		// assert
+		$this->assertTrue(empty($actual));
 	}
 
 /***************
@@ -939,6 +1042,33 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		\WP_Mock::wpFunction( 'sanitize_text_field', array( 'times' => 1 ) );
 		\WP_Mock::wpFunction( 'delete_post_meta', array( 'times' => 1 ) );
 		\WP_Mock::wpFunction( 'add_post_meta', array( 'times' => 1 ) );
+
+		//Act
+		$form->validate_select($form->fields['field_one'],$post->ID);
+
+	}
+
+	/**
+	 * Tests whether, if $_POST is completley empty delete_post_meta will be called
+	 * on each existing value. Similar to L978 _supra_
+	 *
+	 * @group stable
+	 * @group select
+	 * @group isolated
+	 */
+	function testExistingDataEmptyPostValidateSelectExpectsDeletePostMetaAndAddPostMetaOnceEach() {
+		global $post;
+		$form = new TestNumberField();
+		$form->fields['field_one']['type'] = 'select';
+		$form->fields['field_one']['multiple'] = false;
+		$_POST = array();
+		\WP_Mock::wpFunction(
+			'get_post_meta',
+			array('times' => 1, 'return' => array('existing') )
+		);
+		\WP_Mock::wpFunction( 'sanitize_text_field', array( 'times' => 0 ) );
+		\WP_Mock::wpFunction( 'delete_post_meta', array( 'times' => 1 ) );
+		\WP_Mock::wpFunction( 'add_post_meta', array( 'times' => 0 ) );
 
 		//Act
 		$form->validate_select($form->fields['field_one'],$post->ID);

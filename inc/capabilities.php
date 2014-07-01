@@ -1,7 +1,6 @@
 <?php
 /**
 * Capabilities.php, where we manage user permissions and access controls
-* Complexity: 9, candidate for refactoring (pdepend --summary-xml=QA/capabilities-summary.xml inc/capabilities.php)
 **/
 namespace CFPB\Utils\Capabilities;
 

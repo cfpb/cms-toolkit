@@ -318,9 +318,7 @@ public function validate( $post_ID ) {
                     $postvalues[$key] = sanitize_email( $data[$key] ); 
                 } elseif ( ! empty( $data[$key] ) && ! is_array($data[$key])) {
                     // make sure whatever we get for anything else is a string
-                    $postvalues[$key] = (string)$data[$key]; 
-                } else {
-                    $postvalues[$key] = null;
+                    $postvalues[$key] = (string)$data[$key];
                 }
         }
     }
@@ -336,7 +334,6 @@ public function validate( $post_ID ) {
  * @return nothing           Either deletes or updates post meta or returns empty
  */
 public function save( $post_ID, $postvalues ) {
-    global $post;
     // Do nothing if we're auto saving
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) 
     return;
@@ -348,11 +345,15 @@ public function save( $post_ID, $postvalues ) {
 
     // save post data for any fields that sent them
     foreach ( $postvalues as $key => $value ) {
+        error_log( "Saving {$value} to {$key}", 0 );
         $existing = get_post_meta( $post_ID, $key, $single = true );
-        if ( $value == null && $existing ) {
+        error_log("Existing data is {$existing}", 0);
+        if ( $value == null && isset($existing) ) {
+            error_log("Value is null and existing is {$existing}", 0);
             delete_post_meta($post_ID, $key);
         } elseif ( isset($value) ) {
-            update_post_meta( $post_ID, $meta_key = $key, $meta_value = $existing );
+            error_log("Saving {$value} for {$key}", 0);
+            update_post_meta( $post_ID, $meta_key = $key, $meta_value = $value );
         } else {
             return;
         }

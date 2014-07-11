@@ -319,6 +319,8 @@ public function validate( $post_ID ) {
                 } elseif ( ! empty( $data[$key] ) && ! is_array($data[$key])) {
                     // make sure whatever we get for anything else is a string
                     $postvalues[$key] = (string)$data[$key];
+                } else {
+                    $postvalues[$key] = null;
                 }
         }
     }
@@ -345,14 +347,10 @@ public function save( $post_ID, $postvalues ) {
 
     // save post data for any fields that sent them
     foreach ( $postvalues as $key => $value ) {
-        error_log( "Saving {$value} to {$key}", 0 );
         $existing = get_post_meta( $post_ID, $key, $single = true );
-        error_log("Existing data is {$existing}", 0);
         if ( $value == null && isset($existing) ) {
-            error_log("Value is null and existing is {$existing}", 0);
             delete_post_meta($post_ID, $key);
         } elseif ( isset($value) ) {
-            error_log("Saving {$value} for {$key}", 0);
             update_post_meta( $post_ID, $meta_key = $key, $meta_value = $value );
         } else {
             return;

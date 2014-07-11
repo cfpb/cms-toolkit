@@ -593,6 +593,9 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'with' => array( $post_id, 'one')
 			)
 		);
+		\WP_Mock::wpFunction( 'delete_post_meta', array(
+			'times' => 1)
+		);
 		\WP_Mock::wpFunction( 'update_post_meta', array(
 			'times' => 0,)
 		);

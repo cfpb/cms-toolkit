@@ -34,7 +34,7 @@ function cfpb_build_plugin() {
 }
 $general_error = new \WP_Error(
 	'_general_toolkit_error',
-	'For more information about this error please refer to the README available on <a href="http://github.com/cfpb/cms-toolkit">GitHub</a>'
+	'For more information about this error please refer to the README available on <a href="https://github.com/cfpb/cms-toolkit">GitHub</a>'
 );
 function cfpb_cms_toolkit_scripts() {
 	wp_enqueue_script('cms_tookit', plugins_url('/js/functions.js', __FILE__), 'jquery', '1.0', true );

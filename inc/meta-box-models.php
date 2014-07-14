@@ -99,10 +99,10 @@ class Models {
     *
     * @since 1.0
     *
-    * @uses wp_parse_args to determine the desired differences from defaults
-    * @uses add_meta_box WordPress API to generate the metabox
-    * @uses \CFPB\Utils\MetaBox\Template\HTML(); for generating form fields
-    * @uses add_meta_box (WP Core) to instantiate the meta box
+    * @uses wp_parse_args To determine the desired differences from defaults
+    * @uses add_meta_box WordPress API To generate the metabox
+    * @uses \CFPB\Utils\MetaBox\Template\HTML(); For generating form fields
+    * @uses add_meta_box (WP Core) To instantiate the meta box
     * @uses $this->check_post_type To check whether the post type given in
     *       $this->post_type exists
     * @uses \WP_Error Error handling is done with WordPress if invalid contexts or 
@@ -140,7 +140,7 @@ class Models {
 /**
  * validate_link validates a field with type = 'link'
  * 
- * @param  str $field   the field to validate, normally passed by looping through 
+ * @param  str $field   The field to validate, normally passed by looping through 
  *                      $this->fields
  * @param  int $post_id The post ID to have post values saved to
  * @return void         No return value, updates or adds post meta if successful. New
@@ -178,7 +178,7 @@ public function validate_link( $field, $post_id ) {
 /**
  * validate_select validates a <select> field
  * 
- * @param  str $field   the field to validate, normally passed by looping through 
+ * @param  str $field   The field to validate, normally passed by looping through 
  *                      $this->fields
  * @param  int $post_id The post ID to have post values saved to
  * @return void         No return value, adds or deletes post meta if successful. New
@@ -245,8 +245,8 @@ public function validate_taxonomyselect($field, $post_id) {
  * Validates a date field by converting $_POST keys into date strings before passing
  * to a date method in $this->Callbacks->date()
  * 
- * @param  array $field    the field to be processed
- * @param  [type] $post_id the ID of the object to be manipulated
+ * @param  array $field    The field to be processed
+ * @param  [type] $post_id The ID of the object to be manipulated
  * @return void
  */
 public function validate_date($field, $post_id) {
@@ -361,7 +361,7 @@ public function save( $post_ID, $postvalues ) {
 /**
  * Runs validate, then save on $_POST data
  * 
- * @param  int $post_ID the id of the object we're saving
+ * @param  int $post_ID The id of the object we're saving
  * @return void
  */
 public function validate_and_save( $post_ID ) {

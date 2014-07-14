@@ -660,7 +660,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 				->method('save')
 				->with(1, $sanitized);
 
-		// Act
+		// act
 		$factory->validate_and_save( 1 );
 	}
 
@@ -734,7 +734,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			)
 		);
 
-		// Act
+		// act
 		$form->validate_taxonomyselect($form->fields['field_one'], $_POST['post_ID']);
 
 		// Assert: test will fail if wp_set_object_terms, get_term_by or
@@ -868,7 +868,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	* @group link_validate
 	*
 	**/
-	function testValidateLinkWithExistingDataMatchingSubmittedExpectsNoAction() {
+	function testValidateLinkWithExistingDataMatchingSubmittedExpectsNoaction() {
 		// arrange
 		$_POST = array(
 			'link_url_0' => 'http://example.com',
@@ -926,7 +926,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			array('times' => 1, 'return' => $existing));
 		\WP_Mock::wpFunction('wp_set_object_terms', array( 'times' => 1 ) );
 
-		// Act
+		// act
 		$form->validate_taxonomyselect($form->fields['field_one'], $post->ID);
 
 		// Assert: test will fail if wp_set_object_terms, get_term_by or
@@ -954,7 +954,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 		\WP_Mock::wpFunction('add_post_meta', array( 'times' => 1 ) );
 
-		// Act
+		// act
 		$form->validate_select($form->fields['field_one'],$post->ID);
 	}
 
@@ -983,7 +983,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 		\WP_Mock::wpFunction('add_post_meta', array( 'times' => 2 ) );
 
-		// Act
+		// act
 		$form->validate_select($form->fields['field_one'],$post->ID);
 
 	}
@@ -1019,7 +1019,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 		\WP_Mock::wpFunction('delete_post_meta', array( 'times' => 1 ) );
 
-		// Act
+		// act
 		$form->validate_select($form->fields['field_one'],$post->ID);
 
 	}
@@ -1046,7 +1046,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		\WP_Mock::wpFunction( 'delete_post_meta', array( 'times' => 1 ) );
 		\WP_Mock::wpFunction( 'add_post_meta', array( 'times' => 1 ) );
 
-		// Act
+		// act
 		$form->validate_select($form->fields['field_one'],$post->ID);
 
 	}
@@ -1073,7 +1073,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		\WP_Mock::wpFunction( 'delete_post_meta', array( 'times' => 1 ) );
 		\WP_Mock::wpFunction( 'add_post_meta', array( 'times' => 0 ) );
 
-		// Act
+		// act
 		$form->validate_select($form->fields['field_one'],$post->ID);
 
 	}
@@ -1098,7 +1098,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$form = new TestValidEmailField();
 		$form->error_handler($stub);
 
-		// Act
+		// act
 		$form->date_meta_box($taxonomy, $tax_nice_name, $multiples);
 
 		// Assert
@@ -1129,7 +1129,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			)
 		);
 
-		// Act
+		// act
 		$form->generate();
 
 		// Assert: test will fail if add_meta_box is not called, or called more than once
@@ -1155,7 +1155,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 		$form = new TestValidBox();
 		$expected = 'post';
-		// Act
+		// act
 		$actual = $form->check_post_type($form->post_type);
 		// Assert
 		$this->assertEquals($expected, $actual, 'Post type did not verify correctly');
@@ -1180,7 +1180,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 		$form = new TestValidBox();
 		$expected = false;
-		// Act
+		// act
 		$actual = $form->check_post_type($form->post_type);
 		// Assert
 		$this->assertEquals($expected, $actual, 'Post type did not verify correctly');
@@ -1229,7 +1229,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			->will($this->returnValue(false));
 		$error = $this->getMock('\WP_Error', array('get_error_message'));
 		$stub->error_handler(get_class($error));
-		// Act
+		// act
 		$actual = $stub->generate();
 
 		// Assert
@@ -1249,7 +1249,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$form = new TestValidDateField();
 		$form->error_handler(($stub));
 		$form->context = 'context';
-		// Act
+		// act
 		$actual = $form->generate();
 
 		// Assert
@@ -1269,7 +1269,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$newView = new \StdClass;
 		$form = new TestNumberField();
 
-		// Act
+		// act
 		$form->set_view($newView);
 
 		// Assert

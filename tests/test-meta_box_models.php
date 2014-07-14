@@ -419,7 +419,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 				->will($this->returnValue(true));
 		$factory->fields['field_one']['type'] = 'taxonomyselect';
 
-		//act
+		// act
 		$validate = $factory->validate($post->ID);
 
 		// assert
@@ -446,7 +446,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 				->will($this->returnValue(true));
 		$factory->fields['field_one']['type'] = 'select';
 
-		//act
+		// act
 		$validate = $factory->validate($post->ID);
 
 		// assert
@@ -473,7 +473,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 				->will($this->returnValue(true));
 		$factory->fields['field_one']['type'] = 'link';
 
-		//act
+		// act
 		$validate = $factory->validate($post->ID);
 
 		// assert
@@ -484,7 +484,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether a field with do_not_validate in the key will continue to 
 	 * validate. Expects `validate` to return.
 	 *
-	 * @group wip
+	 * @group stable
 	 * @group isolated
 	 * @group negative
 	 * @group validation
@@ -954,7 +954,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 		\WP_Mock::wpFunction('add_post_meta', array( 'times' => 1 ) );
 
-		//Act
+		// Act
 		$form->validate_select($form->fields['field_one'],$post->ID);
 	}
 
@@ -983,7 +983,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 		\WP_Mock::wpFunction('add_post_meta', array( 'times' => 2 ) );
 
-		//Act
+		// Act
 		$form->validate_select($form->fields['field_one'],$post->ID);
 
 	}
@@ -1019,7 +1019,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 		\WP_Mock::wpFunction('delete_post_meta', array( 'times' => 1 ) );
 
-		//Act
+		// Act
 		$form->validate_select($form->fields['field_one'],$post->ID);
 
 	}
@@ -1046,7 +1046,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		\WP_Mock::wpFunction( 'delete_post_meta', array( 'times' => 1 ) );
 		\WP_Mock::wpFunction( 'add_post_meta', array( 'times' => 1 ) );
 
-		//Act
+		// Act
 		$form->validate_select($form->fields['field_one'],$post->ID);
 
 	}
@@ -1073,7 +1073,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		\WP_Mock::wpFunction( 'delete_post_meta', array( 'times' => 1 ) );
 		\WP_Mock::wpFunction( 'add_post_meta', array( 'times' => 0 ) );
 
-		//Act
+		// Act
 		$form->validate_select($form->fields['field_one'],$post->ID);
 
 	}

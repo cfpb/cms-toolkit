@@ -362,7 +362,7 @@ public function save( $post_ID, $postvalues ) {
  * Runs validate, then save on $_POST data
  * 
  * @param  int $post_ID the id of the object we're saving
- * @return null       returns nothing
+ * @return void
  */
 public function validate_and_save( $post_ID ) {
     $validate = $this->validate( $post_ID );

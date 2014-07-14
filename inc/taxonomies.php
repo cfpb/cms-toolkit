@@ -2,7 +2,6 @@
 /**
 * taxonomies.php set of functions for creating and managing taxonomies
 * 
-* Complexity: 6, no need to refactor. pdepend --summary-xml=QA/taxonomies-summary.xml inc/taxonomies.php
 *
 **/
 namespace CFPB\Utils;

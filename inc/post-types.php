@@ -2,7 +2,6 @@
 /**
 * post-types.php functions for building and manipluating post types
 *
-* Complexity: 5, no need to refactor at this time. (pdepend --summary-xml=QA/post-types-summary.xml inc/post-types.php)
 **/
 
 /**

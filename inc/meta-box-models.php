@@ -43,32 +43,7 @@ class Models {
     );
     private $hidden  = array( 'nonce', 'hidden' );
     private $other   = array( 'separator' );
-    /**
-    *
-    * Create a meta box based on a few parameters.
-    *
-    * This function allows developers with this plugin installed to easily
-    * instantiate meta boxes into different edit screens of their WordPress
-    * install. Inspired by Django forms. The generate() method parses parameters
-    * into an objeect, the last property of which is passed to the build()
-    * callback. Generating metaboxes is as simple as hooking this method into
-    * the `add_meta_boxes` action hook.
-    *
-    * @since 1.0
-    *
-    * @uses wp_parse_args to determine the desired differences from defaults
-    * @uses \CFPB\Utils\MetaBox\Template\HTML(); for generating form fields
-    * @uses add_meta_box (WP Core) to instantiate the meta box
-    *
-    * @param str       $title the title as the user wants it displayed
-    * @param str       $slug the title as it should be represented in code
-    * @param str/array $for the post types that should get this meta box
-    * @param str        $part the section on the screen where the box should be
-    * @param array  $fields an array of html form fields the box contains
-    *
-    * All parameters are required
-    *
-    **/
+    
     public function __construct() {
         $this->Callbacks = new Callbacks();
         $this->View      = new View();
@@ -79,12 +54,23 @@ class Models {
         $this->error = '\WP_Error';
     }
 
+    /**
+     * The following three methods are dependency injection methods. They can be used
+     * to replace Utils\MetaBox\Callbacks and Utils\MetaBox\View with your own callback
+     * or view class. This is useful for unit testing purposes and for when you decide
+     * you don't like the methods we've given you and need to replace them for some 
+     * reason. Maybe you need different templates for something but don't think they
+     * should be contributed back, use these methods to replace our templates with your
+     * own.
+     * 
+     * @param obj $Class The class you want to inject into this plugin
+     */
     public function set_callbacks( $Class ) {
         $this->Callbacks = $Class;
     }
 
-    public function set_view( $view ) {
-        $this->View = $view;
+    public function set_view( $Class ) {
+        $this->View = $Class;
     }
 
     public function error_handler( $Class ) {
@@ -100,8 +86,29 @@ class Models {
         return $post_type;
     }
 
+    /**
+    *
+    * generate: Create a meta box based on a few parameters.
+    *
+    * This function allows developers with this plugin installed to easily
+    * instantiate meta boxes into different edit screens of their WordPress
+    * install. Inspired by Django forms. The generate() method parses parameters
+    * into an objeect, the last property of which is passed to the build()
+    * callback. Generating metaboxes is as simple as hooking this method into
+    * the `add_meta_boxes` action hook.
+    *
+    * @since 1.0
+    *
+    * @uses wp_parse_args To determine the desired differences from defaults
+    * @uses add_meta_box WordPress API To generate the metabox
+    * @uses \CFPB\Utils\MetaBox\Template\HTML(); For generating form fields
+    * @uses add_meta_box (WP Core) To instantiate the meta box
+    * @uses $this->check_post_type To check whether the post type given in
+    *       $this->post_type exists
+    * @uses \WP_Error Error handling is done with WordPress if invalid contexts or 
+    *        post types are supplied
+    **/
     public function generate( ) {
-
         $parts = array( 'normal', 'advanced', 'side', );
         if ( ! in_array( $this->context, $parts ) ) {
             $error = new $this->error( 'context', __( 'Invalid context: ' . $this->context ) );
@@ -130,6 +137,16 @@ class Models {
     }
 }
 
+/**
+ * validate_link validates a field with type = 'link'
+ * 
+ * @param  str $field   The field to validate, normally passed by looping through 
+ *                      $this->fields
+ * @param  int $post_id The post ID to have post values saved to
+ * @return void         No return value, updates or adds post meta if successful. New
+ *                      metadata are saved to the post as an array of the form
+ *                      array(0 => 'url', 1 => 'text')
+ */
 public function validate_link( $field, $post_id ) {
     $key = $field['meta_key'];
     if ( array_key_exists('count', $field['params'] ) ) {
@@ -157,6 +174,17 @@ public function validate_link( $field, $post_id ) {
         $meta_key = $key;
     }
 }
+
+/**
+ * validate_select validates a <select> field
+ * 
+ * @param  str $field   The field to validate, normally passed by looping through 
+ *                      $this->fields
+ * @param  int $post_id The post ID to have post values saved to
+ * @return void         No return value, adds or deletes post meta if successful. New
+ *                      data are saved to the post as new values in an array or 
+ *                      deleted.
+ */
 
 public function validate_select( $field, $post_id ) {
     $key = $field['meta_key'];
@@ -213,6 +241,14 @@ public function validate_taxonomyselect($field, $post_id) {
 }
 }
 
+/** 
+ * Validates a date field by converting $_POST keys into date strings before passing
+ * to a date method in $this->Callbacks->date()
+ * 
+ * @param  array $field    The field to be processed
+ * @param  [type] $post_id The ID of the object to be manipulated
+ * @return void
+ */
 public function validate_date($field, $post_id) {
     $year = $field['taxonomy'] . '_year';
     $month = $field['taxonomy'] . '_month';
@@ -234,12 +270,15 @@ public function validate_date($field, $post_id) {
 }
 
 /**
- * checks that data is coming through in the types we expect or ferries out form 
+ * Checks that data is coming through in the types we expect or ferries out form 
  * data to the appropriate validator. Run before save to ensure you're saving
  * correct data. Essentially this takes in $_POST and pushes all the good stuff from
  * $_POST into a separate, cleaned array and returns the cleaned data.
+ *
+ * @param int $post_ID The post targeted for custom data
  * 
- * @return mixed either returns cleaned post values or errors if data is invalid
+ * @return array A version of $_POST with cleaned data ready to be sent to a save method
+ *               like $this->save()
  */
 public function validate( $post_ID ) {
     $data = array_intersect_key($_POST, $this->fields);
@@ -266,42 +305,67 @@ public function validate( $post_ID ) {
                 save
             */
             $key = $field['slug'];
-            if ( isset( $_POST[$key] ) ) {
                 if ( $field['type'] === 'number' ) {
                     if ( is_numeric( $data[$key] ) ) {
-                        $postvalues[$key] = intval( $data[$key] ); // if we're expecting a number, make sure we get a number
+                        // if we're expecting a number, make sure we get a number
+                        $postvalues[$key] = intval( $data[$key] ); 
                     }
                 } elseif ( $field['type'] === 'url' ) {
-                    $postvalues[$key] = esc_url_raw( $data[$key] ); // if we're expecting a url, make sure we get a url
+                    // if we're expecting a url, make sure we get a url
+                    $postvalues[$key] = esc_url_raw( $data[$key] ); 
                 } elseif ( $field['type'] === 'email' ) {
-                    $postvalues[$key] = sanitize_email( $data[$key] ); // if we're expecting an email, make sure we get an email
+                    // if we're expecting an email, make sure we get an email
+                    $postvalues[$key] = sanitize_email( $data[$key] ); 
                 } elseif ( ! empty( $data[$key] ) && ! is_array($data[$key])) {
-                    $postvalues[$key] = (string)$data[$key]; // make sure whatever we get for anything else is a string
+                    // make sure whatever we get for anything else is a string
+                    $postvalues[$key] = (string)$data[$key];
+                } else {
+                    $postvalues[$key] = null;
                 }
-            }
         }
     }
     return $postvalues;
 }
 
+/**
+ * Takes cleaned $_POST data and save it as custom post meta
+ * 
+ * @param  int $post_ID      The post we save data to
+ * @param  array $postvalues Cleaned version of $_POST or some other array of trusted 
+ *                           data to be saved
+ * @return nothing           Either deletes or updates post meta or returns empty
+ */
 public function save( $post_ID, $postvalues ) {
-    global $post;
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) // Do nothing if we're auto saving
+    // Do nothing if we're auto saving
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) 
     return;
 
     if ( empty( $postvalues ) ) {
+        // if we're passed an empty array, don't do anything
         return;
     }
+
     // save post data for any fields that sent them
     foreach ( $postvalues as $key => $value ) {
-        update_post_meta( $post_ID, $meta_key = $key, $meta_value = $value );
+        $existing = get_post_meta( $post_ID, $key, $single = true );
+        if ( $value == null && isset($existing) ) {
+            delete_post_meta($post_ID, $key);
+        } elseif ( isset($value) ) {
+            update_post_meta( $post_ID, $meta_key = $key, $meta_value = $value );
+        } else {
+            return;
+        }
     }
 }
 
+/**
+ * Runs validate, then save on $_POST data
+ * 
+ * @param  int $post_ID The id of the object we're saving
+ * @return void
+ */
 public function validate_and_save( $post_ID ) {
     $validate = $this->validate( $post_ID );
-    $type = gettype($validate);
-    $count = count($validate);
     $this->save( $post_ID, $validate );
 }
 /**

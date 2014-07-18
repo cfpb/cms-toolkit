@@ -73,6 +73,11 @@ class View {
 					$field['include'] = $this->default_options( $field );
 					unset($field['params']);
 				}
+				if ( $field['type'] == 'link' ) {
+					// if there's existing post meta to go with, use that for the 
+					// initial value
+					$field['init_num_forms'] = $this->formset_count( $field );
+				}
 			}
 			$ready[$field['slug']] = $field;
 		}
@@ -106,20 +111,36 @@ class View {
 	}
 
 	public function default_rows( $field ) {
-		extract($field);
+		$params = $field['params'];
 		$default = ! isset( $params['rows'] ) ? 2 : intval( $params['rows'] );
 		return $default;
 	}
 
 	public function default_cols( $field ) {
-		extract($field);
+		$params = $field['params'];
 		$default = ! isset( $params['cols'] ) ? 27 : intval( $params['cols'] );
 		return $default;
 	}
 	public function default_options( $field ) {
-	    extract($field);
+	    $params = $field['params'];
 	    $default = ! isset( $params['include'] ) ? array() : $params['include'];
 		return $default;
+	}
+
+	public function formset_count( $field ) { 
+		$init_num = $field['params']['init_num_forms'];
+		$max_num  = $field['params']['max_num_forms'];
+		$existing = array();
+		$key = $field['meta_key'];
+		for ($i=0; $i < $max_num; $i++) { 
+			global $post;
+			$meta = get_post_meta( $post->ID, $key = "{$key}_{$i}", $single = false );
+			if ( isset( $meta ) ) {
+				array_push($existing, $meta);
+			}
+		}
+		$count = $max_num > count($existing) ? $max_num : count($existing);
+		return $count;
 	}
 
 	public function ready_and_print_html( $post, $fields ) {

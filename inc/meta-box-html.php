@@ -56,12 +56,17 @@ class HTML {
 			HTML::single_input( $field['slug'], $type = 'radio', $max_length = null, $value = 'false' );
 		}
 		if ( $field['type'] == 'link' ) {
-			if ( array_key_exists( 'count', $field['params'] ) ):
-				$count = $field['params']['count'];
+			if ( array_key_exists( 'max_num_forms', $field['params'] ) ):
+				$max = $field['params']['max_num_forms'];
 			else:
-				$count = 1;
+				$max = 1;
 			endif;
-			HTML::url_input($field['slug'], $count, $field['max_length'], $field['value']);
+			if ( array_key_exists( 'init_num_forms', $field['params'] ) ):
+				$init = $field['params']['init_num_forms'];
+			else:
+				$init = 1;
+			endif;
+			HTML::url_input($field['slug'], $init, $max, $field['max_length'], $field['value']);
 		}
 	}
 
@@ -157,32 +162,49 @@ class HTML {
 	<?php
 	}
 
-	protected function url_input( $slug, $count = 1, $max_length = NULL, $value = NULL ) {
+	protected function url_input( $slug, $init_num_forms, $max_num_forms, $max_length = NULL, $value = NULL ) {
 		global $post;
 		$post_id = $post->ID;
 		$value = "value='{$value}'";
 		$max_length = "max_length='{$max_length}'";?>
-		<ol id="link_manager">
+		<div id="link_manager">
 		<?php
-			for ( $i = 0; $i < $count; $i++ ):
-			$existing = get_post_meta( $post_id, $slug . "_{$i}", false); ?>
-				<?php if ( ! isset( $existing[0] ) || ! isset( $existing[1] ) ): ?>
-					<li>
-						<label for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
-						<input id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length $value" ?> />
-						<label for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
-						<input id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length $value" ?> />
-					</li>
+			for ( $i = 0; $i < $init_num_forms; $i++ ):
+				$existing = get_post_meta( $post_id, $slug . "_{$i}", false);
+				if ( ! isset( $existing[0] ) || ! isset( $existing[1] ) ): ?>
+					<p>
+						<fieldset>
+							<label for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
+							<input id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length $value" ?> />
+							<label for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
+							<input id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length $value" ?> />
+						</fieldset>
+					</p>
 				<?php else:?>
-					<li><span class="<?php echo $i ?>">Link text: <?php echo $existing[1] ?><br />Link URL: <?php echo $existing[0] ?>.<br /><a href="#related_links" title='<?php esc_attr($slug) ?>' onclick="clear_link_manager(<?php print_r( $i ) ?>, <?php print_r( $post_id ) ?>, <?php print_r( $slug ) ?>)" >Click here to replace it</a></span>
-						<label class='hidden <?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
-						<input class='hidden <?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length value=''" ?> />
-						<label class='hidden <?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
-						<input class='hidden <?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length value=''" ?> />
-					</li>
+					<p><span class="<?php echo $i ?>">Link text: <?php echo $existing[1] ?><br />Link URL: <?php echo $existing[0] ?>.<br /><a href="#related_links" title='<?php esc_attr($slug) ?>' onclick="clear_link_manager(<?php print_r( $i ) ?>, <?php print_r( $post_id ) ?>, <?php print_r( $slug ) ?>)" >Edit</a></span>
+						<fieldset>
+							<label class='hidden <?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
+							<input class='hidden <?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length value=''" ?> />
+							<label class='hidden <?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
+							<input class='hidden <?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length value=''" ?> />
+						</fieldset>
+					</p>
 				<?php endif;?>
-		<?php endfor; ?>
-	</ol><?php
+		<?php endfor;
+		for ( $i = $init_num_forms; $i < $max_num_forms; $i++ ): ?>
+			<p>
+				<fieldset disabled id="<?php echo "{$slug}_{$i}" ?>" class="hidden">
+					<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
+					<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length value=''" ?> />
+					<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
+					<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length value=''" ?> />
+				</fieldset>
+			</p>
+		<?php endfor; 
+		$next_form = $init_num_forms + 1 ?>
+		<a class='add_a_link <?php echo "{$slug}_{$next_form}"?>' href="#related_links" >Add a link</a>
+	</div>
+	<?php
 	}
 
 	/**

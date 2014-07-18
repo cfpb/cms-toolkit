@@ -151,7 +151,6 @@ public function validate_link( $field, $post_id ) {
     $key = $field['meta_key'];
     if ( array_key_exists('count', $field['params'] ) ) {
         $count = $field['params']['count'] - 1;
-        error_log("Count equals {$count}", 0);
     } else {
         $count = 1;
     }

@@ -155,7 +155,6 @@ public function validate_link( $field, $post_id ) {
         $count = 1;
     }
     for ( $i = 0; $i <= $count; $i++ ) {
-        error_log("Saving {$i} out of {$count}", 0);
         if ( empty( $_POST[$key . '_url_' . $i] ) || empty( $_POST[$key.'_text_' . $i]) ) {
             continue;
         }

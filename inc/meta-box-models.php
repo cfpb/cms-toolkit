@@ -156,7 +156,7 @@ public function validate_link( $field, $post_id ) {
     }
     for ( $i = 0; $i <= $count; $i++ ) {
         if ( empty( $_POST[$key . '_url_' . $i] ) || empty( $_POST[$key.'_text_' . $i]) ) {
-            return;
+            continue;
         }
         $url = $_POST["{$key}_url_{$i}"];
         $text = $_POST["{$key}_text_{$i}"];

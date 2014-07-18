@@ -151,12 +151,14 @@ public function validate_link( $field, $post_id ) {
     $key = $field['meta_key'];
     if ( array_key_exists('count', $field['params'] ) ) {
         $count = $field['params']['count'] - 1;
+        error_log("Count equals {$count}", 0);
     } else {
         $count = 1;
     }
     for ( $i = 0; $i <= $count; $i++ ) {
+        error_log("Saving {$i} out of {$count}", 0);
         if ( empty( $_POST[$key . '_url_' . $i] ) || empty( $_POST[$key.'_text_' . $i]) ) {
-            return;
+            continue;
         }
         $url = $_POST["{$key}_url_{$i}"];
         $text = $_POST["{$key}_text_{$i}"];

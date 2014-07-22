@@ -149,26 +149,29 @@ class Models {
  */
 public function validate_link( $field, $post_id ) {
     $key = $field['meta_key'];
-    if ( array_key_exists('count', $field['params'] ) ) {
-        $count = $field['params']['count'] - 1;
+    if ( array_key_exists('max_num_forms', $field['params'] ) ) {
+        $count = $field['params']['max_num_forms'] - 1;
     } else {
         $count = 1;
     }
     for ( $i = 0; $i <= $count; $i++ ) {
-        if ( empty( $_POST[$key . '_url_' . $i] ) || empty( $_POST[$key.'_text_' . $i]) ) {
-            continue;
-        }
         $url = $_POST["{$key}_url_{$i}"];
         $text = $_POST["{$key}_text_{$i}"];
         $full_link = array( 0 => $url, 1 => $text );
         $meta_key = $key . "_{$i}";
         $existing = get_post_meta( $post_id, $meta_key, $single = false );
-        if ( empty($existing) ) {
+
+        if ( empty( $_POST[$key . '_url_' . $i] ) || empty( $_POST[$key.'_text_' . $i]) ) {
+            delete_post_meta( $post_id, $meta_key);
+        } elseif ( empty($existing) ) {
             add_post_meta( $post_id, $meta_key, $url, false );
             add_post_meta( $post_id, $meta_key, $text, false );
         } elseif ( $existing != $full_link ) {
             update_post_meta( $post_id, $meta_key, $url, $existing[0] );
             update_post_meta( $post_id, $meta_key, $text, $existing[1] );
+        } else {
+            error_log("Skipping {$url} and {$text} for field {$i} of {$count}", 0);
+            continue;
         }
 
         $meta_key = $key;

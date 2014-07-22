@@ -167,7 +167,7 @@ class HTML {
 		$post_id = $post->ID;
 		$value = "value='{$value}'";
 		$max_length = "max_length='{$max_length}'";?>
-		<div id="link_manager">
+		<div class='link_manager <?php echo "{$slug} max_{$max_num_forms}" ?>'>
 		<?php
 			for ( $i = 0; $i < $init_num_forms; $i++ ):
 				$existing = get_post_meta( $post_id, $slug . "_{$i}", false);
@@ -175,34 +175,39 @@ class HTML {
 					<p>
 						<fieldset>
 							<label for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
-							<input id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length $value" ?> />
+							<input class='<?php echo esc_attr( $slug ) . '_text_' . $i ?> cms-toolkit-input' name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length $value" ?> />
 							<label for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
-							<input id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length $value" ?> />
+							<input class='<?php echo esc_attr( $slug ) . '_url_' . $i ?> cms-toolkit-input' name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length $value" ?> />
 						</fieldset>
 					</p>
 				<?php else:?>
-					<p><span class="<?php echo $i ?>">Link text: <?php echo $existing[1] ?><br />Link URL: <?php echo $existing[0] ?>.<br /><a href="#related_links" title='<?php esc_attr($slug) ?>' onclick="clear_link_manager(<?php print_r( $i ) ?>, <?php print_r( $post_id ) ?>, <?php print_r( $slug ) ?>)" >Edit</a></span>
-						<fieldset>
-							<label class='hidden <?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
-							<input class='hidden <?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length value=''" ?> />
-							<label class='hidden <?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
-							<input class='hidden <?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length value=''" ?> />
+					<p><span class="<?php echo $i ?>">Link text: <?php echo $existing[1] ?><br />Link URL: <?php echo $existing[0] ?>.<br /><a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$i} {$post_id} {$slug}"  ?>" >Edit</a></span>
+						<fieldset id='<?php echo "{$slug}_{$i}" ?>' class='hidden'>
+							<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
+							<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length value='{$existing[1]}'" ?> />
+							<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
+							<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length value='{$existing[0]}'" ?> />
+							<a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$i} {$post_id} {$slug}"  ?>" >Undo</a>
+							<span class="howto">Save the post to update this field, click undo to keep what you had (above).</span>
 						</fieldset>
 					</p>
 				<?php endif;?>
 		<?php endfor;
-		for ( $i = $init_num_forms; $i < $max_num_forms; $i++ ): ?>
+		for ( $i = $init_num_forms; $i <= $max_num_forms; $i++ ): ?>
 			<p>
 				<fieldset disabled id="<?php echo "{$slug}_{$i}" ?>" class="hidden">
 					<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
 					<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length value=''" ?> />
 					<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
 					<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length value=''" ?> />
+					<a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$i} {$post_id} {$slug}"  ?>" >Remove</a>
 				</fieldset>
 			</p>
 		<?php endfor; 
-		$next_form = $init_num_forms + 1 ?>
-		<a class='add_a_link <?php echo "{$slug}_{$next_form}"?>' href="#related_links" >Add a link</a>
+		$next_form = $init_num_forms + 1;
+		if ( $next_form <= $max_num_forms ): ?>
+			<a class='add_a_link <?php echo "{$slug} {$next_form}"?>' href="#related_links" >Add a link</a>
+		<?php endif; ?>
 	</div>
 	<?php
 	}
@@ -253,7 +258,7 @@ class HTML {
 			$IDs = wp_get_object_terms( get_the_ID(), $taxonomy, array( 'fields' => 'ids' ) );
 			wp_dropdown_categories( 'taxonomy=' . $taxonomy . '&hide_empty=0&orderby=name&name=' . $taxonomy . '&show_option_none=Select ' . $taxonomy . '&selected='. array_pop($IDs) );
 		else :	// otherwise use all the values set in $param to generate the option
-				$mutli = isset($multi) ? 'mutliple' : null;
+				$multiple = isset($multi) ? 'multiple' : null;
 				?> 
 				<label for="<?php echo esc_attr($slug) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" <?php echo $multiple ?>></label>
 				<?php
@@ -302,7 +307,7 @@ class HTML {
 	}
 
 	protected function taxonomy_as_meta( $slug, $params, $taxonomy, $key, $placeholder = '--', $value, $multi=null ) {?>
-		<select class="<?php echo esc_attr($mutli) ?>" name='<?php echo esc_attr( $slug )?>[]' <?php echo esc_attr( $multi )?> ><?php
+		<select class="<?php echo esc_attr($multi) ?>" name='<?php echo esc_attr( $slug )?>[]' <?php echo esc_attr( $multi )?> ><?php
 			if ( isset( $value ) ):?>
 				<option selected value="<?php echo esc_attr( $value ) ?>" id="<?php echo esc_attr( $key ) ?>"><?php echo esc_html( $value ) ?></option><?php
 			else:?>

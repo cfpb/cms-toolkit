@@ -5,3 +5,7 @@
 input.cms-toolkit-input {
     width: 40%;
 }
+
+a.disabled {
+	pointer-events: none;
+}

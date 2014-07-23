@@ -9,7 +9,7 @@ before_script:
   - rm -rf report/
   - mkdir -p build/logs
 script:
-  - phpunit --coverage-text --coverage-clover build/logs/clover.xml
+  - phpunit --exclude-group=wip --coverage-text --coverage-clover build/logs/clover.xml
 after_failure:
 after_success:
 after_script:

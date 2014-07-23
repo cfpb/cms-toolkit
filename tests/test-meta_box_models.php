@@ -759,7 +759,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'slug' => 'link',
 			'type' => 'link',
 			'params' => array(
-				'count' => 1,
+				'max_num_forms' => 1,
 			),
 			'meta_key' => 'link',
 			'howto' => 'Some howto text',

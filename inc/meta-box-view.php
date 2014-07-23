@@ -111,19 +111,16 @@ class View {
 	}
 
 	public function default_rows( $field ) {
-		$params = $field['params'];
-		$default = ! isset( $params['rows'] ) ? 2 : intval( $params['rows'] );
+		$default = ! isset( $field['params']['rows'] ) ? 2 : intval( $field['params']['rows'] );
 		return $default;
 	}
 
 	public function default_cols( $field ) {
-		$params = $field['params'];
-		$default = ! isset( $params['cols'] ) ? 27 : intval( $params['cols'] );
+		$default = ! isset( $field['params']['cols'] ) ? 27 : intval( $field['params']['cols'] );
 		return $default;
 	}
 	public function default_options( $field ) {
-	    $params = $field['params'];
-	    $default = ! isset( $params['include'] ) ? array() : $params['include'];
+	    $default = ! isset( $field['params']['include'] ) ? array() : $field['params']['include'];
 		return $default;
 	}
 

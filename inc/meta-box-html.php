@@ -166,47 +166,50 @@ class HTML {
 		global $post;
 		$post_id = $post->ID;
 		$value = "value='{$value}'";
-		$max_length = "max_length='{$max_length}'";?>
+		$max_length = "max_length='{$max_length}'";
+		$existing_terms = array();
+		for ( $i = 0; $i <= $max_num_forms; $i++ ):
+			$existing = get_post_meta( $post_id, "{$slug}_{$i}", $single = false );
+			if ( ! empty($existing) ) {
+				array_push($existing_terms, $existing);
+			}
+		endfor;
+		$count = count($existing_terms) > $init_num_forms ? count($existing_terms) : $init_num_forms;
+		?>
 		<div class='link_manager <?php echo "{$slug} max_{$max_num_forms}" ?>'>
 		<?php
-			for ( $i = 0; $i < $init_num_forms; $i++ ):
+			for ( $i = 0; $i < $count; $i++ ):
 				$existing = get_post_meta( $post_id, $slug . "_{$i}", false);
 				if ( ! isset( $existing[0] ) || ! isset( $existing[1] ) ): ?>
-					<p>
 						<fieldset>
 							<label for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
 							<input class='<?php echo esc_attr( $slug ) . '_text_' . $i ?> cms-toolkit-input' name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length $value" ?> />
 							<label for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
 							<input class='<?php echo esc_attr( $slug ) . '_url_' . $i ?> cms-toolkit-input' name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length $value" ?> />
 						</fieldset>
-					</p>
 				<?php else:?>
-					<p><span class="<?php echo $i ?>">Link text: <?php echo $existing[1] ?><br />Link URL: <?php echo $existing[0] ?>.<br /><a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$i} {$post_id} {$slug}"  ?>" >Edit</a></span>
+					<p><span class="<?php echo $i ?>">Link text: <?php echo $existing[1] ?><br />Link URL: <?php echo $existing[0] ?>.<br /><a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$slug} edit {$i}"  ?>" >Edit</a></span></p>
 						<fieldset id='<?php echo "{$slug}_{$i}" ?>' class='hidden'>
 							<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
 							<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length value='{$existing[1]}'" ?> />
 							<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
 							<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length value='{$existing[0]}'" ?> />
-							<a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$i} {$post_id} {$slug}"  ?>" >Undo</a>
+							<a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$slug} edit {$i}"  ?>" >Undo</a>
 							<span class="howto">Save the post to update this field, click undo to keep what you had (above).</span>
 						</fieldset>
-					</p>
 				<?php endif;?>
 		<?php endfor;
-		for ( $i = $init_num_forms; $i <= $max_num_forms; $i++ ): ?>
-			<p>
-				<fieldset disabled id="<?php echo "{$slug}_{$i}" ?>" class="hidden">
+		for ( $i = $count; $i <= $max_num_forms; $i++ ): ?>
+				<fieldset disabled id="<?php echo "{$slug}_{$i}" ?>" class="hidden new">
 					<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
 					<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length value=''" ?> />
 					<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
 					<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length value=''" ?> />
-					<a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$i} {$post_id} {$slug}"  ?>" >Remove</a>
+					<a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$slug} remove {$i}"  ?>" >Remove</a>
 				</fieldset>
-			</p>
 		<?php endfor; 
-		$next_form = $init_num_forms + 1;
-		if ( $next_form <= $max_num_forms ): ?>
-			<a class='add_a_link <?php echo "{$slug} {$next_form}"?>' href="#related_links" >Add a link</a>
+		if ( $count <= $max_num_forms ): ?>
+			<a class='toggle_link_manager <?php echo "{$slug} add"?>' href="#related_links" >Add a link</a>
 		<?php endif; ?>
 	</div>
 	<?php

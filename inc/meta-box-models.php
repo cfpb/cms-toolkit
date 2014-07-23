@@ -155,26 +155,28 @@ public function validate_link( $field, $post_id ) {
         $count = 1;
     }
     for ( $i = 0; $i <= $count; $i++ ) {
-        $url = $_POST["{$key}_url_{$i}"];
-        $text = $_POST["{$key}_text_{$i}"];
-        $full_link = array( 0 => $url, 1 => $text );
-        $meta_key = $key . "_{$i}";
-        $existing = get_post_meta( $post_id, $meta_key, $single = false );
+        if ( array_key_exists("{$key}_url_{$i}", $_POST) AND array_key_exists("{$key}_text_{$i}", $_POST) ) {
+            $url = $_POST["{$key}_url_{$i}"];
+            $text = $_POST["{$key}_text_{$i}"];
+            $full_link = array( 0 => $url, 1 => $text );
+            $meta_key = $key . "_{$i}";
+            $existing = get_post_meta( $post_id, $meta_key, $single = false );
 
-        if ( empty( $_POST[$key . '_url_' . $i] ) || empty( $_POST[$key.'_text_' . $i]) ) {
-            delete_post_meta( $post_id, $meta_key);
-        } elseif ( empty($existing) ) {
-            add_post_meta( $post_id, $meta_key, $url, false );
-            add_post_meta( $post_id, $meta_key, $text, false );
-        } elseif ( $existing != $full_link ) {
-            update_post_meta( $post_id, $meta_key, $url, $existing[0] );
-            update_post_meta( $post_id, $meta_key, $text, $existing[1] );
+            if ( empty( $_POST[$key . '_url_' . $i] ) || empty( $_POST[$key.'_text_' . $i]) ) {
+                delete_post_meta( $post_id, $meta_key);
+            } elseif ( empty($existing) ) {
+                add_post_meta( $post_id, $meta_key, $url, false );
+                add_post_meta( $post_id, $meta_key, $text, false );
+            } elseif ( $existing != $full_link ) {
+                update_post_meta( $post_id, $meta_key, $url, $existing[0] );
+                update_post_meta( $post_id, $meta_key, $text, $existing[1] );
+            }
+
+            $meta_key = $key;
         } else {
-            error_log("Skipping {$url} and {$text} for field {$i} of {$count}", 0);
+            error_log("Skipping field {$i} of {$count}", 0);
             continue;
         }
-
-        $meta_key = $key;
     }
 }
 

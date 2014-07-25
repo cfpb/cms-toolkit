@@ -377,6 +377,35 @@ values are listed below. Check the unit tests for examples of how to use each ty
 
 __Note:__ invalid 'type' values will always generate an `<hr />` and invalid values for $post_type or $context will generate `WP_Error`s
 
+#### Formsets
+
+Formsets are types of fields (listed above) that can be repeated up to a fixed 
+maximum value. This is slightly different from how Django thinks about formsets. As 
+an example of how to use them, think about this user story: As a user, I want to be
+able to add at least one no more than 10 related links to any given post so that I
+can show readers relative content.
+
+To do this, we could either create 10 link fields within a single meta box's 'fields'
+array or we could make a formset with an initial number of forms set to 1 and the
+maximum set to 10. That code looks like this:
+
+```php
+'related_link' =>
+    'slug' => 'related_link',
+    'type' => link,
+    'params' => array( 
+        'init_num_forms' => 1,
+        'max_num_forms' => 10,
+    ),
+    'meta_key' => 'related_link',
+    'howto' => 'Tell the people how to use this',
+)
+```
+
+Formsets are currently supported by the following field types:
+
+- `link` (as of 1.1)
+
 ### Capabilities
 
 The least developed feature of this plugin is the capability management functions

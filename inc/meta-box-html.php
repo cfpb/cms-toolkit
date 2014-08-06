@@ -43,7 +43,7 @@ class HTML {
 			HTML::text_area( $field['rows'], $field['cols'], $field['slug'], $field['value'], $field['placeholder'] );
 		}
 
-		if ( in_array( $field['type'], array( 'number', 'text', 'boolean', 'email', 'url' ) ) ) {
+		if ( in_array( $field['type'], array( 'number', 'text', 'email', 'url' ) ) ) {
 			HTML::single_input( $field['slug'], $field['type'], $field['max_length'], $field['value'], $field['placeholder'] );
 		}
 
@@ -55,6 +55,11 @@ class HTML {
 			HTML::single_input( $field['slug'], $type = 'radio', $max_length = null, $value = 'true' );
 			HTML::single_input( $field['slug'], $type = 'radio', $max_length = null, $value = 'false' );
 		}
+
+		if ( $field['type'] == 'boolean' ) {
+			HTML::boolean_input( $field['slug'], $field['label'] );
+		}
+
 		if ( $field['type'] == 'link' ) {
 			if ( array_key_exists( 'max_num_forms', $field['params'] ) ):
 				$max = $field['params']['max_num_forms'];
@@ -158,6 +163,16 @@ class HTML {
 			$placeholder = 'placeholder="' . $placeholder . '"';?>
 		<p>
 			<input id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) ?>" type="<?php echo esc_attr( $type ) ?>" <?php echo " $max_length $value $placeholder" ?> />
+
+		</p>
+	<?php
+	}
+
+	protected function boolean_input( $slug, $label ) {
+	?>
+		<p>
+			<input id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>" type="checkbox" />
+			<label for="<?php echo esc_attr( $slug ) ?>"><?php echo $label ?></label>
 		</p>
 	<?php
 	}

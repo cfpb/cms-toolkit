@@ -57,7 +57,7 @@ class HTML {
 		}
 
 		if ( $field['type'] == 'boolean' ) {
-			HTML::boolean_input( $field['slug'], $field['label'] );
+			HTML::boolean_input( $field['slug'], $field['label'], $field['value'] );
 		}
 
 		if ( $field['type'] == 'link' ) {
@@ -168,10 +168,10 @@ class HTML {
 	<?php
 	}
 
-	protected function boolean_input( $slug, $label ) {
+	protected function boolean_input( $slug, $label, $value ) {
 	?>
 		<p>
-			<input id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>" type="checkbox" />
+			<input id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>" type="checkbox"<?php if ($value == "on") { echo " checked"; } ?> />
 			<label for="<?php echo esc_attr( $slug ) ?>"><?php echo $label ?></label>
 		</p>
 	<?php

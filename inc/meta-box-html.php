@@ -6,10 +6,10 @@ class HTML {
 	public $elements = array(
 		'selects' => array( 'select', 'multiselect', 'taxonomyselect', 'tax_as_meta', 'post_select', 'post_multiselect' ),
 		'inputs' => array( 'text_area', 'number', 'text', 'boolean', 'email', 'url', 'date', 'radio', 'link', ),
-		'hidden' => array( 'nonce', 'hidden', 'separator' ),
+		'hidden' => array( 'nonce', 'hidden', 'separator', 'fieldset' ),
 		);
 
-	public function draw( $field ) {
+	public function draw( $field, $slug = null ) {
 		if ( empty( $field ) ) {
 			$error = new WP_Error( 'field_required', 'You need to pass a field array to this method. You passed a '. gettype( $field ) . ' .');
 			return $error;
@@ -18,9 +18,19 @@ class HTML {
 
 		if ( isset( $field['title'] ) ) {?>
 			<h4><?php echo esc_attr( $field['title'] ); ?></h4><?php
-		}
+		} ?>
+		<p><?php
 
-		if ( in_array($field['type'], $this->elements['inputs'] ) ) {
+		if ( $field['type'] == 'fieldset' ) {
+			foreach ($field['fields'] as $f) {
+				if ( in_array( $f['type'], array( 'number', 'text', 'boolean', 'email', 'url' ) ) ) {
+					HTML::single_input($field['slug'], $f['type'], $f['max_length'], null, $f['placeholder'], $f['title']);
+				} elseif ( in_array($f['type'], array( 'select', 'multiselect', 'taxonomselect') ) ) {
+					HTML::select($field['slug'], $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder']);
+				}
+				// $this->make_fieldset( $field );
+			}
+		} elseif ( in_array($field['type'], $this->elements['inputs'] ) ) {
 			$this->pass_input($field);
 		} elseif ( in_array($field['type'], $this->elements['selects'] ) ) {
 			$this->pass_select($field);
@@ -29,33 +39,41 @@ class HTML {
 		} elseif ( $field['type'] == 'nonce' ) {
 			wp_nonce_field( plugin_basename( __FILE__ ), $field['slug'] );
 		}
-
-		if ( ! in_array($field['type'], $this->elements['hidden'] ) ) { ?>
-			<p class="howto"><?php echo esc_html( $field['howto'] ) ?></p>
-		<?php
+		if ( array_key_exists('howto', $field) ) {
+		?> <p class="howto"><?php echo esc_html( $field['howto'] ) ?></p></div><?php
 		}
+	}
 
-		?></div><?php
-	} 
+	private function pass_input( $field, $for = null ) {
+		if ( array_key_exists('fields', $field) ) {
+			foreach ( $field['fields'] as $f ) {
+				HTML::draw_input($f, $field['slug']);
+			}
+		} else {
+			HTML::draw_input($field);
+		}
+		
+	}
 
-	private function pass_input( $field ) {
-		if ( $field['type'] == 'text_area' ) {
+	private function draw_input($field, $slug = null) {
+		$type = $field['type'];
+		if ( $type == 'text_area' ) {
 			HTML::text_area( $field['rows'], $field['cols'], $field['slug'], $field['value'], $field['placeholder'] );
 		}
 
-		if ( in_array( $field['type'], array( 'number', 'text', 'boolean', 'email', 'url' ) ) ) {
+		if ( in_array( $type, array( 'number', 'text', 'boolean', 'email', 'url' ) ) ) {
 			HTML::single_input( $field['slug'], $field['type'], $field['max_length'], $field['value'], $field['placeholder'] );
 		}
 
-		if ( $field['type'] == 'date' ) {
+		if ( $type == 'date' ) {
 			HTML::date( $taxonomy = $field['taxonomy'], $tax_nice_name = $field['title'], $multiples = $field['multiple'] );
 		}
 
-		if ( $field['type'] == 'radio' ) {
+		if ( $type == 'radio' ) {
 			HTML::single_input( $field['slug'], $type = 'radio', $max_length = null, $value = 'true' );
 			HTML::single_input( $field['slug'], $type = 'radio', $max_length = null, $value = 'false' );
 		}
-		if ( $field['type'] == 'link' ) {
+		if ( $type == 'link' ) {
 			if ( array_key_exists( 'max_num_forms', $field['params'] ) ):
 				$max = $field['params']['max_num_forms'];
 			else:
@@ -71,16 +89,9 @@ class HTML {
 	}
 
 	private function pass_select( $field ) {
-		if ( $field['type'] == 'multiselect' ){
-			HTML::select( $field['slug'], $field['params'], $taxonomy = false, $multi = true, $placeholder = $field['placeholder'] );
-		}
-
-		if ( $field['type'] == 'select' ) {
-			HTML::select( $field['slug'], $field['params'], $taxonomy = false, $multi = false, $field['value'], $placeholder = $field['placeholder'] );
-		}
-
-		if ( $field['type'] == 'taxonomyselect' ) {
-			HTML::select( $field['slug'], $field['params'], $taxonomy = $field['taxonomy'], $multi = $field['multiple'], $value = $field['value'], $placeholder = $field['placeholder'] );
+		
+		if ( in_array( $field['type'], array('multiselect', 'select', 'taxonomyselect' ) ) ) {
+			HTML::select( $field['slug'], $field['params'], $field['taxonomy'], $field['multiple'], $field['placeholder'] );
 		}
 
 		if ( $field['type'] == 'tax_as_meta' ) {
@@ -152,13 +163,14 @@ class HTML {
 	 * @since 1.0
 	 *
 	**/
-	protected function single_input( $slug, $type, $max_length = NULL, $value = NULL, $placeholder = NULL ) {
+	protected function single_input( $slug, $type, $max_length = NULL, $value = NULL, $placeholder = NULL, $title = NULL ) {
 			$value       = 'value="'. $value . '"';
 			$max_length  = 'maxlength="'. $max_length . '"';
 			$placeholder = 'placeholder="' . $placeholder . '"';?>
-		<p>
+			<? if ( $title != NULL ) ?>
+				<p class="howto"><?php echo $title ?></p><?php
+			?>
 			<input id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) ?>" type="<?php echo esc_attr( $type ) ?>" <?php echo " $max_length $value $placeholder" ?> />
-		</p>
 	<?php
 	}
 
@@ -219,9 +231,7 @@ class HTML {
 	 *  Generates a hidden field
 	**/
 	protected function hidden( $slug, $value ) { ?>
-		<p>
 			<input id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) ?>" type="hidden" value="<?php echo esc_attr( $value ) ?>" />
-		</p>
 	<?php
 	}
 
@@ -255,8 +265,7 @@ class HTML {
 	 *              if no value selected. Default: '--'
 	 *
 	**/
-	protected function select( $slug, $params = array(), $taxonomy = false, $multi = null, $value = null, $placeholder = '--' ) { ?>
-		<p><?php
+	protected function select( $slug, $params = array(), $taxonomy = false, $multi = null, $value = null, $placeholder = '--' ) {
 		if ( $taxonomy != false ): // if a taxonomy is set, use wp_dropdown category to generate the select box
 			$IDs = wp_get_object_terms( get_the_ID(), $taxonomy, array( 'fields' => 'ids' ) );
 			wp_dropdown_categories( 'taxonomy=' . $taxonomy . '&hide_empty=0&orderby=name&name=' . $taxonomy . '&show_option_none=Select ' . $taxonomy . '&selected='. array_pop($IDs) );
@@ -279,15 +288,11 @@ class HTML {
 			endforeach;
 		?>	</select> <?php
 		endif;
-		?>
-	</p>
-	<?php
 	}
 
 	protected function post_select( $slug, $posts, $value, $multi, $placeholder = '--' ) { 
 		global $post;
 		$selected = null;?>
-		<p>
 			<label for="<?php echo esc_attr( $slug ) ?>"><select class="<?php echo esc_attr($multi)?>" id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" <?php echo $multi; ?> ></label>
 				<?php if ( $multi == null ):
 						if ( empty( $value )  ): ?>
@@ -305,7 +310,6 @@ class HTML {
 					<option <?php echo $selected ?> value="<?php echo esc_attr( $p->post_name )?>"><?php echo $p->post_title; ?></option>
 				<?php endforeach; ?>
 			</select>			
-		</p>
 		<?php
 	}
 
@@ -323,7 +327,7 @@ class HTML {
 					endif;
 				endforeach;?>
 		</select>
-		</p><?php
+		<?php
 	}
 
 	/**
@@ -347,7 +351,6 @@ class HTML {
 	 * @param bool $multiples     whether the term shoud append (true) or replace (false) existing terms
 	 **/
 	protected function date( $taxonomy, $tax_nice_name, $mutliples = false ) {?>
-    <p>
 	    <?php
 			$tax_name = stripslashes( $taxonomy );
 			global $post, $wp_locale;
@@ -392,7 +395,6 @@ class HTML {
 			}
 			?>
 		</div>
-	</p>
 	<?php
 	}
 }

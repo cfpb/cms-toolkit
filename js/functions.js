@@ -28,6 +28,7 @@ function toggle_link_field(element) {
         var targeted_input = jQuery('div.' + slug + ' fieldset.hidden.new').first();
         jQuery(targeted_input).toggleClass('new');
         jQuery(targeted_input).toggleClass('expanded');
+        jQuery(targeted_input).attr('disabled', false);
     } else if ( action == 'remove' ) {
         var targeted_input = jQuery('div.' + slug + ' fieldset.expanded' ).first();
         jQuery(targeted_input).toggleClass('expanded');

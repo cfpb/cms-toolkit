@@ -66,6 +66,7 @@ class View {
 				$i = 0;
 				foreach ($field['fields'] as $f) {
 					$field['fields'][$i] = $this->assign_defaults($f);
+					$field['fields'][$i]['value'] = $this->default_value($ID, $field, $i);
 					$i++;
 				}
 				$ready[$field['slug']] = $field;
@@ -110,13 +111,13 @@ class View {
 		return $field;
 	}
 
-	public function default_value( $ID, $field ) {
+	public function default_value( $ID, $field, $index = 0 ) {
 		if ( $field['type'] == 'link' ) {
 			$default = null;
 		} else {
-			$existing = get_post_meta( $ID, $field['meta_key'], true );
-			$value = isset( $field['value']) ? $field['value'] : '';
-			$default = $existing ? $existing : $value;
+			$existing = get_post_meta( $ID, $field['meta_key'], false );
+			$value = isset( $field['value'] ) ? $field['value'] : '';
+			$default = array_key_exists( $index, $existing ) ? $existing[$index] : $value;
 		}
 		return $default;
 	}

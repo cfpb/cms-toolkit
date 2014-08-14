@@ -23,16 +23,17 @@ class HTML {
 
 		if ( $field['type'] == 'fieldset' ) {
 			?><fieldset><?php
-			foreach ($field['fields'] as $f) {
-				if ( in_array( $f['type'], array( 'number', 'text', 'boolean', 'email', 'url' ) ) ) {
-					$placeholder = array_key_exists('placeholder', $f) ? esc_attr( $f['placeholder'] ) : null;
-					$title = array_key_exists('title', $f) ? esc_attr( $f['title'] ) : null;
-					$label = array_key_exists('label', $f) ? $f['label'] : null;
-					HTML::single_input($field['slug'], $f['type'], $f['max_length'], null, $placeholder, $title, $label, true);
-				} elseif ( in_array($f['type'], array( 'select', 'multiselect', 'taxonomselect') ) ) {
-					HTML::select($field['slug'], $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder']);
-				}
-			}
+			$this->pass_fieldset($field);
+			// foreach ($field['fields'] as $f) {
+			// 	if ( in_array( $f['type'], array( 'number', 'text', 'boolean', 'email', 'url' ) ) ) {
+			// 		$placeholder = array_key_exists('placeholder', $f) ? esc_attr( $f['placeholder'] ) : null;
+			// 		$title = array_key_exists('title', $f) ? esc_attr( $f['title'] ) : null;
+			// 		$label = array_key_exists('label', $f) ? $f['label'] : null;
+			// 		HTML::single_input($field['slug'], $f['type'], $f['max_length'], null, $placeholder, $title, $label, true);
+			// 	} elseif ( in_array($f['type'], array( 'select', 'multiselect', 'taxonomselect') ) ) {
+			// 		HTML::select($field['slug'], $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder']);
+			// 	}
+			// }
 			?></fieldset><?php
 		} elseif ( in_array($field['type'], $this->elements['inputs'] ) ) {
 			$this->pass_input($field);
@@ -45,6 +46,19 @@ class HTML {
 		}
 		if ( array_key_exists('howto', $field) ) {
 		?> <p class="howto"><?php echo esc_html( $field['howto'] ) ?></p></div><?php
+		}
+	}
+
+	private function pass_fieldset($field) {
+		foreach ($field['fields'] as $f) {
+			if ( in_array( $f['type'], array( 'number', 'text', 'boolean', 'email', 'url' ) ) ) {
+				$placeholder = array_key_exists('placeholder', $f) ? esc_attr( $f['placeholder'] ) : null;
+				$title = array_key_exists('title', $f) ? esc_attr( $f['title'] ) : null;
+				$label = array_key_exists('label', $f) ? $f['label'] : null;
+				HTML::single_input($field['slug'], $f['type'], $f['max_length'], $f['value'], $placeholder, $title, $label, true);
+			} elseif ( in_array($f['type'], array( 'select', 'multiselect', 'taxonomselect') ) ) {
+				HTML::select($field['slug'], $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder']);
+			}
 		}
 	}
 

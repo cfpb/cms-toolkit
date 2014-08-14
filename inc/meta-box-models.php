@@ -221,6 +221,9 @@ public function validate_select( $field, $post_id ) {
     $key = $field['meta_key'];
     error_log("{$key}");
     $existing = get_post_meta( $post_id, $key, false );
+    if ( !isset( $_POST[$key] ) ) {
+        return;
+    }
     if ( array_key_exists($key, $_POST) ) {
         $data = $_POST[$key];
         foreach ( (array)$data as $d ) {
@@ -242,7 +245,7 @@ public function validate_select( $field, $post_id ) {
             }
         }
     }  else {
-        if ( ! empty($existing) ) {
+        if ( ! empty($existing) && empty($data[$key]) ) {
             delete_post_meta( $post_id, $key );
             // if there's no $_POST data but the post has meta data
             // it means someone removed the term from the multiselect

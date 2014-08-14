@@ -22,14 +22,18 @@ class HTML {
 		<p><?php
 
 		if ( $field['type'] == 'fieldset' ) {
+			?><fieldset><?php
 			foreach ($field['fields'] as $f) {
 				if ( in_array( $f['type'], array( 'number', 'text', 'boolean', 'email', 'url' ) ) ) {
-					HTML::single_input($field['slug'], $f['type'], $f['max_length'], null, $f['placeholder'], $f['title']);
+					$placeholder = array_key_exists('placeholder', $f) ? esc_attr( $f['placeholder'] ) : null;
+					$title = array_key_exists('title', $f) ? esc_attr( $f['title'] ) : null;
+					$label = array_key_exists('label', $f) ? $f['label'] : null;
+					HTML::single_input($field['slug'], $f['type'], $f['max_length'], null, $placeholder, $title, $label, true);
 				} elseif ( in_array($f['type'], array( 'select', 'multiselect', 'taxonomselect') ) ) {
 					HTML::select($field['slug'], $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder']);
 				}
-				// $this->make_fieldset( $field );
 			}
+			?></fieldset><?php
 		} elseif ( in_array($field['type'], $this->elements['inputs'] ) ) {
 			$this->pass_input($field);
 		} elseif ( in_array($field['type'], $this->elements['selects'] ) ) {
@@ -163,14 +167,19 @@ class HTML {
 	 * @since 1.0
 	 *
 	**/
-	protected function single_input( $slug, $type, $max_length = NULL, $value = NULL, $placeholder = NULL, $title = NULL ) {
+	protected function single_input( $slug, $type, $max_length = NULL, $value = NULL, $placeholder = NULL, $title = NULL, $label = NULL, $fieldset = false ) {
 			$value       = 'value="'. $value . '"';
 			$max_length  = 'maxlength="'. $max_length . '"';
-			$placeholder = 'placeholder="' . $placeholder . '"';?>
-			<? if ( $title != NULL ) ?>
+			$placeholder = 'placeholder="' . $placeholder . '"';
+			?><label><?php echo $label ?></label><?php
+			if ( $fieldset ):?>
+				<input id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) ?>[]" type="<?php echo esc_attr( $type ) ?>" <?php echo " $max_length $value $placeholder" ?> />
+			<?php else: ?>
+				<input id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) ?>" type="<?php echo esc_attr( $type ) ?>" <?php echo " $max_length $value $placeholder" ?> />
+			<? endif;
+			if ( $title != NULL ) ?>
 				<p class="howto"><?php echo $title ?></p><?php
 			?>
-			<input id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) ?>" type="<?php echo esc_attr( $type ) ?>" <?php echo " $max_length $value $placeholder" ?> />
 	<?php
 	}
 

@@ -374,19 +374,13 @@ values are listed below. Check the unit tests for examples of how to use each ty
 * `nonce` generates a WordPress Nonce field using 'slug' for the ID
 * `hidden` generates a hidden field with a value you can pass in 'params'
 * `post_select` generates a drop down menu of all posts. The array passed to 'params' will be passed to `get_posts` and [you can use all the keys](http://codex.wordpress.org/Template_Tags/get_posts).
+* `fieldset` to make a set of fields that affect the same meta key ([see
+  below](#fieldsets))
 
 __Note:__ invalid 'type' values will always generate an `<hr />` and invalid values for $post_type or $context will generate `WP_Error`s
 
 #### Formsets
 
-<<<<<<< HEAD
-Formsets are field types that can be repeated identically within the same form. For example, let's say you want a meta box to manage related links where users can enter 1 to 10 arbitrary URLs related to a post. rather than listing out 10 `link` type fields in the array, you can use a formset to generate 10 identical fields with incremented meta keys.
-
-Formsets work by specifying two values in the field's `params` key: `init_num_forms` and `max_num_forms`. The former is the number to be initially displayed and the latter the maximum possibe. When these are configured you'll see links to add, edit or remove links automatically generated with the extra fields.
-
-Supported fields as of version 1.1:
-`link`
-=======
 Formsets are types of fields (listed above) that can be repeated up to a fixed 
 maximum value. This is slightly different from how Django thinks about formsets. As 
 an example of how to use them, think about this user story: As a user, I want to be
@@ -413,7 +407,48 @@ maximum set to 10. That code looks like this:
 Formsets are currently supported by the following field types:
 
 - `link` (as of 1.1)
->>>>>>> 9713fc3862b10185a703e437d42ecc5421121b2a
+
+#### Fieldsets
+
+Fieldsets are groups of fields that save to the same meta key. As an example, say you
+are making an address book and want a way to save a phone number and a description to
+the `phone` key. You'll need two fields, one text field limited to 10 characters and
+another text_area field limited to 40 characters. Fieldsets let you combine those
+fields together to save more robust data to a custom-field key. The example above
+will save the number and description as an array to `phone`.
+
+```
+$meta = get_post_meta( $post_id, 'phone', false );
+
+echo $meta;
+	array( '5555555', 'Description of the phone number')); 
+```
+
+Here's an example of that fieldset.
+
+```
+$this->fields = array(
+    'phone' => array(
+        'title' => 'Phone number',
+        'slug' => 'phone',
+        'type' => 'fieldset',
+        'fields' => array(
+            array(
+                'type' => 'text',
+                'max_length' => 11,
+                'label' => 'Number',
+            ),
+            array(
+                'type' => 'text',
+                'max_length' => 40,
+                'label' => 'Description',
+            ),
+        ),
+        'meta_key' => 'phone',
+        'howto' => '',
+    ),
+);
+```
 
 ### Capabilities
 

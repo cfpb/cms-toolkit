@@ -11,6 +11,11 @@
 			<directory prefix="test-" suffix=".php">./tests/</directory>
 		</testsuite>
 	</testsuites>
+	<groups>
+		<exclude>
+			<group>wip</group>
+		</exclude>
+	</groups>
 	<filter>
 		<whitelist>
 			<directory suffix=".php">./</directory>

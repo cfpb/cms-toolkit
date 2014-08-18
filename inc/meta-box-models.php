@@ -42,7 +42,7 @@ class Models {
         'link',
     );
     private $hidden  = array( 'nonce', 'hidden' );
-    private $other   = array( 'separator' );
+    private $other   = array( 'separator', 'fieldset' );
     
     public function __construct() {
         $this->Callbacks = new Callbacks();
@@ -140,7 +140,7 @@ class Models {
 /**
  * validate_link validates a field with type = 'link'
  * 
- * @param  str $field   The field to validate, normally passed by looping through 
+ * @param  arr $field   The field to validate, normally passed by looping through 
  *                      $this->fields
  * @param  int $post_id The post ID to have post values saved to
  * @return void         No return value, updates or adds post meta if successful. New
@@ -183,7 +183,7 @@ public function validate_link( $field, $post_id ) {
 /**
  * validate_select validates a <select> field
  * 
- * @param  str $field   The field to validate, normally passed by looping through 
+ * @param  arr $field   The field to validate, normally passed by looping through 
  *                      $this->fields
  * @param  int $post_id The post ID to have post values saved to
  * @return void         No return value, adds or deletes post meta if successful. New
@@ -194,6 +194,10 @@ public function validate_link( $field, $post_id ) {
 public function validate_select( $field, $post_id ) {
     $key = $field['meta_key'];
     $existing = get_post_meta( $post_id, $key, false );
+    if ( !isset( $_POST[$key] ) ) {
+        delete_post_meta( $post_id, $key);
+        return;
+    }
     if ( array_key_exists($key, $_POST) ) {
         $data = $_POST[$key];
         foreach ( (array)$data as $d ) {
@@ -209,7 +213,7 @@ public function validate_select( $field, $post_id ) {
         }
         // delete terms if they're not in the $_POST data
         foreach ( (array)$existing as $e ) {
-            if ( ! in_array($e, $data) ) {
+            if ( ! in_array($e, (array)$data) ) {
                 delete_post_meta( $post_id, $key, $meta_value = $e );
             }
         }
@@ -292,6 +296,10 @@ public function validate( $post_ID ) {
         if ( array_key_exists('do_not_validate', $field) ) {
             return;
         }
+        if ( ! array_key_exists( 'type', $field ) ) {
+            return;
+        }
+
         /* if this field is a taxonomy select, date, link or select field, we
            send it out to another validator
         */
@@ -303,6 +311,8 @@ public function validate( $post_ID ) {
             $this->validate_date( $field, $post_ID );
         } elseif ( $field['type'] === 'link' ) {
             $this->validate_link($field, $post_ID);
+        } elseif ( $field['type'] == 'fieldset' ) {
+            $this->validate_select($field, $post_ID);
         } else {
             /* 
                 For most field types we just need to make sure we have the data
@@ -315,7 +325,7 @@ public function validate( $post_ID ) {
                         // if we're expecting a number, make sure we get a number
                         $postvalues[$key] = intval( $data[$key] ); 
                     }
-                } elseif ( $field['type'] === 'url' ) {
+                } elseif ( $field['type'] === 'url' && isset( $data[$key] ) ) {
                     // if we're expecting a url, make sure we get a url
                     $postvalues[$key] = esc_url_raw( $data[$key] ); 
                 } elseif ( $field['type'] === 'email' ) {

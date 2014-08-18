@@ -377,6 +377,15 @@ values are listed below. Check the unit tests for examples of how to use each ty
 
 __Note:__ invalid 'type' values will always generate an `<hr />` and invalid values for $post_type or $context will generate `WP_Error`s
 
+#### Formsets
+
+Formsets are field types that can be repeated identically within the same form. For example, let's say you want a meta box to manage related links where users can enter 1 to 10 arbitrary URLs related to a post. rather than listing out 10 `link` type fields in the array, you can use a formset to generate 10 identical fields with incremented meta keys.
+
+Formsets work by specifying two values in the field's `params` key: `init_num_forms` and `max_num_forms`. The former is the number to be initially displayed and the latter the maximum possibe. When these are configured you'll see links to add, edit or remove links automatically generated with the extra fields.
+
+Supported fields as of version 1.1:
+`link`
+
 ### Capabilities
 
 The least developed feature of this plugin is the capability management functions

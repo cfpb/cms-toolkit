@@ -181,32 +181,6 @@ public function validate_link( $field, $post_id ) {
 }
 
 /**
- * validate_fieldset validates an input fieldset
- *
- * All values sent from post are stored in an array, similar to links, where
- * the key are ordered in which they were sent in $_POST.
- * 
- * @param  arr $field   [description]
- * @param  int $post_id [description]
- * @return VOID
- */
-
-public function validate_fieldset($field, $post_id) {
-    $key = $field['meta_key'];
-    $postvalues = $_POST[$key];
-    error_log("Meta key is {$key}");
-    $c = count($postvalues);
-    if ( is_array($postvalues)) {
-        error_log("Posted {$c} values in an array.", 0);
-    } else {
-        $type = gettype($postvalues);
-        error_log("Posted values are of type: {$type}");
-        error_log("posted values are {$postvalues}");
-    }
-    return;
-}
-
-/**
  * validate_select validates a <select> field
  * 
  * @param  arr $field   The field to validate, normally passed by looping through 
@@ -323,6 +297,10 @@ public function validate( $post_ID ) {
         if ( array_key_exists('do_not_validate', $field) ) {
             return;
         }
+        if ( ! array_key_exists( 'type', $field ) ) {
+            return;
+        }
+
         /* if this field is a taxonomy select, date, link or select field, we
            send it out to another validator
         */
@@ -348,7 +326,7 @@ public function validate( $post_ID ) {
                         // if we're expecting a number, make sure we get a number
                         $postvalues[$key] = intval( $data[$key] ); 
                     }
-                } elseif ( $field['type'] === 'url' ) {
+                } elseif ( $field['type'] === 'url' && isset( $data[$key] ) ) {
                     // if we're expecting a url, make sure we get a url
                     $postvalues[$key] = esc_url_raw( $data[$key] ); 
                 } elseif ( $field['type'] === 'email' ) {

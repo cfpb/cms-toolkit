@@ -91,7 +91,12 @@ class HTML {
 			HTML::single_input( $field['slug'], $type = 'radio', $max_length = null, $value = 'true' );
 			HTML::single_input( $field['slug'], $type = 'radio', $max_length = null, $value = 'false' );
 		}
-		if ( $type == 'link' ) {
+
+		if ( $field['type'] == 'boolean' ) {
+			HTML::boolean_input( $field['slug'], $field['label'], $field['value'] );
+		}
+
+		if ( $field['type'] == 'link' ) {
 			if ( array_key_exists( 'max_num_forms', $field['params'] ) ):
 				$max = $field['params']['max_num_forms'];
 			else:
@@ -194,6 +199,15 @@ class HTML {
 			if ( $title != NULL ): ?>
 				<p class="howto"><?php echo $title ?></p><?php
 			endif;
+	}
+
+	protected function boolean_input( $slug, $label, $value ) {
+	?>
+		<p>
+			<input id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>" type="checkbox"<?php if ($value == "on") { echo " checked"; } ?> />
+			<label for="<?php echo esc_attr( $slug ) ?>"><?php echo $label ?></label>
+		</p>
+	<?php
 	}
 
 	protected function url_input( $slug, $init_num_forms, $max_num_forms, $max_length = NULL, $value = NULL ) {

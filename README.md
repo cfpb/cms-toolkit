@@ -379,12 +379,41 @@ __Note:__ invalid 'type' values will always generate an `<hr />` and invalid val
 
 #### Formsets
 
+<<<<<<< HEAD
 Formsets are field types that can be repeated identically within the same form. For example, let's say you want a meta box to manage related links where users can enter 1 to 10 arbitrary URLs related to a post. rather than listing out 10 `link` type fields in the array, you can use a formset to generate 10 identical fields with incremented meta keys.
 
 Formsets work by specifying two values in the field's `params` key: `init_num_forms` and `max_num_forms`. The former is the number to be initially displayed and the latter the maximum possibe. When these are configured you'll see links to add, edit or remove links automatically generated with the extra fields.
 
 Supported fields as of version 1.1:
 `link`
+=======
+Formsets are types of fields (listed above) that can be repeated up to a fixed 
+maximum value. This is slightly different from how Django thinks about formsets. As 
+an example of how to use them, think about this user story: As a user, I want to be
+able to add at least one no more than 10 related links to any given post so that I
+can show readers relative content.
+
+To do this, we could either create 10 link fields within a single meta box's 'fields'
+array or we could make a formset with an initial number of forms set to 1 and the
+maximum set to 10. That code looks like this:
+
+```php
+'related_link' =>
+    'slug' => 'related_link',
+    'type' => link,
+    'params' => array( 
+        'init_num_forms' => 1,
+        'max_num_forms' => 10,
+    ),
+    'meta_key' => 'related_link',
+    'howto' => 'Tell the people how to use this',
+)
+```
+
+Formsets are currently supported by the following field types:
+
+- `link` (as of 1.1)
+>>>>>>> 9713fc3862b10185a703e437d42ecc5421121b2a
 
 ### Capabilities
 

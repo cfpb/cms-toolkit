@@ -46,20 +46,20 @@ class View {
 		$ready = array();
 		foreach ( $fields as $field ) {
 			// check if this post has post meta or a taxonomy term already, if it does, set that as the value
+			if ( ! in_array( $field['type'], $this->elements ) ) {
+			    return  new WP_Error( 'invalid_type', "Invalid type {$field['type']} given for {$field['slug']} in this model. Acceptable elements: {$this->elements}");
+			}
+			$ID = get_the_ID();
 			if ( isset($field['meta_key'] ) ) {
-				$ID = get_the_ID();
 				$field['value'] = $this->default_value($ID, $field);
 			} else {
-			    $ID = get_the_ID();
 			    $field['value'] = wp_get_object_terms(
 					$ID,
 					$taxonomy = $field['taxonomy'],
 					array( 'fields' => 'names' )
 			    );
 			}
-			if ( ! in_array( $field['type'], $this->elements ) ) {
-			    return  new WP_Error( 'invalid_type', "Invalid type {$field['type']} given for {$field['slug']} in this model. Acceptable elements: {$this->elements}");
-			} elseif ( $field['type'] == 'fieldset' ) {
+			if ( $field['type'] == 'fieldset' ) {
 				// if our field is a fieldset, process defaults for each field that
 				// in the group.
 				$fields = $field['slug']['fields'];
@@ -83,7 +83,6 @@ class View {
 		if ( ! in_array( $field['type'], $this->hidden ) ) {
 			$field['max_length'] = $this->default_max_length($field);
 			$field['placeholder'] = $this->default_placeholder($field);
-			$field['label'] = $this->default_label($field);
 		}
 		if ( $field['type'] == 'text_area') {
 			$field['rows'] = $this->default_rows($field);

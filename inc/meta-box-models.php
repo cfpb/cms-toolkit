@@ -193,9 +193,9 @@ public function validate_link( $field, $post_id ) {
 
 public function validate_select( $field, $post_id ) {
     $key = $field['meta_key'];
-    error_log("{$key}");
     $existing = get_post_meta( $post_id, $key, false );
     if ( !isset( $_POST[$key] ) ) {
+        delete_post_meta( $post_id, $key);
         return;
     }
     if ( array_key_exists($key, $_POST) ) {
@@ -203,7 +203,6 @@ public function validate_select( $field, $post_id ) {
         foreach ( (array)$data as $d ) {
             // Adding or updating terms
             $term = sanitize_text_field( $d );
-            error_log("{$term}");
             $e_key = array_search($term, $existing);
             if ( ! in_array($d, (array)$existing) ) {
                 // if the term is not in $existing, it's a new term, add it
@@ -219,7 +218,7 @@ public function validate_select( $field, $post_id ) {
             }
         }
     }  else {
-        if ( ! empty($existing) && empty($data[$key]) ) {
+        if ( ! empty($existing) ) {
             delete_post_meta( $post_id, $key );
             // if there's no $_POST data but the post has meta data
             // it means someone removed the term from the multiselect

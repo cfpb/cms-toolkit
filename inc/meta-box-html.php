@@ -191,10 +191,9 @@ class HTML {
 			<?php else: ?>
 				<input id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) ?>" type="<?php echo esc_attr( $type ) ?>" <?php echo " $max_length $value $placeholder" ?> />
 			<? endif;
-			if ( $title != NULL ) ?>
+			if ( $title != NULL ): ?>
 				<p class="howto"><?php echo $title ?></p><?php
-			?>
-	<?php
+			endif;
 	}
 
 	protected function url_input( $slug, $init_num_forms, $max_num_forms, $max_length = NULL, $value = NULL ) {

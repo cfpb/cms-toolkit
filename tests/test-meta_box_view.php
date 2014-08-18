@@ -13,7 +13,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	* Tests whether a field given minimal details is assigned certain defaults
-	* @group stable
+	* @group error
 	* @group isolated
 	* @group process_defaults
 	*
@@ -30,15 +30,22 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 				'meta_key' => 'field_one',
 				),
 			);
-
+		// version 1.1, change: get_post_meta called later in the
+		// stack, see it in default_value now
 		\WP_Mock::wpFunction(
 			'get_post_meta',
-			array('times' => 1,
-				'return' => false
+			array('times' => 0,
+				'return' => array()
 				)
 			);
 
 		\WP_Mock::wpFunction('get_the_ID', array('times' => 1));
+		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
+			->setMethods( array( 'default_value', ) )
+			->getMock();
+		$stub->expects($this->once())
+			->method('default_value')
+			->will($this->returnValue(''));
 		$View = new View();
 		$expected = array(
 			'field_one' => array(
@@ -50,10 +57,12 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 				'params' => array(),
 				'howto' => 'hidden',
 				'label' => '',
+				'multiselect' => false,
+				'taxonomy' => false,
 				),
 			);
 		// Act
-		$cleaned = $View->process_defaults($fields);
+		$cleaned = $stub->process_defaults($fields);
 
 		// Assert
 		$this->assertEquals($expected, $cleaned, 'Defaults were not assigned for some elements.');
@@ -82,7 +91,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 				),
 			);
 
-		\WP_Mock::wpFunction('get_post_meta', array('times' => 1, 'return' => false));
+		\WP_Mock::wpFunction('get_post_meta', array('times' => 1, 'return' => array()));
 		\WP_Mock::wpFunction('get_the_ID', array('times' => 1));
 		$View = new View();
 		$expected = array(
@@ -95,6 +104,8 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 				'params' => array(),
 				'howto' => 'hidden',
 				'label' => '',
+				'multiselect' => false,
+				'taxonomy' => false,
 				),
 			);
 		// Act
@@ -122,7 +133,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		$field['meta_key'] = 'key';
 		$field['type'] = 'text';
 		$ID = 1;
-		\WP_Mock::wpFunction('get_post_meta', array('times' => 1, 'return' => 'data'));
+		\WP_Mock::wpFunction('get_post_meta', array('times' => 1, 'return' => array('data')));
 		$View = new View();
 		$expected = 'data';
 
@@ -146,7 +157,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		$field['meta_key'] = 'key';
 		$field['type'] = 'text';
 		$ID = 1;
-		\WP_Mock::wpFunction('get_post_meta', array('times' => 1, 'return' => false));
+		\WP_Mock::wpFunction('get_post_meta', array('times' => 1, 'return' => array()));
 		$View = new View();
 		$expected = '';
 
@@ -320,7 +331,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 				),
 			);
 
-		\WP_Mock::wpFunction('get_post_meta', array('times' => 2, 'return' => null));
+		\WP_Mock::wpFunction('get_post_meta', array('times' => 2, 'return' => array()));
 		\WP_Mock::wpFunction('get_the_ID', array('times' => 2));
 		$HTML = $this->getMock('HTML');
 		$View = new View();
@@ -334,9 +345,11 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 				'howto' => 'hidden',
 				'meta_key' => 'field_one',
 				'max_length' => 255,
-				'placeholder' => null,
-				'label' => null,
-				'value' => null
+				'placeholder' => '',
+				'label' => '',
+				'value' => '',
+				'multiselect' => false,
+				'taxonomy' => false,
 			),
 			'field_two' => array(
 				'title' => 'First',
@@ -347,6 +360,8 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 				'meta_key' => 'field_two',
 				'value' => '',
 				'label' => '',
+				'multiselect' => false,
+				'taxonomy' => false,
 			),
 		);
 		// Act
@@ -462,7 +477,8 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 				'max_length' => 255,
 				'label' => '',
 				'placeholder' => '',
-				'value' => 'term'
+				'value' => 'term',
+				'multiselect' => false,
 			),
 		);
 		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
@@ -522,6 +538,8 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 				'rows' => 2,
 				'cols' => 27,
 				'value' => '',
+				'taxonomy' => false,
+				'multiselect' => false,
 				),
 			);
 		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
@@ -588,6 +606,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 				'label' => '',
 				'value' => '',
 				'include' => '',
+				'multiselect' => false,
 				),
 			);
 		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
@@ -616,6 +635,12 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		\WP_Mock::wpFunction(
 			'get_the_ID',
 			array('times' => 1, 'return' => 1));
+		// new v1.1, change: get_post_meta is now called later, during default
+		// value, mocked here, tested elsewhere
+		\WP_Mock::wpFunction(
+			'get_post_meta',
+			array('times' => 0, 'return' => array('one', 'two'))
+		);
 		// Act
 		$actual = $stub->process_defaults($fields);
 

@@ -1067,7 +1067,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$_POST = array();
 		\WP_Mock::wpFunction(
 			'get_post_meta',
-			array('times' => 1, 'return' => array('existing') )
+			array('times' => 0, 'return' => array('existing') )
 		);
 		\WP_Mock::wpFunction( 'sanitize_text_field', array( 'times' => 0 ) );
 		\WP_Mock::wpFunction( 'delete_post_meta', array( 'times' => 1 ) );

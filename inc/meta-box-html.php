@@ -23,17 +23,7 @@ class HTML {
 
 		if ( $field['type'] == 'fieldset' ) {
 			?><fieldset><?php
-			$this->pass_fieldset($field);
-			// foreach ($field['fields'] as $f) {
-			// 	if ( in_array( $f['type'], array( 'number', 'text', 'boolean', 'email', 'url' ) ) ) {
-			// 		$placeholder = array_key_exists('placeholder', $f) ? esc_attr( $f['placeholder'] ) : null;
-			// 		$title = array_key_exists('title', $f) ? esc_attr( $f['title'] ) : null;
-			// 		$label = array_key_exists('label', $f) ? $f['label'] : null;
-			// 		HTML::single_input($field['slug'], $f['type'], $f['max_length'], null, $placeholder, $title, $label, true);
-			// 	} elseif ( in_array($f['type'], array( 'select', 'multiselect', 'taxonomselect') ) ) {
-			// 		HTML::select($field['slug'], $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder']);
-			// 	}
-			// }
+				$this->pass_fieldset($field);
 			?></fieldset><?php
 		} elseif ( in_array($field['type'], $this->elements['inputs'] ) ) {
 			$this->pass_input($field);
@@ -51,7 +41,9 @@ class HTML {
 
 	private function pass_fieldset($field) {
 		foreach ($field['fields'] as $f) {
-			if ( in_array( $f['type'], array( 'number', 'text', 'boolean', 'email', 'url' ) ) ) {
+			if ( $f['type'] == 'boolean' ) {
+				HTML::boolean_input($field['slug'], $f['label'], $f['value'], $fieldset = true);
+			} elseif ( in_array( $f['type'], $this->elements['inputs'] ) ) {
 				$placeholder = array_key_exists('placeholder', $f) ? esc_attr( $f['placeholder'] ) : null;
 				$title = array_key_exists('title', $f) ? esc_attr( $f['title'] ) : null;
 				$label = array_key_exists('label', $f) ? $f['label'] : null;
@@ -79,7 +71,7 @@ class HTML {
 			HTML::text_area( $field['rows'], $field['cols'], $field['slug'], $field['value'], $field['placeholder'] );
 		}
 
-		if ( in_array( $type, array( 'number', 'text', 'boolean', 'email', 'url' ) ) ) {
+		if ( in_array( $type, array( 'number', 'text', 'email', 'url' ) ) ) {
 			HTML::single_input( $field['slug'], $field['type'], $field['max_length'], $field['value'], $field['placeholder'] );
 		}
 
@@ -201,10 +193,15 @@ class HTML {
 			endif;
 	}
 
-	protected function boolean_input( $slug, $label, $value ) {
+	protected function boolean_input( $slug, $label, $value, $fieldset = false ) {
+		if ( $fieldset ) {
+			$name = 'name="'. esc_attr($slug) . '[]"';
+		} else {
+			$name = 'name="' . esc_attr($slug) . '"';
+		}
 	?>
 		<p>
-			<input id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>" type="checkbox"<?php if ($value == "on") { echo " checked"; } ?> />
+			<input id="<?php echo esc_attr( $slug ) ?>" <?php echo $name ?>" type="checkbox"<?php if ($value == "on") { echo " checked"; } ?> />
 			<label for="<?php echo esc_attr( $slug ) ?>"><?php echo $label ?></label>
 		</p>
 	<?php

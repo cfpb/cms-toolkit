@@ -24,7 +24,7 @@ class View {
 		'link',
 	);
 	private $hidden  = array( 'nonce', 'hidden' );
-	private $other   = array( 'separator' );
+	private $other   = array( 'separator', 'fieldset' );
 	public $elements;
 	private $HTML;
 
@@ -45,52 +45,78 @@ class View {
 	public function process_defaults( $fields ) {
 		$ready = array();
 		foreach ( $fields as $field ) {
+			// check if this post has post meta or a taxonomy term already, if it does, set that as the value
 			if ( ! in_array( $field['type'], $this->elements ) ) {
 			    return  new WP_Error( 'invalid_type', "Invalid type {$field['type']} given for {$field['slug']} in this model. Acceptable elements: {$this->elements}");
-			} else {
-				// check if this post has post meta or a taxonomy term already, if it does, set that as the value
-				if ( isset($field['meta_key'] ) ) {
-					$ID = get_the_ID();
-					$field['value'] = $this->default_value($ID, $field);
-				} else {
-				    $ID = get_the_ID();
-				    $field['value'] = wp_get_object_terms(
-						$ID,
-						$taxonomy = $field['taxonomy'],
-						array( 'fields' => 'names' )
-				    );
-				}
-				$field['label'] = $this->default_label($field);
-				if ( ! in_array( $field['type'], $this->hidden ) ) {
-					$field['max_length'] = $this->default_max_length($field);
-					$field['placeholder'] = $this->default_placeholder($field);
-				}
-				if ( $field['type'] == 'text_area') {
-					$field['rows'] = $this->default_rows($field);
-					$field['cols'] = $this->default_cols($field);
-				}
-				if ( $field['type'] == 'tax_as_meta') {
-					$field['include'] = $this->default_options( $field );
-					unset($field['params']);
-				}
-				if ( $field['type'] == 'link' ) {
-					// if there's existing post meta to go with, use that for the 
-					// initial value
-					$field['init_num_forms'] = $this->formset_count( $field );
-				}
 			}
-			$ready[$field['slug']] = $field;
+			$ID = get_the_ID();
+			if ( isset($field['meta_key'] ) ) {
+				$field['value'] = $this->default_value($ID, $field);
+			} else {
+			    $field['value'] = wp_get_object_terms(
+					$ID,
+					$taxonomy = $field['taxonomy'],
+					array( 'fields' => 'names' )
+			    );
+			}
+			if ( $field['type'] == 'fieldset' ) {
+				// if our field is a fieldset, process defaults for each field that
+				// in the group.
+				$fields = $field['slug']['fields'];
+				$i = 0;
+				foreach ($field['fields'] as $f) {
+					$field['fields'][$i] = $this->assign_defaults($f);
+					$field['fields'][$i]['value'] = $this->default_value($ID, $field, $i);
+					$i++;
+				}
+				$ready[$field['slug']] = $field;
+			} else {
+				$ready[$field['slug']] = $this->assign_defaults($field);
+			}
 		}
 		return $ready;
 	}
 
-	public function default_value( $ID, $field ) {
+	public function assign_defaults( $field ) {
+		
+		$field['label'] = $this->default_label($field);
+		if ( ! in_array( $field['type'], $this->hidden ) ) {
+			$field['max_length'] = $this->default_max_length($field);
+			$field['placeholder'] = $this->default_placeholder($field);
+		}
+		if ( $field['type'] == 'text_area') {
+			$field['rows'] = $this->default_rows($field);
+			$field['cols'] = $this->default_cols($field);
+		}
+		if ( $field['type'] == 'tax_as_meta') {
+			$field['include'] = $this->default_options( $field );
+			unset($field['params']);
+		}
+		if ( $field['type'] == 'mutliselect' ) {
+			$field['multiselect'] = true;
+		} else {
+			$field['multiselect'] = false;
+		}
+		
+		if ( ! in_array($field['type'], array( 'taxonomyselect', 'tax_as_meta' ) ) ) {
+			$field['taxonomy'] = false;
+		}
+
+		if ( $field['type'] == 'link' ) {
+			// if there's existing post meta to go with, use that for the 
+			// initial value
+			$field['init_num_forms'] = $this->formset_count( $field );
+		}
+		return $field;
+	}
+
+	public function default_value( $ID, $field, $index = 0 ) {
 		if ( $field['type'] == 'link' ) {
 			$default = null;
 		} else {
-			$existing = get_post_meta( $ID, $field['meta_key'], true );
-			$value = isset( $field['value']) ? $field['value'] : '';
-			$default = $existing ? $existing : $value;
+			$existing = get_post_meta( $ID, $field['meta_key'], false );
+			$value = isset( $field['value'] ) ? $field['value'] : '';
+			$default = array_key_exists( $index, $existing ) ? $existing[$index] : $value;
 		}
 		return $default;
 	}
@@ -144,7 +170,7 @@ class View {
 		$fields = $fields['args'];
 		$ready  = $this->process_defaults( $fields );
 		foreach ( $ready as $field ) {
-			$this->HTML->draw( $field );
+			$this->HTML->draw( $field, $field['slug'] );
 		}
 	}
 }

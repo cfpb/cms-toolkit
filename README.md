@@ -83,7 +83,8 @@ call methods or instantiate classes out of this plugin.
 There are many examples of how to use these methods in the unit tests, but
 here's a full example of child plugin:
 
-``` <?php 
+```php
+<?php 
 /* * 
 * Add the normal Plugin front matter here 
 * */
@@ -131,7 +132,8 @@ $p = new \Vendor\Plugin\Base();
 if ('DEPENDENCIES_READY') {
   add_action('plugins_loaded', array($p, 'build')); 
 } 
-?> ```
+?>
+```
 
 ##Technical details
 

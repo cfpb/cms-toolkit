@@ -37,7 +37,7 @@ supports back to 5.2.7, make sure your host is running the correct version. See
 To activate the plugin follow the steps below:
 
 1. Login to WordPress account. 
-2. Go to Plugins screen and find__"WordPress CMS Toolkit"__ in the list 
+2. Go to Plugins screen and find __"WordPress CMS Toolkit"__ in the list 
 3. Click __Activate Plugin__ to activate it.
 
 ## Develop

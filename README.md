@@ -142,12 +142,8 @@ privileged users.
 This plugin is highly extensible and 'child plugins' should be created in order to
 actually do anything (except for permissions, for now).
 
-Below are technical details for how this plugin works and how to extend it
-organized by class. Each class is in the `CFPB\Utils` namespace and can be called
-through a well qualified namespace. There are also unit tests which offer code-
-based examples of how to use these things, and what expected behavior looks like.
-
-
+See [`/inc/README.md`](inc/README.md) for how this plugin works and examples of how to extend it
+organized by class.
 
 ## Unit Tests
 

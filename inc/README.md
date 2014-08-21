@@ -1,6 +1,7 @@
 # Taxonomies, Post Types, Meta Boxes, and Capabilities
 
-## TOC
+## Table Of Contents
+
 1. [Simplified taxonomy registration](#simplified-taxonomy-registration)   
 1. [Simplified post type registration](#simplified-post-type-registration)   
 1. [MetaBox\Models: Register a self-validating meta box](#metaboxmodels-register-a-self-validating-meta-box)

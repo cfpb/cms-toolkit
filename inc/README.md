@@ -16,7 +16,7 @@ parameters and calls `register_taxonomy`. To actually register taxonomies, you
 should hook your `build_taxonomies` call into `init` and flush rewrite rules if
 necessary. Example:
 
-``` 
+```php
 <?php
 
 $T = new \CFPB\Utils\Taxonomy(); 
@@ -28,7 +28,8 @@ function register_my_taxonomy() {
     'custom_post_type' 
   );
 }
-?> ```
+?> 
+```
 
 In this example we create a taxonomy for the 'custom_post_type's called Sub
 Category. You still need to hook `register_my_taxonomy` into `init`.
@@ -57,7 +58,7 @@ string is absent. It is currently written only to support custom post types.
 
 ## MetaBox\Models: Register a self-validating meta box
 
-Namespace: `\CFPB\Utils\MetaBox` Class: Models Filename: inc/meta-box-models.php
+_Namespace: `\CFPB\Utils\MetaBox` Class: Models Filename: inc/meta-box-models.php_
 
 WordPress supports the adding of custom meta boxes on post editing screens, and
 for now is limited only to those screens. The meta-box-models.php file contains
@@ -108,7 +109,7 @@ meta box class, another to call `validate_and_save`, and a third to add those
 functions to their appropriate actions. Finally, hook the third function into
 plugins_loaded.
 
-``` 
+```php
 <?php 
 // plugin.php 
 namespace testNamespace; 
@@ -245,7 +246,7 @@ to 10 characters and another text_area field limited to 40 characters. The examp
 below will save the number and description as an array to
 `phone`.
 
-```
+```php
 <?php 
 $this->fields = array(
     'phone' => array(
@@ -272,7 +273,7 @@ $this->fields = array(
 ```
 
 That form data will be saved to the `phone` custom-field key like this:
-``` 
+```php
 <?php 
 array( '5555555', 'Description of the phone number')); 
 ?>

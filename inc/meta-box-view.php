@@ -66,7 +66,10 @@ class View {
 				$i = 0;
 				foreach ($field['fields'] as $f) {
 					$field['fields'][$i] = $this->assign_defaults($f);
-					$field['fields'][$i]['value'] = $this->default_value($ID, $field, $i);
+					$fieldset_slug = $field['meta_key'] . '_' . $f['meta_key'];
+				 	$field['fields'][$i]['meta_key'] = $fieldset_slug;
+				 	$f['meta_key'] = $field['fields'][$i]['meta_key'];
+					$field['fields'][$i]['value'] = $this->default_value($ID, $f);
 					$i++;
 				}
 				$ready[$field['slug']] = $field;

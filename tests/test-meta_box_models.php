@@ -258,7 +258,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether a text field accepts and returns a textual string
 	 *
 	 * @group user_input
-	 * @group error
+	 * @group stable
 	 * @group isolated
 	 * @group text
 	 */
@@ -273,11 +273,11 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$actual = $TestValidTextField->validate($_POST['post_ID']);
+		$actual = $TestValidTextField->validate($_POST['post_ID'], $TestValidTextField->fields['one']);
 
 		// assert
 		$this->assertEquals(
-			array('one' => 'Text field expects a string'),
+			'Text field expects a string',
 			$actual
 		);
 	}

@@ -202,7 +202,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether a number field has data replaced
 	 *
 	 * @group number
-	 * @group error
+	 * @group stable
 	 * @group isolated
 	 * @group user_input
 	 */
@@ -214,10 +214,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$actual = $TestNumberField->validate($_POST['post_ID']);
+		$actual = $TestNumberField->validate($_POST['post_ID'], $TestNumberField->fields['field_one']);
 
 		// assert
-		$expected = array('field_one' => 2);
+		$expected = 2;
 		$this->assertEquals(
 			$expected,
 			$actual,

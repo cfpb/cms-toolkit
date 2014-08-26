@@ -407,7 +407,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether validate will call the appropriate special validator for 
 	 * a taxonomy select field.
 	 *
-	 * @group error
+	 * @group stable
 	 * @group isolated
 	 * @group taxonomy_select
 	 */
@@ -434,7 +434,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether validate will call the appropriate special validator for 
 	 * a select field.
 	 *
-	 * @group error
+	 * @group stable
 	 * @group isolated
 	 * @group taxonomy_select
 	 */
@@ -451,7 +451,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$factory->fields['field_one']['type'] = 'select';
 
 		// act
-		$validate = $factory->validate($post->ID);
+		$validate = $factory->validate($post->ID, $factory->fields['field_one']);
 
 		// assert
 		// Test will fail if validate_taxonomyselect called more than once
@@ -478,7 +478,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$factory->fields['field_one']['type'] = 'link';
 
 		// act
-		$validate = $factory->validate($post->ID);
+		$validate = $factory->validate($post->ID, $factory->fields['field_one']);
 
 		// assert
 		// Test will fail if validate_taxonomyselect called more than once
@@ -504,7 +504,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 
 		// act
 		$TestNumberField->fields['field_one']['do_not_validate'] = true;
-		$actual = $TestNumberField->validate($_POST['post_ID']);
+		$actual = $TestNumberField->validate($_POST['post_ID'], $TestNumberField->fields['field_one'] );
 
 		// assert
 		$this->assertTrue(empty($actual));

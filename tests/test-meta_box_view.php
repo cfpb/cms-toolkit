@@ -13,7 +13,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	* Tests whether a field given minimal details is assigned certain defaults
-	* @group error
+	* @group stable
 	* @group isolated
 	* @group process_defaults
 	*

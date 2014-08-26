@@ -227,7 +227,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * Tests whether an invalid number is not accepted
 	 *
-	 * @group error
+	 * @group stable
 	 * @group isolated
 	 * @group number
 	 * @group user_input

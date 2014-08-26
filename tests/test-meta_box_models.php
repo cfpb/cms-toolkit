@@ -287,7 +287,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 *
 	 * @group text
 	 * @group user_input
-	 * @group error
+	 * @group stable
 	 * @group isolated
 	 */
 	function testTextFieldGivenNumberExpectsNumericStringValueReturned() {
@@ -302,10 +302,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$actual = $TestValidTextField->validate($_POST['post_ID']);
+		$actual = $TestValidTextField->validate($_POST['post_ID'], $TestValidTextField->fields['one']);
 
 		// assert
-		$this->assertEquals(array('one' => '1'), $actual);
+		$this->assertEquals('1', $actual);
 	}
 
 	/**
@@ -313,7 +313,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 *
 	 * @group textarea
 	 * @group isolated
-	 * @group error
+	 * @group stable
 	 *
 	 */
 	function testTextAreaFieldExpectsStringReturned() {
@@ -333,10 +333,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$actual = $TestValidTextAreaField->validate($post->ID);
+		$actual = $TestValidTextAreaField->validate($post->ID, $TestValidTextAreaField->fields['one']);
 
 		//assert
-		$this->assertEquals(array('one' => 'Foo'), $actual);
+		$this->assertEquals('Foo', $actual);
 	}
 
 	/**
@@ -344,9 +344,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group strings
 	 * @group isolated
 	 * @group user_input
-	 * @group error
+	 * @group stable
+	 * @group returns_null
 	 */
-	function testTextAreaFieldNonStringExpectsSringReturned() {
+	function testTextAreaFieldNonStringExpectsNullReturned() {
 		// arrange
 		global $post; 
 		// $post = new StdClass;
@@ -364,10 +365,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$actual = $TestValidTextAreaField->validate($post->ID);
+		$actual = $TestValidTextAreaField->validate($post->ID, $TestValidTextAreaField->fields['one']);
 
 		// assert
-		$this->assertTrue(is_array($actual));
+		$this->assertTrue( is_null($actual) );
 	}
 
 	/**

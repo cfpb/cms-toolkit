@@ -283,8 +283,12 @@ public function validate_date($field, $post_id) {
  */
 public function validate( $post_ID, $field ) {
     // $data = array_intersect_key($_POST, $this->fields);
-    $key = $field['meta_key'];
-    $value = $_POST[$key];
+    if ( array_key_exists( $field['meta_key'], $_POST ) ) {
+        $key = $field['meta_key'];
+        $value = $_POST[$key];
+    } else {
+        return null;
+    }
     // error_log('Key is '. $key . ' value is ' . $value);
     if ( array_key_exists('do_not_validate', $field) ) {
         return;

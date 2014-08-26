@@ -142,8 +142,8 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * more reliable for `save`.
 	 *
 	 * @group stable
+	 * @group empty_data
 	 * @group isolated
-	 * @group delete_data
 	 */
 	function testEmptyPOSTExpectsNullArrayForFieldKey() {
 		// arrange
@@ -151,15 +151,15 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		global $post;
 		$TestValidTextField = new TestValidTextField();
 		// act
-		$actual = $TestValidTextField->validate($post->ID);		
+		$actual = $TestValidTextField->validate( $post->ID, array_pop( $TestValidTextField->fields ) );
 		// assert
-		$this->assertEquals($actual, array('one' => null));
+		$this->assertEquals($actual, null);
 	}
 	/**
 	 * Tests whether the validate method when called on an email field calls
 	 * 'sanitize_email' from the WP API once
 	 *
-	 * @group stable
+	 * @group error
 	 * @group isolated
 	 * @group user_input
 	 */
@@ -179,7 +179,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * Tests whether WP_Error is returned if missing a piece of a date.
 	 *
-	 * @group stable
+	 * @group error
 	 * @group isolated
 	 * @group date
 	 * @group user_input
@@ -202,7 +202,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether a number field has data replaced
 	 *
 	 * @group number
-	 * @group stable
+	 * @group error
 	 * @group isolated
 	 * @group user_input
 	 */
@@ -227,7 +227,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * Tests whether an invalid number is not accepted
 	 *
-	 * @group stable
+	 * @group error
 	 * @group isolated
 	 * @group number
 	 * @group user_input
@@ -258,7 +258,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether a text field accepts and returns a textual string
 	 *
 	 * @group user_input
-	 * @group stable
+	 * @group error
 	 * @group isolated
 	 * @group text
 	 */
@@ -287,7 +287,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 *
 	 * @group text
 	 * @group user_input
-	 * @group stable
+	 * @group error
 	 * @group isolated
 	 */
 	function testTextFieldGivenNumberExpectsNumericStringValueReturned() {
@@ -313,7 +313,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 *
 	 * @group textarea
 	 * @group isolated
-	 * @group stable
+	 * @group error
 	 *
 	 */
 	function testTextAreaFieldExpectsStringReturned() {
@@ -344,7 +344,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group strings
 	 * @group isolated
 	 * @group user_input
-	 * @group stable
+	 * @group error
 	 */
 	function testTextAreaFieldNonStringExpectsSringReturned() {
 		// arrange
@@ -375,7 +375,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 *
 	 * @group urls
 	 * @group user_input
-	 * @group stable
+	 * @group error
 	 * @group isolated
 	 */
 	function testURLFieldExpectsEscRawURLCall() {
@@ -403,7 +403,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether validate will call the appropriate special validator for 
 	 * a taxonomy select field.
 	 *
-	 * @group stable
+	 * @group error
 	 * @group isolated
 	 * @group taxonomy_select
 	 */
@@ -430,7 +430,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether validate will call the appropriate special validator for 
 	 * a select field.
 	 *
-	 * @group stable
+	 * @group error
 	 * @group isolated
 	 * @group taxonomy_select
 	 */
@@ -457,7 +457,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether validate will call the appropriate special validator for 
 	 * a link field.
 	 *
-	 * @group stable
+	 * @group error
 	 * @group isolated
 	 * @group taxonomy_select
 	 */
@@ -484,7 +484,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether a field with do_not_validate in the key will continue to 
 	 * validate. Expects `validate` to return.
 	 *
-	 * @group stable
+	 * @group error
 	 * @group isolated
 	 * @group negative
 	 * @group validation

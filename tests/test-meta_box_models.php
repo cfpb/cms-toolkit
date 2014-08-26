@@ -376,7 +376,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 *
 	 * @group urls
 	 * @group user_input
-	 * @group error
+	 * @group stable
 	 * @group isolated
 	 */
 	function testURLFieldExpectsEscRawURLCall() {
@@ -397,7 +397,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$actual = $TestValidEmailField->validate($post->ID);
+		$actual = $TestValidEmailField->validate($post->ID, $TestValidEmailField->fields['one'] );
+
+		// assert
+		$this->assertEquals($actual, 'http://google.com');
 	}
 
 	/**
@@ -421,7 +424,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$factory->fields['field_one']['type'] = 'taxonomyselect';
 
 		// act
-		$validate = $factory->validate($post->ID);
+		$validate = $factory->validate($post->ID, $factory->fields['field_one']);
 
 		// assert
 		// Test will fail if validate_taxonomyselect called more than once

@@ -290,7 +290,6 @@ public function validate( $post_ID, $field ) {
     } else {
         return null;
     }
-    $value = $_POST[$key];
     // error_log('Key is '. $key . ' value is ' . $value);
     if ( array_key_exists('do_not_validate', $field) ) {
         return;
@@ -304,19 +303,23 @@ public function validate( $post_ID, $field ) {
     */
     if ( $field['type'] == 'taxonomyselect') {
         $this->validate_taxonomyselect( $field, $post_ID );
+        return;
     } elseif ( in_array( $field['type'], $this->selects ) ) {
         $this->validate_select( $field, $post_ID );
+        return;
     } elseif ( $field['type'] === 'date' ) {
         $this->validate_date( $field, $post_ID );
+        return;
     } elseif ( $field['type'] === 'link' ) {
         $this->validate_link($field, $post_ID);
+        return;
     } else {
         /* 
             For most field types we just need to make sure we have the data
             we expect from the form and sanitize them before sending them to
             save
         */
-        $key = $field['meta_key'];
+            $value = $_POST[$key];
             if ( $field['type'] === 'number' ) {
                 if ( is_numeric( $value ) ) {
                     // if we're expecting a number, make sure we get a number

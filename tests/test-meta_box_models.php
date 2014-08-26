@@ -159,7 +159,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether the validate method when called on an email field calls
 	 * 'sanitize_email' from the WP API once
 	 *
-	 * @group error
+	 * @group stable
 	 * @group isolated
 	 * @group user_input
 	 */
@@ -179,7 +179,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * Tests whether WP_Error is returned if missing a piece of a date.
 	 *
-	 * @group error
+	 * @group stable
 	 * @group isolated
 	 * @group date
 	 * @group user_input
@@ -193,7 +193,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$form->set_callbacks($stub);
 		$_POST =array('post_ID' => 1, 'category_year' => '1970');
 		// act
-		$actual = $form->validate($_POST['post_ID']);
+		$actual = $form->validate($_POST['post_ID'], $form->fields['category']);
 
 		// assert
 	}

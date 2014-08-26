@@ -173,7 +173,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'one' => 'foo@bar.baz',
 		);
 		// act
-		$actual = $TestValidEmailField->validate($post->ID);
+		$actual = $TestValidEmailField->validate($post->ID, $TestValidEmailField->fields['one']);
 	}
 
 	/**

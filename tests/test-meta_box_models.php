@@ -244,9 +244,9 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$actual = $TestNumberField->validate($_POST['post_ID']);
+		$actual = $TestNumberField->validate($_POST['post_ID'], $TestNumberField->fields['field_one']);
 		// assert
-		$expected = array();
+		$expected = null;
 		$this->assertEquals(
 			$expected,
 			$actual,

@@ -316,11 +316,13 @@ public function validate( $post_ID, $field ) {
             we expect from the form and sanitize them before sending them to
             save
         */
-        $key = $field['slug'];
+        $key = $field['meta_key'];
             if ( $field['type'] === 'number' ) {
                 if ( is_numeric( $value ) ) {
                     // if we're expecting a number, make sure we get a number
                     $postvalues = intval( $value ); 
+                } else {
+                    $postvalues = null;
                 }
             } elseif ( $field['type'] === 'url' && isset( $value ) ) {
                 // if we're expecting a url, make sure we get a url

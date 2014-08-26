@@ -285,7 +285,7 @@ public function validate( $post_ID, $field ) {
     // $data = array_intersect_key($_POST, $this->fields);
     if ( array_key_exists( 'meta_key', $field ) ) {
         $key = $field['meta_key'];
-    } elseif ( array_key_exists( $field['taxonomy'], $_POST ) ) {
+    } elseif ( array_key_exists( $field['taxonomy'], $field ) ) {
         $key = $field['taxonomy'];
     } else {
         return null;
@@ -297,6 +297,7 @@ public function validate( $post_ID, $field ) {
     if ( ! array_key_exists( 'type', $field ) ) {
         return;
     }
+
 
     /* if this field is a taxonomy select, date, link or select field, we
        send it out to another validator
@@ -319,6 +320,9 @@ public function validate( $post_ID, $field ) {
             we expect from the form and sanitize them before sending them to
             save
         */
+            if ( ! array_key_exists( $key, $_POST ) ) {
+                return;
+            }
             $value = $_POST[$key];
             if ( $field['type'] === 'number' ) {
                 if ( is_numeric( $value ) ) {

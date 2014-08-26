@@ -461,7 +461,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether validate will call the appropriate special validator for 
 	 * a link field.
 	 *
-	 * @group error
+	 * @group stable
 	 * @group isolated
 	 * @group taxonomy_select
 	 */
@@ -488,7 +488,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether a field with do_not_validate in the key will continue to 
 	 * validate. Expects `validate` to return.
 	 *
-	 * @group error
+	 * @group stable
 	 * @group isolated
 	 * @group negative
 	 * @group validation
@@ -652,17 +652,19 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	function testVerifyAndSaveExpectsSuccess() {
 		// arrange
 		$_POST = array('post_ID' => 1, 'field_one' => 'value');
-		$sanitized = array('three' => 'Values');
+		$sanitized = 'Values';
 		$factory = $this->getMockBuilder('TestNumberField')
-						->setMethods(array('filter_postdata', 'validate', 'save'))
+						->setMethods( array( 'validate', 'save' ) )
 						->getMock();
 
 		$factory->expects($this->once())
 				->method('validate')
-				->will($this->returnValue($sanitized));
+				->will($this->returnValue($sanitized))
+				->with(1, $factory->fields['field_one']);
+		$save_it['field_one'] = $sanitized;
 		$factory->expects($this->once())
 				->method('save')
-				->with(1, $sanitized);
+				->with(1, $save_it);
 
 		// act
 		$factory->validate_and_save( 1 );

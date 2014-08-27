@@ -283,8 +283,13 @@ public function validate_date($field, $post_id) {
  */
 public function validate( $post_ID, $field ) {
     // $data = array_intersect_key($_POST, $this->fields);
-    $key = $field['meta_key'];
-    $value = $_POST[$key];
+    if ( array_key_exists( 'meta_key', $field ) ) {
+        $key = $field['meta_key'];
+    } elseif ( array_key_exists( $field['taxonomy'], $field ) ) {
+        $key = $field['taxonomy'];
+    } else {
+        return null;
+    }
     // error_log('Key is '. $key . ' value is ' . $value);
     if ( array_key_exists('do_not_validate', $field) ) {
         return;
@@ -293,28 +298,38 @@ public function validate( $post_ID, $field ) {
         return;
     }
 
+
     /* if this field is a taxonomy select, date, link or select field, we
        send it out to another validator
     */
     if ( $field['type'] == 'taxonomyselect') {
         $this->validate_taxonomyselect( $field, $post_ID );
+        return;
     } elseif ( in_array( $field['type'], $this->selects ) ) {
         $this->validate_select( $field, $post_ID );
+        return;
     } elseif ( $field['type'] === 'date' ) {
         $this->validate_date( $field, $post_ID );
+        return;
     } elseif ( $field['type'] === 'link' ) {
         $this->validate_link($field, $post_ID);
+        return;
     } else {
         /* 
             For most field types we just need to make sure we have the data
             we expect from the form and sanitize them before sending them to
             save
         */
-        $key = $field['slug'];
+            if ( ! array_key_exists( $key, $_POST ) ) {
+                return;
+            }
+            $value = $_POST[$key];
             if ( $field['type'] === 'number' ) {
                 if ( is_numeric( $value ) ) {
                     // if we're expecting a number, make sure we get a number
                     $postvalues = intval( $value ); 
+                } else {
+                    $postvalues = null;
                 }
             } elseif ( $field['type'] === 'url' && isset( $value ) ) {
                 // if we're expecting a url, make sure we get a url

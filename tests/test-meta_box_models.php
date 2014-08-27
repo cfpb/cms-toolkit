@@ -144,6 +144,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group stable
 	 * @group empty_data
 	 * @group isolated
+	 * @group validation
 	 */
 	function testEmptyPOSTExpectsNullArrayForFieldKey() {
 		// arrange
@@ -162,6 +163,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group stable
 	 * @group isolated
 	 * @group user_input
+	 * @group validation
 	 */
 
 	function testEmailExpectsSanitizeMethodCalled() {
@@ -183,6 +185,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group isolated
 	 * @group date
 	 * @group user_input
+	 * @group validation
 	 */
 	function testInvalidDateValidateExpectsDateCalledNone() {
 		// arrange
@@ -205,6 +208,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group stable
 	 * @group isolated
 	 * @group user_input
+	 * @group validation
 	 */
 	function testValidNumberFieldExpectsDataReturned() {
 		$TestNumberField = new TestNumberField();
@@ -231,6 +235,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group isolated
 	 * @group number
 	 * @group user_input
+	 * @group validation
 	 *
 	 */
 	function testInvalidNumericFieldExpectsDataRemoved() {
@@ -261,6 +266,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group stable
 	 * @group isolated
 	 * @group text
+	 * @group validation
 	 */
 	function testTextFieldExpectsStringReturned() {
 
@@ -289,6 +295,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group user_input
 	 * @group stable
 	 * @group isolated
+	 * @group validation
 	 */
 	function testTextFieldGivenNumberExpectsNumericStringValueReturned() {
 
@@ -314,6 +321,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group textarea
 	 * @group isolated
 	 * @group stable
+	 * @group validation
 	 *
 	 */
 	function testTextAreaFieldExpectsStringReturned() {
@@ -346,6 +354,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group user_input
 	 * @group stable
 	 * @group returns_null
+	 * @group validation
 	 */
 	function testTextAreaFieldNonStringExpectsNullReturned() {
 		// arrange
@@ -378,6 +387,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group user_input
 	 * @group stable
 	 * @group isolated
+	 * @group validation
 	 */
 	function testURLFieldExpectsEscRawURLCall() {
 		// arrange
@@ -410,6 +420,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group stable
 	 * @group isolated
 	 * @group taxonomy_select
+	 * @group validation
 	 */
 	function testTaxonomySelectFieldExpectsTaxonomySelectValidatorCalled() {
 		// arrange
@@ -437,6 +448,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group stable
 	 * @group isolated
 	 * @group taxonomy_select
+	 * @group validation
 	 */
 	function testSelectFieldExpectsTaxonomySelectValidatorCalled() {
 		// arrange
@@ -464,6 +476,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group stable
 	 * @group isolated
 	 * @group taxonomy_select
+	 * @group validation
 	 */
 	function testLinkFieldExpectsTaxonomySelectValidatorCalled() {
 		// arrange
@@ -1145,6 +1158,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * Tests whether post_type exists is called once
 	 *
 	 * @group stable
+	 * @group generate
 	 **/
 	function testPostTypeExistsCheckPostTypeExpectsPostTypeNameReturned() {
 		// Arrange
@@ -1172,6 +1186,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group stable
 	 * @group isolated
 	 * @group meta_boxes
+	 * @group generate
 	 */
 	function testPostTypeNotExistsCheckPostTypeExpectsPostTypeNameReturned() {
 		// Arrange
@@ -1196,6 +1211,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 *
 	 * @group stable
 	 * @group meta_boxes
+	 * @group generate
 	 *
 	 */
 	function testArrayinPostTypeExpectsBoxesGenerated() {
@@ -1269,6 +1285,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group stable
 	 * @group set_view
 	 * @group isolated
+	 * @group dependency_injection
 	 */
 	function testSetViewExpectsViewReplaced() {
 		// Arrange

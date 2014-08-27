@@ -16,6 +16,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	* @group stable
 	* @group isolated
 	* @group process_defaults
+	* @group defaults
 	*
 	**/
 	function testHiddenFieldExpectsDefaults() {
@@ -75,6 +76,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	 * @group stable
 	 * @group isolated
 	 * @group process_defaults
+	 * @group defaults
 	 *
 	 */
 	function testHiddenFieldValueGivenExpectsDrawCalledValueUnchanged() {

@@ -154,7 +154,7 @@ class View {
 	}
 
 	public function formset_count( $field ) { 
-		$init_num = $field['params']['init_num_forms'] ? $field['params']['init_num_forms'] : 1;
+		$init_num = array_key_exists( 'init_num_forms', $field['params'] ) ? $field['params']['init_num_forms'] : 1;
 		$max_num  = isset($field['params']['max_num_forms']) ? $field['params']['max_num_forms'] : $field['params']['count'];
 		$existing = array();
 		$key = $field['meta_key'];

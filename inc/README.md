@@ -240,12 +240,12 @@ and invalid values for `$post_type` or `$context` will generate `WP_Error`s
 
 ### Fieldsets
 
-Fieldsets are groups of fields that save to the same meta key. As an example,
-say you are making an address book and want a way to save a phone number and a
-description to the `phone` key. You'll need two fields, one text field limited
-to 10 characters and another text_area field limited to 40 characters. The example 
-below will save the number and description as an array to
-`phone`.
+Fieldsets are groups of fields that display together and save with similar ( 
+though not identical) meta keys. As an example, say you are making an address 
+book and want a way to save a phone number and a description to the `phone` key
+. You'll need two fields, one text field limited to 10 characters and another 
+text_area field limited to 40 characters. The example below will save the 
+number and description to meta keys `phone_num` and `phone_desc`.
 
 ```php
 <?php 
@@ -259,11 +259,13 @@ $this->fields = array(
                 'type' => 'text',
                 'max_length' => 11,
                 'label' => 'Number',
+                'meta_key' => 'number',
             ),
             array(
                 'type' => 'text',
                 'max_length' => 40,
                 'label' => 'Description',
+                'meta_key' => 'desc',
             ),
         ),
         'meta_key' => 'phone',
@@ -273,10 +275,11 @@ $this->fields = array(
 ?>
 ```
 
-That form data will be saved to the `phone` custom-field key like this:
+That form data will be saved to the `phone_number` and `phone_desc` custom-field keys like this:
 ```php
 <?php 
-array( '5555555', 'Description of the phone number')); 
+$phone_number = array( '5555555', ); 
+$phone_desc = array( 'Description of the phone number', ); 
 ?>
 ```
 

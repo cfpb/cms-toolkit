@@ -173,7 +173,6 @@ public function validate_link( $field, $post_id ) {
 
             $meta_key = $key;
         } else {
-            error_log("Skipping field {$i} of {$count}", 0);
             continue;
         }
     }
@@ -290,7 +289,6 @@ public function validate( $post_ID, $field ) {
     } else {
         return null;
     }
-    // error_log('Key is '. $key . ' value is ' . $value);
     if ( array_key_exists('do_not_validate', $field) ) {
         return;
     }
@@ -340,7 +338,6 @@ public function validate( $post_ID, $field ) {
             } elseif ( ! empty( $value ) && ! is_array($value)) {
                 // make sure whatever we get for anything else is a string
                 $postvalues = (string)$value;
-                // error_log('Post data ' . $value . '  cleaned for ' . $key);
             } else {
                 $postvalues = null;
             }
@@ -368,7 +365,6 @@ public function save( $post_ID, $postvalues ) {
 
     // save post data for any fields that sent them
     foreach ( $postvalues as $key => $value ) {
-        error_log("Key is {$key} and value is {$value}.");
         $existing = get_post_meta( $post_ID, $key, $single = true );
         if ( $value == null && isset($existing) ) {
             delete_post_meta($post_ID, $key);
@@ -393,7 +389,6 @@ public function validate_and_save( $post_ID ) {
             foreach ( $field['fields'] as $f ) {
                 $f['meta_key'] = $field['meta_key'] . '_' . $f['meta_key'];
                 $value = $this->validate( $post_ID, $f );
-                error_log('Saving ' . $value. ' to ' . $f['meta_key']);
                 $validate[$f['meta_key']] = $value;
             }
         } else {

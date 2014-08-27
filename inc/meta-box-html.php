@@ -30,9 +30,9 @@ class HTML {
 		} elseif ( in_array($field['type'], $this->elements['selects'] ) ) {
 			$this->pass_select($field);
 		} elseif ( $field['type'] == 'hidden' ) {
-			HTML::hidden( $field['slug'], $field['value'] );
+			HTML::hidden( $field['meta_key'], $field['value'] );
 		} elseif ( $field['type'] == 'nonce' ) {
-			wp_nonce_field( plugin_basename( __FILE__ ), $field['slug'] );
+			wp_nonce_field( plugin_basename( __FILE__ ), $field['meta_key'] );
 		}
 		if ( array_key_exists('howto', $field) ) {
 		?> <p class="howto"><?php echo esc_html( $field['howto'] ) ?></p></div><?php
@@ -42,14 +42,14 @@ class HTML {
 	private function pass_fieldset($field) {
 		foreach ($field['fields'] as $f) {
 			if ( $f['type'] == 'boolean' ) {
-				HTML::boolean_input($field['slug'], $f['label'], $f['value'], $fieldset = true);
+				HTML::boolean_input($f['meta_key'], $f['label'], $f['value'], $fieldset = true);
 			} elseif ( in_array( $f['type'], $this->elements['inputs'] ) ) {
 				$placeholder = array_key_exists('placeholder', $f) ? esc_attr( $f['placeholder'] ) : null;
 				$title = array_key_exists('title', $f) ? esc_attr( $f['title'] ) : null;
 				$label = array_key_exists('label', $f) ? $f['label'] : null;
-				HTML::single_input($field['slug'], $f['type'], $f['max_length'], $f['value'], $placeholder, $title, $label, true);
+				HTML::single_input($f['meta_key'], $f['type'], $f['max_length'], $f['value'], $placeholder, $title, $label, true);
 			} elseif ( in_array($f['type'], array( 'select', 'multiselect', 'taxonomselect') ) ) {
-				HTML::select($field['slug'], $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder']);
+				HTML::select($f['meta_key'], $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder']);
 			}
 		}
 	}
@@ -57,7 +57,7 @@ class HTML {
 	private function pass_input( $field, $for = null ) {
 		if ( array_key_exists('fields', $field) ) {
 			foreach ( $field['fields'] as $f ) {
-				HTML::draw_input($f, $field['slug']);
+				HTML::draw_input($f, $field['meta_key']);
 			}
 		} else {
 			HTML::draw_input($field);
@@ -68,11 +68,11 @@ class HTML {
 	private function draw_input($field, $slug = null) {
 		$type = $field['type'];
 		if ( $type == 'text_area' ) {
-			HTML::text_area( $field['rows'], $field['cols'], $field['slug'], $field['value'], $field['placeholder'] );
+			HTML::text_area( $field['rows'], $field['cols'], $field['meta_key'], $field['value'], $field['placeholder'] );
 		}
 
 		if ( in_array( $type, array( 'number', 'text', 'email', 'url' ) ) ) {
-			HTML::single_input( $field['slug'], $field['type'], $field['max_length'], $field['value'], $field['placeholder'] );
+			HTML::single_input( $field['meta_key'], $field['type'], $field['max_length'], $field['value'], $field['placeholder'] );
 		}
 
 		if ( $type == 'date' ) {
@@ -80,12 +80,12 @@ class HTML {
 		}
 
 		if ( $type == 'radio' ) {
-			HTML::single_input( $field['slug'], $type = 'radio', $max_length = null, $value = 'true' );
-			HTML::single_input( $field['slug'], $type = 'radio', $max_length = null, $value = 'false' );
+			HTML::single_input( $field['meta_key'], $type = 'radio', $max_length = null, $value = 'true' );
+			HTML::single_input( $field['meta_key'], $type = 'radio', $max_length = null, $value = 'false' );
 		}
 
 		if ( $field['type'] == 'boolean' ) {
-			HTML::boolean_input( $field['slug'], $field['label'], $field['value'] );
+			HTML::boolean_input( $field['meta_key'], $field['label'], $field['value'] );
 		}
 
 		if ( $field['type'] == 'link' ) {
@@ -99,14 +99,14 @@ class HTML {
 			else:
 				$init = 1;
 			endif;
-			HTML::url_input($field['slug'], $init, $max, $field['max_length'], $field['value']);
+			HTML::url_input($field['meta_key'], $init, $max, $field['max_length'], $field['value']);
 		}
 	}
 
 	private function pass_select( $field ) {
 		
 		if ( in_array( $field['type'], array('multiselect', 'select', 'taxonomyselect' ) ) ) {
-			HTML::select( $field['slug'], $field['params'], $field['taxonomy'], $field['multiple'], $field['placeholder'] );
+			HTML::select( $field['meta_key'], $field['params'], $field['taxonomy'], $field['multiple'], $field['placeholder'] );
 		}
 
 		if ( $field['type'] == 'tax_as_meta' ) {
@@ -131,7 +131,7 @@ class HTML {
 			$value = get_post_meta( $post->ID, $field['meta_key'], $single = false );
 			$posts = get_posts($args);
 			HTML::post_select(
-				$slug = $field['slug'],
+				$slug = $field['meta_key'],
 				$posts = $posts,
 				$value,
 				$multi,
@@ -182,26 +182,19 @@ class HTML {
 			$value       = 'value="'. $value . '"';
 			$max_length  = 'maxlength="'. $max_length . '"';
 			$placeholder = 'placeholder="' . $placeholder . '"';
-			?><label><?php echo $label ?></label><?php
-			if ( $fieldset ):?>
-				<input id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) ?>[]" type="<?php echo esc_attr( $type ) ?>" <?php echo " $max_length $value $placeholder" ?> />
-			<?php else: ?>
+			?><label><?php echo $label ?></label>
 				<input id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) ?>" type="<?php echo esc_attr( $type ) ?>" <?php echo " $max_length $value $placeholder" ?> />
-			<? endif;
-			if ( $title != NULL ): ?>
+			<?php if ( $title != NULL ): ?>
 				<p class="howto"><?php echo $title ?></p><?php
 			endif;
 	}
 
 	protected function boolean_input( $slug, $label, $value, $fieldset = false ) {
-		if ( $fieldset ) {
-			$name = 'name="'. esc_attr($slug) . '[]"';
-		} else {
 			$name = 'name="' . esc_attr($slug) . '"';
-		}
+			$id = 'id="'. esc_attr($slug) . '"';
 	?>
 		<p>
-			<input id="<?php echo esc_attr( $slug ) ?>" <?php echo $name ?>" type="checkbox"<?php if ($value == "on") { echo " checked"; } ?> />
+			<input <?php echo $id . ' ' . $name ?> type="checkbox" <?php if ($value == 'on') { echo ' checked'; } ?> />
 			<label for="<?php echo esc_attr( $slug ) ?>"><?php echo $label ?></label>
 		</p>
 	<?php

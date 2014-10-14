@@ -2,6 +2,10 @@
 .inside .ms-container {
 	width: 100%;
 }
-input.cms-toolkit-input {
-    width: 40%;
+.cms-toolkit-input {
+    width: 37%;
+}
+
+input:required {
+	border: 1px solid red;
 }

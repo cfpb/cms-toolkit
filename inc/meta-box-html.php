@@ -41,15 +41,16 @@ class HTML {
 
 	private function pass_fieldset($field) {
 		foreach ($field['fields'] as $f) {
+			$required = array_key_exists('required', $f) ? $f['required'] : false;
 			if ( $f['type'] == 'boolean' ) {
-				HTML::boolean_input($f['meta_key'], $f['label'], $f['value'], $fieldset = true);
+				HTML::boolean_input($f['meta_key'], $f['label'], $f['value'], $fieldset = true, $required);
 			} elseif ( in_array( $f['type'], $this->elements['inputs'] ) ) {
 				$placeholder = array_key_exists('placeholder', $f) ? esc_attr( $f['placeholder'] ) : null;
 				$title = array_key_exists('title', $f) ? esc_attr( $f['title'] ) : null;
 				$label = array_key_exists('label', $f) ? $f['label'] : null;
-				HTML::single_input($f['meta_key'], $f['type'], $f['max_length'], $f['value'], $placeholder, $title, $label, true);
+				HTML::single_input($f['meta_key'], $f['type'], $f['max_length'], $f['value'], $placeholder, $title, $label, $required);
 			} elseif ( in_array($f['type'], array( 'select', 'multiselect', 'taxonomselect') ) ) {
-				HTML::select($f['meta_key'], $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder']);
+				HTML::select($f['meta_key'], $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder'], $required);
 			}
 		}
 	}
@@ -67,16 +68,21 @@ class HTML {
 
 	private function draw_input($field, $slug = null) {
 		$type = $field['type'];
+		if ( array_key_exists('required', $field ) ) {
+			$required = true;
+		} else {
+			$required = false;
+		}
 		if ( $type == 'text_area' ) {
-			HTML::text_area( $field['rows'], $field['cols'], $field['meta_key'], $field['value'], $field['placeholder'] );
+			HTML::text_area( $field['rows'], $field['cols'], $field['meta_key'], $field['value'], $field['placeholder'], $required );
 		}
 
 		if ( in_array( $type, array( 'number', 'text', 'email', 'url' ) ) ) {
-			HTML::single_input( $field['meta_key'], $field['type'], $field['max_length'], $field['value'], $field['placeholder'] );
+			HTML::single_input( $field['meta_key'], $field['type'], $field['max_length'], $field['value'], $field['placeholder'], $required );
 		}
 
 		if ( $type == 'date' ) {
-			HTML::date( $taxonomy = $field['taxonomy'], $tax_nice_name = $field['title'], $multiples = $field['multiple'] );
+			HTML::date( $taxonomy = $field['taxonomy'], $tax_nice_name = $field['title'], $multiples = $field['multiple'], $required );
 		}
 
 		if ( $type == 'radio' ) {
@@ -85,7 +91,7 @@ class HTML {
 		}
 
 		if ( $field['type'] == 'boolean' ) {
-			HTML::boolean_input( $field['meta_key'], $field['label'], $field['value'] );
+			HTML::boolean_input( $field['meta_key'], $field['label'], $field['value'], $required );
 		}
 
 		if ( $field['type'] == 'link' ) {
@@ -99,14 +105,25 @@ class HTML {
 			else:
 				$init = 1;
 			endif;
-			HTML::url_input($field['meta_key'], $init, $max, $field['max_length'], $field['value']);
+			HTML::url_input($field['meta_key'], $init, $max, $field['max_length'], $field['value'], $required);
 		}
 	}
 
 	private function pass_select( $field ) {
-		
+		if ( array_key_exists('required', $field ) ) {
+			$required = true;
+		} else {
+			$required = false;
+		}
 		if ( in_array( $field['type'], array('multiselect', 'select', 'taxonomyselect' ) ) ) {
-			HTML::select( $field['meta_key'], $field['params'], $field['taxonomy'], $field['multiple'], $field['placeholder'] );
+			HTML::select( 
+				$field['meta_key'], 
+				$field['params'], 
+				$field['taxonomy'], 
+				$field['multiple'], 
+				$field['placeholder'], 
+				$required 
+			);
 		}
 
 		if ( $field['type'] == 'tax_as_meta' ) {
@@ -116,7 +133,8 @@ class HTML {
 				$taxonomy = $field['taxonomy'],
 				$key = $field['meta_key'],
 				$placeholder = $field['placeholder'],
-				$value = $field['value']
+				$value = $field['value'],
+				$required
 			);
 		}
 
@@ -135,7 +153,9 @@ class HTML {
 				$posts = $posts,
 				$value,
 				$multi,
-				$placeholder = $field['placeholder'] );
+				$placeholder = $field['placeholder'],
+				$required 
+			);
 		}
 	}
 
@@ -153,9 +173,10 @@ class HTML {
 	 * @param str $value a default value for the <textarea>
 	 *
 	**/
-	protected function text_area( $rows, $cols, $slug, $value, $placeholder ) { ?>
+	protected function text_area( $rows, $cols, $slug, $value, $placeholder, $required = false ) { ?>
 		<p>
-			<textarea id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-textarea" name="<?php echo esc_attr( $slug ) ?>" rows="<?php echo esc_attr( $rows ) ?>" cols="<?php echo esc_attr( $cols ) ?>" value="<?php echo esc_attr( $value ) ?>" placeholder="<?php echo esc_attr( $placeholder ) ?>"><?php echo esc_html( $value ) ?></textarea>
+			<label><?php echo $placeholder; if ( $required ): echo ' (required)'; endif; ?></label>
+			<textarea id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-textarea" name="<?php echo esc_attr( $slug ) ?>" rows="<?php echo esc_attr( $rows ) ?>" cols="<?php echo esc_attr( $cols ) ?>" value="<?php echo esc_attr( $value ) ?>" placeholder="<?php echo esc_attr( $placeholder ) ?>" <?php if ( $required ): echo 'required'; endif; ?>><?php echo esc_html( $value ) ?></textarea>
 		</p>
 	<?php
 	}
@@ -178,29 +199,29 @@ class HTML {
 	 * @since 1.0
 	 *
 	**/
-	protected function single_input( $slug, $type, $max_length = NULL, $value = NULL, $placeholder = NULL, $title = NULL, $label = NULL, $fieldset = false ) {
+	protected function single_input( $slug, $type, $max_length = NULL, $value = NULL, $placeholder = NULL, $title = NULL, $label = NULL, $required = false ) {
 			$value       = 'value="'. $value . '"';
 			$max_length  = 'maxlength="'. $max_length . '"';
 			$placeholder = 'placeholder="' . $placeholder . '"';
-			?><label><?php echo $label ?></label>
-				<input id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) ?>" type="<?php echo esc_attr( $type ) ?>" <?php echo " $max_length $value $placeholder" ?> />
+			?><label for="<?php echo esc_attr( $slug ) ?>"><?php echo $label; if ( $required ): echo ' (required)'; endif; ?></label>
+				<input id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) ?>" type="<?php echo esc_attr( $type ) ?>" <?php echo " $max_length $value $placeholder" ?>  <?php if ( $required ): echo 'required'; endif; ?>/>
 			<?php if ( $title != NULL ): ?>
 				<p class="howto"><?php echo $title ?></p><?php
 			endif;
 	}
 
-	protected function boolean_input( $slug, $label, $value, $fieldset = false ) {
+	protected function boolean_input( $slug, $label, $value, $required = false ) {
 			$name = 'name="' . esc_attr($slug) . '"';
 			$id = 'id="'. esc_attr($slug) . '"';
 	?>
 		<p>
-			<input <?php echo $id . ' ' . $name ?> type="checkbox" <?php if ($value == 'on') { echo ' checked'; } ?> />
-			<label for="<?php echo esc_attr( $slug ) ?>"><?php echo $label ?></label>
+			<input <?php echo $id . ' ' . $name ?> type="checkbox" <?php if ($value == 'on') { echo ' checked'; } ?>  <?php if ( $required ): echo 'required'; endif; ?>/>
+			<label for="<?php echo esc_attr( $slug ) ?>"><?php echo $label;  if ( $required ): echo ' (required)'; endif; ?></label>
 		</p>
 	<?php
 	}
 
-	protected function url_input( $slug, $init_num_forms, $max_num_forms, $max_length = NULL, $value = NULL ) {
+	protected function url_input( $slug, $init_num_forms, $max_num_forms, $max_length = NULL, $value = NULL, $required = false ) {
 		global $post;
 		$post_id = $post->ID;
 		$value = "value='{$value}'";
@@ -220,18 +241,18 @@ class HTML {
 				$existing = get_post_meta( $post_id, $slug . "_{$i}", false);
 				if ( ! isset( $existing[0] ) || ! isset( $existing[1] ) ): ?>
 						<fieldset>
-							<label for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
-							<input class='<?php echo esc_attr( $slug ) . '_text_' . $i ?> cms-toolkit-input' name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length $value" ?> />
-							<label for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
-							<input class='<?php echo esc_attr( $slug ) . '_url_' . $i ?> cms-toolkit-input' name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length $value" ?> />
+							<label for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text <?php  if ( $required ): echo ' (required)'; endif; ?></label>
+							<input id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class='<?php echo $i; ?> cms-toolkit-input' name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length $value" ?>  <?php if ( $required ): echo 'required'; endif; ?>/>
+							<label for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL <?php  if ( $required ): echo ' (required)'; endif; ?></label>
+							<input class='<?php $i ?> cms-toolkit-input' id='<?php echo esc_attr( $slug ) . '_url_' . $i?>' name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length $value" ?>  <?php if ( $required ): echo 'required'; endif; ?>/>
 						</fieldset>
 				<?php else:?>
 					<p><span class="<?php echo $i ?>">Link text: <?php echo $existing[1] ?><br />Link URL: <?php echo $existing[0] ?>.<br /><a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$slug} edit {$i}"  ?>" >Edit</a></span></p>
 						<fieldset id='<?php echo "{$slug}_{$i}" ?>' class='hidden'>
-							<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
-							<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length value='{$existing[1]}'" ?> />
-							<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
-							<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length value='{$existing[0]}'" ?> />
+							<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text <?php  if ( $required ): echo ' (required)'; endif; ?></label>
+							<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length value='{$existing[1]}'" ?>  <?php if ( $required ): echo 'required'; endif; ?>/>
+							<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL <?php  if ( $required ): echo ' (required)'; endif; ?></label>
+							<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length value='{$existing[0]}'" ?>  <?php if ( $required ): echo 'required'; endif; ?>/>
 							<a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$slug} edit {$i}"  ?>" >Undo</a>
 							<span class="howto">Save the post to update this field, click undo to keep what you had (above).</span>
 						</fieldset>
@@ -239,9 +260,9 @@ class HTML {
 		<?php endfor;
 		for ( $i = $count; $i <= $max_num_forms; $i++ ): ?>
 				<fieldset disabled id="<?php echo "{$slug}_{$i}" ?>" class="hidden new">
-					<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text</label>
+					<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text <?php  if ( $required ): echo ' (required)'; endif; ?></label>
 					<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length value=''" ?> />
-					<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL</label>
+					<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL <?php  if ( $required ): echo ' (required)'; endif; ?></label>
 					<input class='<?php echo $i ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length value=''" ?> />
 					<a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$slug} remove {$i}"  ?>" >Remove</a>
 				</fieldset>
@@ -291,14 +312,14 @@ class HTML {
 	 *              if no value selected. Default: '--'
 	 *
 	**/
-	protected function select( $slug, $params = array(), $taxonomy = false, $multi = null, $value = null, $placeholder = '--' ) {
+	protected function select( $slug, $params = array(), $taxonomy = false, $multi = null, $value = null, $placeholder = '--', $required = false ) {
 		if ( $taxonomy != false ): // if a taxonomy is set, use wp_dropdown category to generate the select box
 			$IDs = wp_get_object_terms( get_the_ID(), $taxonomy, array( 'fields' => 'ids' ) );
 			wp_dropdown_categories( 'taxonomy=' . $taxonomy . '&hide_empty=0&orderby=name&name=' . $taxonomy . '&show_option_none=Select ' . $taxonomy . '&selected='. array_pop($IDs) );
 		else :	// otherwise use all the values set in $param to generate the option
 				$multiple = isset($multi) ? 'multiple' : null;
 				?> 
-				<label for="<?php echo esc_attr($slug) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" <?php echo $multiple ?>></label>
+				<label for="<?php echo esc_attr($slug) ?>"><select id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" <?php echo $multiple ?> <?php if ( $required ): echo 'required'; endif; ?>></label>
 				<?php
 				if ( empty( $value ) ): ?>
 					<option selected value=""><?php echo esc_html( $placeholder ) ?></option>
@@ -316,10 +337,10 @@ class HTML {
 		endif;
 	}
 
-	protected function post_select( $slug, $posts, $value, $multi, $placeholder = '--' ) { 
+	protected function post_select( $slug, $posts, $value, $multi, $placeholder = '--', $required = false ) { 
 		global $post;
 		$selected = null;?>
-			<label for="<?php echo esc_attr( $slug ) ?>"><select class="<?php echo esc_attr($multi)?>" id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" <?php echo $multi; ?> ></label>
+			<label for="<?php echo esc_attr( $slug ) ?>"><select class="<?php echo esc_attr($multi)?>" id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>[]" <?php echo $multi; ?>  <?php if ( $required ): echo 'required'; endif; ?>></label>
 				<?php if ( $multi == null ):
 						if ( empty( $value )  ): ?>
 							<option value='' selected>-- Nothing selected --</option>
@@ -339,8 +360,8 @@ class HTML {
 		<?php
 	}
 
-	protected function taxonomy_as_meta( $slug, $params, $taxonomy, $key, $placeholder = '--', $value, $multi=null ) {?>
-		<select class="<?php echo esc_attr($multi) ?>" name='<?php echo esc_attr( $slug )?>[]' <?php echo esc_attr( $multi )?> ><?php
+	protected function taxonomy_as_meta( $slug, $params, $taxonomy, $key, $placeholder = '--', $value, $multi=null, $required = false ) {?>
+		<select class="<?php echo esc_attr($multi) ?>" name='<?php echo esc_attr( $slug )?>[]' <?php echo esc_attr( $multi )?>  <?php if ( $required ): echo 'required'; endif; ?>><?php
 			if ( isset( $value ) ):?>
 				<option selected value="<?php echo esc_attr( $value ) ?>" id="<?php echo esc_attr( $key ) ?>"><?php echo esc_html( $value ) ?></option><?php
 			else:?>
@@ -376,7 +397,7 @@ class HTML {
 	 * @param str  $tax_nice_name the name of the target taxonomy (i.e. Input Date)
 	 * @param bool $multiples     whether the term shoud append (true) or replace (false) existing terms
 	 **/
-	protected function date( $taxonomy, $tax_nice_name, $mutliples = false ) {?>
+	protected function date( $taxonomy, $tax_nice_name, $mutliples = false, $required = false ) {?>
 	    <?php
 			$tax_name = stripslashes( $taxonomy );
 			global $post, $wp_locale;
@@ -385,7 +406,7 @@ class HTML {
 			$day   = NULL;
 			$year  = NULL;
 
-			?><select id="<?php echo esc_attr( $tax_name ) ?>_month" name="<?php echo esc_attr( $tax_name ) ?>_month"><option selected="selected" value='<?php echo esc_attr( $month ) ?>'>Month</option>
+			?><select id="<?php echo esc_attr( $tax_name ) ?>_month" name="<?php echo esc_attr( $tax_name ) ?>_month"><option selected="selected" value='<?php echo esc_attr( $month ) ?>' <?php if ( $required ): echo 'required'; endif; ?>>Month</option>
 	    <?php
 			for ( $i = 1; $i < 13; $i++ ) {
 				?><option value="<?php echo esc_attr( $wp_locale->get_month( $i ) ) ?>"><?php echo sanitize_text_field( $wp_locale->get_month( $i ) )  ?></option>

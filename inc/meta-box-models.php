@@ -394,7 +394,9 @@ public function validate_and_save( $post_ID ) {
         } else {
             $key = $field['meta_key'];
             $value = $this->validate( $post_ID, $field );
-            $validate[$key] = $value;
+            if ( isset($value) ) {
+                $validate[$key] = $value;
+            }
         }
     }
     $this->save( $post_ID, $validate );

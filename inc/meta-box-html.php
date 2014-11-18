@@ -14,7 +14,8 @@ class HTML {
 			$error = new WP_Error( 'field_required', 'You need to pass a field array to this method. You passed a '. gettype( $field ) . ' .');
 			return $error;
 		}
-		?><div<?php if (isset( $field['class'] )) { ?> class="<?php echo esc_attr( $field['class'] ); ?>"<?php } ?>><?php
+		?>
+		<div<?php if (isset( $field['class'] )) { ?> class="<?php echo esc_attr( $field['class'] ); ?>"<?php } ?>><?php
 
 		if ( isset( $field['title'] ) ) {?>
 			<h4><?php echo esc_attr( $field['title'] ); ?></h4><?php
@@ -35,8 +36,10 @@ class HTML {
 			wp_nonce_field( plugin_basename( __FILE__ ), $field['meta_key'] );
 		}
 		if ( array_key_exists('howto', $field) ) {
-		?> <p class="howto"><?php echo esc_html( $field['howto'] ) ?></p></div><?php
-		}
+		?> <p class="howto"><?php echo esc_html( $field['howto'] ) ?></p><?php
+		} ?>
+		</p>
+		</div><?php
 	}
 
 	private function pass_fieldset($field) {

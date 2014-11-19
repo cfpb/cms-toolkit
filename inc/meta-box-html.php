@@ -270,7 +270,7 @@ class HTML {
 					<a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$slug} remove {$i}"  ?>" >Remove</a>
 				</fieldset>
 		<?php endfor; 
-		if ( $count <= $max_num_forms ): ?>
+		if ( $count < $max_num_forms ): ?>
 			<a class='toggle_link_manager <?php echo "{$slug} add"?>' href="#related_links" >Add a link</a>
 		<?php endif; ?>
 	</div>

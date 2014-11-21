@@ -62,19 +62,40 @@ class View {
 			if ( $field['type'] == 'fieldset' ) {
 				// if our field is a fieldset, process defaults for each field that
 				// in the group.
-				$fields = $field['slug']['fields'];
-				$i = 0;
-				foreach ($field['fields'] as $f) {
-					$field['fields'][$i] = $this->assign_defaults($f);
-					$fieldset_slug = $field['meta_key'] . '_' . $f['meta_key'];
-				 	$field['fields'][$i]['meta_key'] = $fieldset_slug;
-				 	$f['meta_key'] = $field['fields'][$i]['meta_key'];
-					$field['fields'][$i]['value'] = $this->default_value($ID, $f);
-					$i++;
+				if ( isset( $field['params']['is_formset_of_fieldsets'] ) ) {
+					$field['init_num_forms'] = $this->formset_count( $field );
+					$ready = $this->process_defaults_for_formset_of_fieldsets( $field );
+				} else {
+					$fields = $field['slug']['fields'];
+					$i = 0;
+					foreach ($field['fields'] as $f) {
+						$field['fields'][$i] = $this->assign_defaults($f);
+						$fieldset_slug = $field['meta_key'] . '_' . $f['meta_key'];
+					 	$field['fields'][$i]['meta_key'] = $fieldset_slug;
+					 	$f['meta_key'] = $field['fields'][$i]['meta_key'];
+						$field['fields'][$i]['value'] = $this->default_value($ID, $f);
+						$i++;
+					}
+					$ready[$field['slug']] = $field;
 				}
-				$ready[$field['slug']] = $field;
 			} else {
 				$ready[$field['slug']] = $this->assign_defaults($field);
+			}
+		}
+		return $ready;
+	}
+
+	public function process_defaults_for_formset_of_fieldsets( $field ) {
+		$ID = get_the_ID();
+		$ready = array();
+		$key = $field['meta_key'];
+		for ( $i = 0; $i < $field['params']['max_num_forms']; $i++ ) {
+			$ready[$i] = $field;
+			for ( $j = 0; $j < count( $field['fields'] ); $j++ ) {
+				$meta_key = $ready[$i]['fields'][$j]['meta_key'];
+				$ready[$i]['fields'][$j]['meta_key'] = "{$key}_{$meta_key}_{$i}";
+				$ready[$i]['fields'][$j] = $this->assign_defaults( $ready[$i]['fields'][$j] );
+				$ready[$i]['fields'][$j]['value'] = $this->default_value($ID, $ready[$i]['fields'][$j]);
 			}
 		}
 		return $ready;
@@ -155,7 +176,7 @@ class View {
 
 	public function formset_count( $field ) { 
 		$init_num = array_key_exists( 'init_num_forms', $field['params'] ) ? $field['params']['init_num_forms'] : 1;
-		$max_num  = isset($field['params']['max_num_forms']) ? $field['params']['max_num_forms'] : $field['params']['count'];
+		$max_num  = isset($field['params']['max_num_forms']) ? $field['params']['max_num_forms'] : 1;
 		$existing = array();
 		$key = $field['meta_key'];
 		for ($i=0; $i < $max_num; $i++) { 

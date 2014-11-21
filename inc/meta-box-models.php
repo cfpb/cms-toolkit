@@ -160,7 +160,6 @@ public function validate_link( $field, $post_id ) {
             $full_link = array( 0 => $url, 1 => $text );
             $meta_key = $key . "_{$i}";
             $existing = get_post_meta( $post_id, $meta_key, $single = false );
-
             if ( empty( $_POST[$key . '_url_' . $i] ) || empty( $_POST[$key.'_text_' . $i]) ) {
                 delete_post_meta( $post_id, $meta_key);
             } elseif ( empty($existing) ) {
@@ -178,6 +177,37 @@ public function validate_link( $field, $post_id ) {
     }
 }
 
+public function validate_formset_of_fieldsets( $field, $post_id ) {
+    $key = $field['meta_key'];
+    if ( array_key_exists('max_num_forms', $field['params'] ) ) {
+        $count = $field['params']['max_num_forms'];
+    } else {
+        $count = 1;
+    }
+    $validate = array();
+    for ( $i = 0; $i < $count; $i++ ) {
+        $ready[$i] = $field;
+        for ($j = 0; $j < count( $field['fields'] ); $j++ ){
+            $meta_key = $ready[$i]['fields'][$j]['meta_key'];
+            $ready[$i]['fields'][$j]['meta_key'] = "{$key}_{$meta_key}_{$i}";
+            $value = $this->validate( $post_id, $ready[$i]['fields'][$j] );
+            if ( isset($value) ) {
+                $validate[$ready[$i]['fields'][$j]['meta_key']] = $value;
+            }
+        }
+    }
+    return $validate;
+}
+
+// protected function debug_to_console( $data ) {
+
+//     if ( is_array( $data ) )
+//         $output = "<script>console.log( 'Debug Objects: " . implode( ',', $data) . "' );</script>";
+//     else
+//         $output = "<script>console.log( 'Debug Objects: " . $data . "' );</script>";
+
+//     echo $output;
+// }
 /**
  * validate_select validates a <select> field
  * 
@@ -386,10 +416,14 @@ public function validate_and_save( $post_ID ) {
     $validate = array();
     foreach ( $this->fields as $field ) {
         if ( $field['type'] == 'fieldset') {
-            foreach ( $field['fields'] as $f ) {
-                $f['meta_key'] = $field['meta_key'] . '_' . $f['meta_key'];
-                $value = $this->validate( $post_ID, $f );
-                $validate[$f['meta_key']] = $value;
+            if ( isset( $field['params']['is_formset_of_fieldsets'] ) ) {
+                $validate = $this->validate_formset_of_fieldsets( $field, $post_ID );
+            } else {
+                foreach ( $field['fields'] as $f ) {
+                    $f['meta_key'] = $field['meta_key'] . '_' . $f['meta_key'];
+                    $value = $this->validate( $post_ID, $f );
+                    $validate[$f['meta_key']] = $value;
+                }
             }
         } else {
             $key = $field['meta_key'];

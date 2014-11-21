@@ -17,15 +17,16 @@ class HTML {
 		?>
 		<div<?php if (isset( $field['class'] )) { ?> class="<?php echo esc_attr( $field['class'] ); ?>"<?php } ?>><?php
 
-		if ( isset( $field['title'] ) ) {?>
-			<h4><?php echo esc_attr( $field['title'] ); ?></h4><?php
-		} ?>
-		<p><?php
+		?><p><?php
 
 		if ( $field['type'] == 'fieldset' ) {
-			?><fieldset><?php
-				$this->pass_fieldset($field);
-			?></fieldset><?php
+			if ( ! isset($field['params']['is_formset_of_fieldsets']) ) {
+				?><fieldset><?php
+					$this->pass_fieldset($field);
+				?></fieldset><?php				
+			} else {
+				$this->pass_fieldset_of_formset($field);
+			}
 		} elseif ( in_array($field['type'], $this->elements['inputs'] ) ) {
 			$this->pass_input($field);
 		} elseif ( in_array($field['type'], $this->elements['selects'] ) ) {
@@ -37,26 +38,112 @@ class HTML {
 		}
 		if ( array_key_exists('howto', $field) ) {
 		?> <p class="howto"><?php echo esc_html( $field['howto'] ) ?></p><?php
-		} ?>
-		</p>
+		} 
+		?></p>
 		</div><?php
 	}
 
-	private function pass_fieldset($field) {
+	private function pass_fieldset( $field ) {
+		// global $post;
+		// foreach ( get_post_custom($post->ID) as $key => $value ) {
+		//     echo $key . " => " . $value . "<br />";
+		//   }
+		// $this->debug_to_console(get_post_custom($post->ID));
 		foreach ($field['fields'] as $f) {
 			$required = array_key_exists('required', $f) ? $f['required'] : false;
 			if ( $f['type'] == 'boolean' ) {
-				HTML::boolean_input($f['meta_key'], $f['label'], $f['value'], $fieldset = true, $required);
+				HTML::boolean_input($slug, $f['label'], $f['value'], $fieldset = true, $required);
 			} elseif ( in_array( $f['type'], $this->elements['inputs'] ) ) {
 				$placeholder = array_key_exists('placeholder', $f) ? esc_attr( $f['placeholder'] ) : null;
 				$title = array_key_exists('title', $f) ? esc_attr( $f['title'] ) : null;
 				$label = array_key_exists('label', $f) ? $f['label'] : null;
-				HTML::single_input($f['meta_key'], $f['type'], $f['max_length'], $f['value'], $placeholder, $title, $label, $required);
+				$this->draw_input($f);
+				// HTML::single_input($slug, $f['type'], $f['max_length'], $f['value'], $placeholder, $title, $label, $required);
 			} elseif ( in_array($f['type'], array( 'select', 'multiselect', 'taxonomselect') ) ) {
-				HTML::select($f['meta_key'], $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder'], $required);
+				HTML::select($slug, $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder'], $required);
 			}
 		}
 	}
+
+	private function pass_fieldset_of_formset($field) {
+		global $post;
+		$post_id = $post->ID;	
+    	$existing_terms = array();
+		for ( $i = 0; $i < count($field['fields']); $i++ ):
+			$meta_key = $field['fields'][$i]['meta_key'];
+			$post_data = get_post_custom( $post_id );
+			if ( array_key_exists( $meta_key, $post_data ) ){
+				$existing = $post_data[$meta_key];
+			}
+			if ( ! empty($existing) ):
+				array_push($existing_terms, $existing);
+			endif;
+		endfor;
+		$count = $i;
+		$form_num = substr( $field['fields'][0]['meta_key'], -1 ) + 1;
+
+		if ( ! empty( $existing_terms ) ):
+			if ( isset( $field['title'] ) ) {
+				?><h4 id="<?php echo "{$field['meta_key']}_{$form_num}"; ?>" >
+					<?php echo "{$field['title']} {$form_num}"; 
+				?></h4><?php
+			}
+			?><fieldset id="<?php echo "{$field['meta_key']}_{$form_num}"; ?>"><?php
+				$this->pass_fieldset( $field );
+			?></fieldset><?php
+			?>
+			<a class='toggle_form_manager <?php echo "{$field['meta_key']}_{$form_num} add hidden"?>' href="#subinitiative_links">
+				<?php
+				if ( isset( $field['title'] ) ) {
+					echo "Add {$field['title']}";
+				} else {
+					echo "Add Fieldset";
+				}?>
+			</a>
+			<a class='toggle_form_manager <?php echo "{$field['meta_key']}_{$form_num} remove"?>' href="#subinitiative_links">
+			<?php
+			if ( isset( $field['title'] ) ) {
+				echo "Remove {$field['title']}";
+			} else {
+				echo "Remove Fieldset";
+			}?>
+			</a><?php
+		else:
+			if ( isset( $field['title'] ) ) {
+				?><h4 id="<?php echo "{$field['meta_key']}_{$form_num}"; ?>" class="hidden">
+					<?php echo "{$field['title']} {$form_num}"; 
+				?></h4><?php
+			}
+			?><fieldset disabled id="<?php echo "{$field['meta_key']}_{$form_num}"; ?>" class="hidden new"><?php
+				$this->pass_fieldset( $field );
+			?></fieldset>
+			<a class='toggle_form_manager <?php echo "{$field['meta_key']}_{$form_num} add"?>' href="#subinitiative_links">
+				<?php
+				if ( isset( $field['title'] ) ) {
+					echo "Add {$field['title']}";
+				} else {
+					echo "Add Fieldset";
+				}?>
+			</a>
+			<a class='toggle_form_manager <?php echo "{$field['meta_key']}_{$form_num} remove hidden"?>' href="#subinitiative_links">
+				<?php
+				if ( isset( $field['title'] ) ) {
+					echo "Remove {$field['title']}";
+				} else {
+					echo "Remove Fieldset";
+				}?>
+			</a><?php
+		endif;
+	}
+protected function debug_to_console( $data ) {
+
+    if ( is_array( $data ) )
+        $output = "<script>console.log( 'Debug Objects: " . implode( ',', $data) . "' );</script>";
+    else
+        $output = "<script>console.log( 'Debug Objects: " . $data . "' );</script>";
+
+    echo $output;
+}
 
 	private function pass_input( $field, $for = null ) {
 		if ( array_key_exists('fields', $field) ) {
@@ -70,6 +157,9 @@ class HTML {
 	}
 
 	private function draw_input($field, $slug = null) {
+		if ( ! $slug ) {
+			$slug = $field['meta_key'];
+		}
 		$type = $field['type'];
 		if ( array_key_exists('required', $field ) ) {
 			$required = true;
@@ -77,11 +167,11 @@ class HTML {
 			$required = false;
 		}
 		if ( $type == 'text_area' ) {
-			HTML::text_area( $field['rows'], $field['cols'], $field['meta_key'], $field['value'], $field['placeholder'], $required );
+			HTML::text_area( $field['rows'], $field['cols'], $slug, $field['value'], $field['label'], $field['placeholder'], $required );
 		}
 
 		if ( in_array( $type, array( 'number', 'text', 'email', 'url' ) ) ) {
-			HTML::single_input( $field['meta_key'], $field['type'], $field['max_length'], $field['value'], $field['placeholder'], $required );
+			HTML::single_input( $slug, $field['type'], $field['max_length'], $field['value'], $field['label'], $field['placeholder'], $required );
 		}
 
 		if ( $type == 'date' ) {
@@ -89,12 +179,12 @@ class HTML {
 		}
 
 		if ( $type == 'radio' ) {
-			HTML::single_input( $field['meta_key'], $type = 'radio', $max_length = null, $value = 'true' );
-			HTML::single_input( $field['meta_key'], $type = 'radio', $max_length = null, $value = 'false' );
+			HTML::single_input( $slug, $type = 'radio', $max_length = null, $value = 'true' );
+			HTML::single_input( $slug, $type = 'radio', $max_length = null, $value = 'false' );
 		}
 
 		if ( $field['type'] == 'boolean' ) {
-			HTML::boolean_input( $field['meta_key'], $field['label'], $field['value'], $required );
+			HTML::boolean_input( $slug, $field['label'], $field['value'], $required );
 		}
 
 		if ( $field['type'] == 'link' ) {
@@ -108,7 +198,7 @@ class HTML {
 			else:
 				$init = 1;
 			endif;
-			HTML::url_input($field['meta_key'], $init, $max, $field['max_length'], $field['value'], $required);
+			HTML::url_input($slug, $init, $max, $field['max_length'], $field['value'], $required);
 		}
 	}
 
@@ -176,9 +266,9 @@ class HTML {
 	 * @param str $value a default value for the <textarea>
 	 *
 	**/
-	protected function text_area( $rows, $cols, $slug, $value, $placeholder, $required = false ) { ?>
+	protected function text_area( $rows, $cols, $slug, $value, $label, $placeholder, $required = false ) { ?>
 		<p>
-			<label><?php echo $placeholder; if ( $required ): echo ' (required)'; endif; ?></label>
+			<label><?php echo $label; if ( $required ): echo ' (required)'; endif; ?></label>
 			<textarea id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-textarea" name="<?php echo esc_attr( $slug ) ?>" rows="<?php echo esc_attr( $rows ) ?>" cols="<?php echo esc_attr( $cols ) ?>" value="<?php echo esc_attr( $value ) ?>" placeholder="<?php echo esc_attr( $placeholder ) ?>" <?php if ( $required ): echo 'required'; endif; ?>><?php echo esc_html( $value ) ?></textarea>
 		</p>
 	<?php

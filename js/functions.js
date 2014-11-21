@@ -21,16 +21,17 @@ function toggle_link_field(element) {
     var form_num = classes[3];
     var action = classes[2];
     var slug = classes[1];
-    if ( action == 'edit') {
-        var targeted_input = jQuery('div#'+slug+' fieldset#' + slug + '_' + form_num );
+    var targeted_input;
+    if ( action == 'edit' ) {
+        targeted_input = jQuery('div.' + slug + ' fieldset#' + slug + '_' + form_num);
         jQuery('div.' + slug + ' span.' + form_num).toggle();
     } else if ( action == 'add' ) {
-        var targeted_input = jQuery('div.' + slug + ' fieldset.hidden.new').first();
+        targeted_input = jQuery('div.' + slug + ' fieldset.hidden.new').first();
         jQuery(targeted_input).toggleClass('new');
         jQuery(targeted_input).toggleClass('expanded');
         jQuery(targeted_input).attr('disabled', false);
     } else if ( action == 'remove' ) {
-        var targeted_input = jQuery('div.' + slug + ' fieldset.expanded' ).first();
+        targeted_input = jQuery('div.' + slug + ' fieldset.expanded').first();
         jQuery(targeted_input).toggleClass('expanded');
         jQuery(targeted_input).toggleClass('new');
     }

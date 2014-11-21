@@ -19,6 +19,13 @@ class HTML {
 
 		?><p><?php
 
+		if ( ! isset($field['params']['is_formset_of_fieldsets']) ):
+			if ( isset( $field['title'] ) ) {
+				?><h4 id="<?php echo "{$field['meta_key']}"; ?>" ><?php
+					echo "{$field['title']}"; 
+				?></h4><?php
+			}
+		endif;
 		if ( $field['type'] == 'fieldset' ) {
 			if ( ! isset($field['params']['is_formset_of_fieldsets']) ) {
 				?><fieldset><?php
@@ -44,23 +51,17 @@ class HTML {
 	}
 
 	private function pass_fieldset( $field ) {
-		// global $post;
-		// foreach ( get_post_custom($post->ID) as $key => $value ) {
-		//     echo $key . " => " . $value . "<br />";
-		//   }
-		// $this->debug_to_console(get_post_custom($post->ID));
 		foreach ($field['fields'] as $f) {
 			$required = array_key_exists('required', $f) ? $f['required'] : false;
 			if ( $f['type'] == 'boolean' ) {
-				HTML::boolean_input($slug, $f['label'], $f['value'], $fieldset = true, $required);
+				HTML::boolean_input($f['meta_key'], $f['label'], $f['value'], $fieldset = true, $required);
 			} elseif ( in_array( $f['type'], $this->elements['inputs'] ) ) {
 				$placeholder = array_key_exists('placeholder', $f) ? esc_attr( $f['placeholder'] ) : null;
 				$title = array_key_exists('title', $f) ? esc_attr( $f['title'] ) : null;
 				$label = array_key_exists('label', $f) ? $f['label'] : null;
 				$this->draw_input($f);
-				// HTML::single_input($slug, $f['type'], $f['max_length'], $f['value'], $placeholder, $title, $label, $required);
 			} elseif ( in_array($f['type'], array( 'select', 'multiselect', 'taxonomselect') ) ) {
-				HTML::select($slug, $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder'], $required);
+				HTML::select($f['meta_key'], $f['params'], $f['taxonomy'], $f['multiselect'], $f['placeholder'], $required);
 			}
 		}
 	}

@@ -340,7 +340,6 @@ Formsets are currently supported by the following field types declared within a 
 - `email`
 - `url`
 - `link`\*
-- `date`
 
 \* **Link caveat** -- Links do not need to be declared inside of a formset. You can use `link` as a formset as well. Another use case, If the user needs to add at least 1 but no more than 10 links, they could do the following.
 

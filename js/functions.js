@@ -42,12 +42,13 @@ function toggle_link_field(element) {
 
 function toggle_fieldset_of_formset(element) {
     var classes = jQuery(element).attr('class').split(/\s+/);
-    var form_num = classes[3];
+    var input_num = classes[3];
     var action = classes[2];
     var slug = classes[1];
+    var header = jQuery('div > h4#' + slug);
+    var targeted_input = jQuery('div > fieldset#' + slug );
     if ( action == 'add') {
         // Enable and show the fieldset
-        var targeted_input = jQuery('div > fieldset#' + slug );
         jQuery(targeted_input).toggleClass('new');
         jQuery(targeted_input).toggleClass('expanded');
         jQuery(targeted_input).attr('disabled', false);
@@ -58,38 +59,41 @@ function toggle_fieldset_of_formset(element) {
         jQuery(element).attr('disabled', true);
         
         // show the remove link
-        var remove_link = jQuery("div > a." + slug + ".remove");
-        jQuery(remove_link).toggleClass('hidden')
+        var remove_link = jQuery("div > p > a." + slug + ".remove");
+        jQuery(remove_link).toggleClass('hidden');
         jQuery(remove_link).attr('disabled', false);
 
         // Show the header
-        var header = jQuery('div > h4#' + slug);
         jQuery(header).removeClass('hidden');
 
     } else if ( action == 'remove' ) {
-        // Disable and hide the fieldset
-        var targeted_input = jQuery('div > fieldset#' + slug);
-        jQuery(targeted_input).toggleClass('hidden');
-        jQuery(targeted_input).removeClass('new');
-        jQuery(targeted_input).removeClass('expanded');
+        // Delete form data, disable, and hide the fieldset
+        delete_form_data(input_num);
+        jQuery(targeted_input).toggleClass('expanded');
+        jQuery(targeted_input).toggleClass('new');
         jQuery(targeted_input).attr('disabled', true);
+        jQuery(targeted_input).css(' display: none; ');
         jQuery(targeted_input).toggle();
 
         // Hide the remove link
         jQuery(element).toggleClass('hidden');
         jQuery(element).attr('disabled', true);
-        // jQuery(element).toggle();
 
         // Show add link
         var add_link = jQuery("div > a." + slug + ".add");
-        jQuery(add_link).toggleClass('hidden')
+        jQuery(add_link).toggleClass('hidden');
         jQuery(add_link).attr('disabled', false);
 
         // Hide the header
-        var header = jQuery('div > h4#' + slug);
         jQuery(header).addClass('hidden');
-        // jQuery(action_link).toggle();        
     }
+}
+
+function delete_form_data(input_num) {
+    jQuery( "*[class*='form-input_" + input_num + "\']" ).each(function(index){
+        jQuery( this ).val("");
+    });
+    jQuery( "p > span[class=\"" + input_num + "\"]" ).parent().html("");
 }
 
 jQuery('a.toggle_link_manager').click( function() {

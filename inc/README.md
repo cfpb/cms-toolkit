@@ -289,14 +289,59 @@ Formsets is a feature that allows you to repeat a set of fields (listed above)
 up to a fixed maximum value. This is slightly different from how Django thinks 
 about formsets.
 
-As an example of how to use them, think about this user story: As a user, I
-want to be able to add at least one but no more than 10 related links to any given
-post so that I can show readers a predictable amount of relative content.
+As an example of how to use them, think about this user story: As a user, I want to
+include at least 1 but no more than 6 headlines and descriptions.
 
-To do this, we could either create 10 link fields within a single meta box's
-'fields' array ( with meta keys like `field_1`, `field_2`, `field_3`, and so on, or 
-we could make a formset with an initial number of forms set to 1 and the maximum 
-set to 10. That code looks like this:
+To do this, we could either create 6 text and text area fields within a single meta box's
+'fields' `array` with meta keys like `header_1`, `description_1`, `header_2`, `description_2`, and so on, or 
+we could make a formset of the fieldset with an initial number of forms set to 1 and the maximum 
+set to 6. That code looks like this:
+
+```php
+<?php
+    $fields =  array(
+        'article_teasers' =>   array(
+            'slug' => 'article_teasers',
+            'type' => 'fieldset',
+            'fields' => array (
+                array (
+                    'type' => 'text',
+                    'label' => 'Header',
+                    'meta_key' => 'header',
+                ),
+                array (
+                    'type' => 'text_area',
+                    'label' => 'Description',
+                    'params' => array(
+                        'rows' => 5,
+                        'cols' => 100,
+                    ),
+                    'meta_key' => 'desc',
+                ),
+            ),
+            'params' => array(
+                'init_num_forms' => 1,
+                'max_num_forms' => 6,
+                'is_formset_of_fieldsets' => true,
+            ),
+            'meta_key' => 'article_teasers',
+        ),
+    );
+?>
+```
+As you can see, we set one of the fields of the metabox to be a fieldset then define fields inside of it. To reiterate, if you want to have a formset _you must declare the field(s) from within a fieldset_ (with one exception: see link caveat below). Then we add the parameters to give the initial/maximum number of forms while setting the `is_formset_of_fieldsets` to true.
+
+
+Formsets are currently supported by the following field types declared within a `fieldset`:
+
+- `text`
+- `text_area`
+- `number`
+- `email`
+- `url`
+- `link`\*
+
+\* **Link caveat** -- Links do not need to be declared inside of a formset. You can use `link` as a formset as well. Another use case, If the user needs to add at least 1 but no more than 10 links, they could do the following.
 
 ```php
 <?php
@@ -315,9 +360,7 @@ set to 10. That code looks like this:
 ?>
 ```
 
-Formsets are currently supported by the following field types:
-
-- `link` (as of 1.1)
+Links are currently the only type supported for use in this way.
 
 ## Capabilities
 

@@ -15,9 +15,8 @@ class HTML {
 			return $error;
 		}
 		?>
-		<div<?php if (isset( $field['class'] )) { ?> class="<?php echo esc_attr( $field['class'] ); ?>"<?php } ?>><?php
 
-		?><p><?php
+		<div class="cms-toolkit-wrapper<?php if (isset( $field['class'] )) { echo ' ' . esc_attr( $field['class'] ); } ?>"><?php
 
 		if ( ! isset($field['params']['is_formset_of_fieldsets']) ):
 			if ( isset( $field['title'] ) ) {
@@ -43,11 +42,11 @@ class HTML {
 		} elseif ( $field['type'] == 'nonce' ) {
 			wp_nonce_field( plugin_basename( __FILE__ ), $field['meta_key'] );
 		}
-		if ( array_key_exists('howto', $field) ) {
-		?> <p class="howto"><?php echo esc_html( $field['howto'] ) ?></p><?php
-		} 
-		?></p>
-		</div><?php
+		if ( isset( $field['howto'] ) ) { ?>
+			<p class="howto"><?php echo esc_html( $field['howto'] ) ?></p>
+		<?php } ?>
+		</div> <!-- END .cms-toolkit-wrapper -->
+	<?php
 	}
 
 	private function pass_fieldset( $field, $form_num = NULL ) {
@@ -69,7 +68,7 @@ class HTML {
 	private function pass_fieldset_of_formset($field) {
 		global $post;
 		$post_id = $post->ID;	
-    	$existing_terms = array();
+		$existing_terms = array();
 		for ( $i = 0; $i < count($field['fields']); $i++ ):
 			$meta_key = $field['fields'][$i]['meta_key'];
 			$post_data = get_post_custom( $post_id );
@@ -101,7 +100,7 @@ class HTML {
 					echo "Add Fieldset " . ($form_num + 1);
 				}?>
 			</a>
-			<p>
+			<div class="cms-toolkit-wrapper">
 				<a class='toggle_form_manager <?php echo "{$field['meta_key']}_{$form_num} remove {$form_num}"?>' href="#subinitiative_links">
 					<?php
 					if ( isset( $field['title'] ) ) {
@@ -110,7 +109,7 @@ class HTML {
 						echo "Remove Fieldset " . ($form_num + 1);
 					}?>
 				</a>
-			</p><?php
+			</div><?php
 		else:
 			if ( isset( $field['title'] ) ) {
 				?><h4 id="<?php echo "{$field['meta_key']}_{$form_num}"; ?>" class="hidden">
@@ -128,7 +127,7 @@ class HTML {
 					echo "Add Fieldset " . ($form_num + 1);
 				}?>
 			</a>
-			<p>
+			<div class="cms-toolkit-wrapper">
 				<a class='toggle_form_manager <?php echo "{$field['meta_key']}_{$form_num} remove hidden {$form_num}"?>' href="#subinitiative_links">
 					<?php
 					if ( isset( $field['title'] ) ) {
@@ -137,7 +136,7 @@ class HTML {
 						echo "Remove Fieldset " . ($form_num + 1);
 					}?>
 				</a>
-			</p><?php
+			</div><?php
 		endif;
 	}
 
@@ -264,15 +263,18 @@ class HTML {
 	 *
 	**/
 	protected function text_area( $rows, $cols, $slug, $value, $label, $placeholder, $required = false, $form_num = NULL ) { ?>
-		<p>
-			<div>
-				<label><?php echo $label; if ( $required ): echo ' (required)'; endif; ?></label>
-			</div>
-			<div>
-				<textarea id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-textarea form-input_<?php echo $form_num; ?>" name="<?php echo esc_attr( $slug ) ?>" rows="<?php echo esc_attr( $rows ) ?>" cols="<?php echo esc_attr( $cols ) ?>" value="<?php echo esc_attr( $value ) ?>" placeholder="<?php echo esc_attr( $placeholder ) ?>" <?php if ( $required ): echo 'required'; endif; ?>><?php echo esc_html( $value ) ?></textarea>
-			</div>
-		</p>
-	<?php
+		<label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $slug ) ?>">
+			<?php echo $label; if ( $required ): echo ' (required)'; endif; ?>
+		</label>
+		<textarea id="<?php echo esc_attr( $slug ) ?>"
+				  class="cms-toolkit-textarea form-input_<?php echo $form_num; ?>"
+				  name="<?php echo esc_attr( $slug ) ?>"
+				  rows="<?php echo esc_attr( $rows ) ?>"
+				  cols="<?php echo esc_attr( $cols ) ?>"
+				  value="<?php echo esc_attr( $value ) ?>"
+				  placeholder="<?php echo esc_attr( $placeholder ) ?>"
+				  <?php if ( $required ): echo 'required'; endif; ?>><?php echo esc_html( $value ) ?></textarea>
+		<?php
 	}
 
 	/**
@@ -294,29 +296,34 @@ class HTML {
 	 *
 	**/
 	protected function single_input( $slug, $type, $max_length = NULL, $value = NULL, $label = NULL, $placeholder = NULL, $title = NULL, $required = false, $form_num = NULL ) {
-			$value       = 'value="'. $value . '"';
-			$max_length  = 'maxlength="'. $max_length . '"';
-			$placeholder = 'placeholder="' . $placeholder . '"';
-			?><div>
-				<label for="<?php echo esc_attr( $slug ) ?>"><?php echo $label; if ( $required ): echo ' (required)'; endif; ?></label>
-			</div>
-			<div>
-				<input id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-input form-input_<?php echo $form_num; ?>" name="<?php echo esc_attr( $slug ) ?>" type="<?php echo esc_attr( $type ) ?>" <?php echo " $max_length $value $placeholder" ?>  <?php if ( $required ): echo 'required'; endif; ?>/>
-			</div>
-			<?php if ( $title != NULL ): ?>
-				<p class="howto"><?php echo $title ?></p><?php
-			endif;
+		$value       = 'value="' . $value . '"';
+		$max_length  = 'maxlength="' . $max_length . '"';
+		$placeholder = 'placeholder="' . $placeholder . '"';
+		?>
+		<label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $slug ) ?>">
+			<?php echo $label; if ( $required ): echo ' (required)'; endif; ?>
+		</label>
+		<input id="<?php echo esc_attr( $slug ) ?>"
+			   class="cms-toolkit-input form-input_<?php echo $form_num; ?>"
+			   name="<?php echo esc_attr( $slug ) ?>"
+			   type="<?php echo esc_attr( $type ) ?>"
+			   <?php echo " $max_length $value $placeholder" ?>
+			   <?php if ( $required ): echo 'required '; endif; ?>/>
+		<?php
 	}
 
 	protected function boolean_input( $slug, $label, $value, $required = false ) {
-			$name = 'name="' . esc_attr($slug) . '"';
-			$id = 'id="'. esc_attr($slug) . '"';
-	?>
-		<p>
-			<input <?php echo $id . ' ' . $name ?> type="checkbox" <?php if ($value == 'on') { echo ' checked'; } ?>  <?php if ( $required ): echo 'required'; endif; ?>/>
-			<label for="<?php echo esc_attr( $slug ) ?>"><?php echo $label;  if ( $required ): echo ' (required)'; endif; ?></label>
-		</p>
-	<?php
+		?>
+		<input id="<?php echo esc_attr( $slug ) ?>"
+			   class="cms-toolkit-checkbox"
+			   name="<?php echo esc_attr( $slug ) ?>"
+			   type="checkbox"
+			   <?php if ( $value == 'on' ) { echo 'checked'; } ?>
+			   <?php if ( $required ) { echo 'required'; } ?>/>
+		<label class="cms-toolkit-label" for="<?php echo esc_attr( $slug ) ?>">
+			<?php echo $label; if ( $required ): echo ' (required)'; endif; ?>
+		</label>
+		<?php
 	}
 
 	protected function url_input( $slug, $init_num_forms, $max_num_forms, $max_length = NULL, $value = NULL, $required = false, $form_num = NULL ) {
@@ -333,50 +340,142 @@ class HTML {
 		endfor;
 		$count = count($existing_terms) > $init_num_forms ? count($existing_terms) : $init_num_forms;
 		?>
-		<div class='link_manager <?php echo "{$slug} max_{$max_num_forms}" ?>'>
+		<div class="link_manager <?php echo "{$slug} max_{$max_num_forms}" ?>">
 		<?php
 			for ( $i = 0; $i < $count; $i++ ):
 				$existing = get_post_meta( $post_id, $slug . "_{$i}", false);
 				if ( ! isset( $existing[0] ) || ! isset( $existing[1] ) ): ?>
-						<fieldset>
-							<label for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text <?php  if ( $required ): echo ' (required)'; endif; ?></label>
-							<input id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class='<?php echo $i; ?> cms-toolkit-input form-input_<?php echo $form_num; ?>' name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length $value" ?>  <?php if ( $required ): echo 'required'; endif; ?>/>
-							<label for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL <?php  if ( $required ): echo ' (required)'; endif; ?></label>
-							<input class='<?php $i ?> cms-toolkit-input form-input_<?php echo $form_num; ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i?>' name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length $value" ?>  <?php if ( $required ): echo 'required'; endif; ?>/>
-						</fieldset>
+					<fieldset>
+						<label class="cms-toolkit-label block-label"
+							   for="<?php echo esc_attr( $slug ) . '_text_' . $i ?>">
+							Link text <?php  if ( $required ): echo ' (required)'; endif; ?>
+						</label>
+						<input class="cms-toolkit-input
+									  <?php echo $i; ?>
+									  form-input_<?php echo $form_num; ?>"
+							   id="<?php echo esc_attr( $slug ) . '_text_' . $i ?>"
+							   name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>"
+							   type="text"
+							   <?php echo "$max_length $value" ?>
+							   <?php if ( $required ): echo 'required '; endif; ?>/>
+						<label class="cms-toolkit-label block-label"
+							   for="<?php echo esc_attr( $slug ) . '_url_' . $i ?>">
+							Link URL <?php  if ( $required ): echo ' (required)'; endif; ?></label>
+						<input class="cms-toolkit-input
+						              <?php echo $i; ?>
+						              form-input_<?php echo $form_num; ?>"
+						       id="<?php echo esc_attr( $slug ) . '_url_' . $i?>"
+						       name="<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>"
+						       type="url"
+						       <?php echo "$max_length $value" ?>
+						       <?php if ( $required ): echo 'required '; endif; ?>/>
+					</fieldset>
 				<?php else:?>
-					<p><span class="<?php echo $i ?>">Link text: <?php echo $existing[1] ?><br />Link URL: <?php echo $existing[0] ?>.<br /><a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$slug} edit {$i}"  ?>" >Edit</a></span></p>
-						<fieldset id='<?php echo "{$slug}_{$i}" ?>' class='hidden'>
-							<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text <?php  if ( $required ): echo ' (required)'; endif; ?></label>
-							<input class='<?php echo $i ?> form-input_<?php echo $form_num; ?>' id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length value='{$existing[1]}'" ?>  <?php if ( $required ): echo 'required'; endif; ?>/>
-							<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL <?php  if ( $required ): echo ' (required)'; endif; ?></label>
-							<input class='<?php echo $i ?> form-input_<?php echo $form_num; ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length value='{$existing[0]}'" ?>  <?php if ( $required ): echo 'required'; endif; ?>/>
-							<a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$slug} edit {$i}"  ?>" >Undo</a>
-							<span class="howto">Save the post to update this field, click undo to keep what you had (above).</span>
-						</fieldset>
+					<table class="link-existing <?php echo $i; ?>">
+						<tbody>
+							<tr>
+								<th>Link text:</th>
+								<td><?php echo $existing[1]; ?></td>
+							</tr>
+							<tr>
+								<th>Link URL:</th>
+								<td><?php echo $existing[0]; ?></td>
+							</tr>
+						</tbody>
+						<tfoot>
+							<tr>
+								<td colspan="2">
+									<a class="toggle_link_manager <?php echo "{$slug} edit {$i}"; ?>"
+									   href="#related_links"
+									   title="<?php echo esc_attr($slug); ?>">
+										Edit this link
+									</a>
+								</td>
+							</tr>
+						</tfoot>
+					</table>
+					<fieldset class="link-existing-edit hidden" id="<?php echo "{$slug}_{$i}"; ?>">
+						<label class="cms-toolkit-label block-label <?php echo $i; ?>"
+							   for="<?php echo esc_attr( $slug ) . '_text_' . $i ?>">
+							Link text <?php  if ( $required ): echo ' (required)'; endif; ?>
+						</label>
+						<input class="cms-toolkit-input
+									  <?php echo $i; ?>
+									  form-input_<?php echo $form_num; ?>"
+							   id="<?php echo esc_attr( $slug ) . '_text_' . $i; ?>"
+							   name="<?php echo esc_attr( $slug ) . '_text_' . $i; ?>"
+							   type="text"
+							   <?php echo " $max_length value='{$existing[1]}'"; ?>
+							   <?php if ( $required ): echo 'required '; endif; ?>/>
+						<label class="cms-toolkit-label block-label <?php echo $i; ?>"
+							   for="<?php echo esc_attr( $slug ) . '_url_' . $i; ?>">
+							Link URL <?php  if ( $required ): echo ' (required)'; endif; ?>
+						</label>
+						<input class="cms-toolkit-input
+									  <?php echo $i ?>
+									  form-input_<?php echo $form_num; ?>"
+							   id="<?php echo esc_attr( $slug ) . '_url_' . $i ?>"
+							   name="<?php echo esc_attr( $slug ) ?>_url_<?php echo $i; ?>"
+							   type="url"
+							   <?php echo "$max_length value='{$existing[0]}'" ?>
+							   <?php if ( $required ): echo 'required '; endif; ?>/>
+						<a class="toggle_link_manager <?php echo "{$slug} edit {$i}"; ?>"
+						   href="#related_links"
+						   title="<?php echo esc_attr($slug); ?>">
+							Undo
+						</a>
+						<span class="howto">
+							Save the post to update this field; click "Undo" to keep what you had (above).
+						</span>
+					</fieldset>
 				<?php endif;?>
 		<?php endfor;
 		for ( $i = $count; $i <= $max_num_forms; $i++ ): ?>
-				<fieldset disabled id="<?php echo "{$slug}_{$i}" ?>" class="hidden new">
-					<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_text_' . $i ?>'>Link text <?php  if ( $required ): echo ' (required)'; endif; ?></label>
-					<input class='<?php echo $i ?> form-input_<?php echo $form_num; ?>' id='<?php echo esc_attr( $slug ) . '_text_' . $i ?>' class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>" type="text" <?php echo " $max_length value=''" ?> />
-					<label class='<?php echo $i ?>' for='<?php echo esc_attr( $slug ) . '_url_' . $i ?>'>Link URL <?php  if ( $required ): echo ' (required)'; endif; ?></label>
-					<input class='<?php echo $i ?> form-input_<?php echo $form_num; ?>' id='<?php echo esc_attr( $slug ) . '_url_' . $i ?>' class="cms-toolkit-input" name='<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>' type="url" <?php echo " $max_length value=''" ?> />
-					<a href="#related_links" title='<?php esc_attr($slug) ?>' class="toggle_link_manager <?php echo "{$slug} remove {$i}"  ?>" >Remove</a>
-				</fieldset>
+			<fieldset class="hidden new" id="<?php echo "{$slug}_{$i}" ?>" disabled>
+				<label class="cms-toolkit-label block-label <?php echo $i ?>"
+					   for="<?php echo esc_attr( $slug ) . '_text_' . $i ?>">
+					Link text <?php  if ( $required ): echo ' (required)'; endif; ?>
+				</label>
+				<input class="cms-toolkit-input <?php echo $i ?> form-input_<?php echo $form_num; ?>"
+					   id="<?php echo esc_attr( $slug ) . '_text_' . $i ?>"
+					   name="<?php echo esc_attr( $slug ) . '_text_' . $i ?>"
+					   type="text"
+					   <?php echo $max_length . 'value="" ' ?>/>
+				<label class="cms-toolkit-label block-label <?php echo $i ?>"
+					   for="<?php echo esc_attr( $slug ) . '_url_' . $i ?>">
+					Link URL <?php  if ( $required ): echo ' (required)'; endif; ?>
+				</label>
+				<input class="cms-toolkit-input <?php echo $i ?> form-input_<?php echo $form_num; ?>"
+					   id="<?php echo esc_attr( $slug ) . '_url_' . $i ?>"
+					   name="<?php echo esc_attr( $slug ) ?>_url_<?php echo $i ?>"
+					   type="url"
+					   <?php echo $max_length . 'value="" ' ?>/>
+				<a class="toggle_link_manager <?php echo "{$slug} remove {$i}"; ?>"
+				   href="#related_links"
+				   title="<?php echo esc_attr($slug); ?>">
+					Remove
+				</a>
+			</fieldset>
 		<?php endfor; 
 		if ( $count < $max_num_forms ): ?>
-			<a class='toggle_link_manager <?php echo "{$slug} add"?>' href="#related_links" >Add a link</a>
+			<a class="toggle_link_manager <?php echo "{$slug} add"; ?>"
+			   href="#related_links">
+				Add a link
+			</a>
 		<?php endif; ?>
-	</div>
-	<?php
+		</div>
+		<?php
 	}
 
 	/**
 	 *  Generates a hidden field
 	**/
 	protected function hidden( $slug, $value ) { ?>
-			<input id="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-input" name="<?php echo esc_attr( $slug ) ?>" type="hidden" value="<?php echo esc_attr( $value ) ?>" />
+		<input class="cms-toolkit-input"
+			   id="<?php echo esc_attr( $slug ) ?>"
+			   name="<?php echo esc_attr( $slug ) ?>"
+			   type="hidden"
+			   value="<?php echo esc_attr( $value ) ?>" />
 	<?php
 	}
 
@@ -496,7 +595,7 @@ class HTML {
 	 * @param bool $multiples     whether the term shoud append (true) or replace (false) existing terms
 	 **/
 	protected function date( $taxonomy, $tax_nice_name, $mutliples = false, $required = false, $form_num = NULL ) {?>
-	    <?php
+		<?php
 			$tax_name = stripslashes( $taxonomy );
 			global $post, $wp_locale;
 
@@ -505,22 +604,22 @@ class HTML {
 			$year  = NULL;
 
 			?><select id="<?php echo esc_attr( $tax_name ) ?>_month" name="<?php echo esc_attr( $tax_name ) ?>_month" class="form-input_<?php echo $form_num; ?>"><option selected="selected" value='<?php echo esc_attr( $month ) ?>' <?php if ( $required ): echo 'required'; endif; ?>>Month</option>
-	    <?php
+		<?php
 			for ( $i = 1; $i < 13; $i++ ) {
 				?><option value="<?php echo esc_attr( $wp_locale->get_month( $i ) ) ?>"><?php echo sanitize_text_field( $wp_locale->get_month( $i ) )  ?></option>
-	    <?php } ?>
-	    </select>
-	    <input id="<?php echo esc_attr( $tax_name ) ?>_day" type="text" name="<?php echo esc_attr( $tax_name ) ?>_day" class="form-input_<?php echo $form_num; ?>" value="<?php echo esc_attr( $day ) ?>" size="2" maxlength="2" placeholder="DD"/>
-	    <input id="<?php echo esc_attr( $tax_name ) ?>_year" type="text" name="<?php echo esc_attr( $tax_name ) ?>_year" class="form-input_<?php echo $form_num; ?>" value="<?php echo esc_attr( $year ) ?>" size="4" maxlength="4" placeholder="YYYY"/>
-	    <?php
+		<?php } ?>
+		</select>
+		<input id="<?php echo esc_attr( $tax_name ) ?>_day" type="text" name="<?php echo esc_attr( $tax_name ) ?>_day" class="form-input_<?php echo $form_num; ?>" value="<?php echo esc_attr( $day ) ?>" size="2" maxlength="2" placeholder="DD"/>
+		<input id="<?php echo esc_attr( $tax_name ) ?>_year" type="text" name="<?php echo esc_attr( $tax_name ) ?>_year" class="form-input_<?php echo $form_num; ?>" value="<?php echo esc_attr( $year ) ?>" size="4" maxlength="4" placeholder="YYYY"/>
+		<?php
 			if ( $multiples = false ) { ?>
-	      <p class="howto">If one is set already, selecting a new month, day and year will override it.</p>
-	    <?php } else { ?>
-	      <p class='howto'>Select a month, day and year to add another <?php echo sanitize_text_field( $tax_nice_name ) ?></p>
-	    <?php } ?>
+		  <p class="howto">If one is set already, selecting a new month, day and year will override it.</p>
+		<?php } else { ?>
+		  <p class='howto'>Select a month, day and year to add another <?php echo sanitize_text_field( $tax_nice_name ) ?></p>
+		<?php } ?>
 
-	    <div class='tagchecklist'>
-	    <?php
+		<div class='tagchecklist'>
+		<?php
 			if ( has_term( '', $taxonomy, $post->id ) ) {
 				$terms = get_the_terms( $post->id, $tax_name );
 				$i     = 0;
@@ -529,11 +628,11 @@ class HTML {
 					if ( is_numeric( $term->name ) ) {
 						$natdate = date( 'j F, Y', intval( $term->name ) );
 	?>
-	          <span><a id='<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>' class='ntdelbutton <?php echo sanitize_text_field( $term->name ) ?>'><?php echo sanitize_text_field( $term->name ) ?></a><?php echo $natdate ?></span>
-	        <?php
+			  <span><a id='<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>' class='ntdelbutton <?php echo sanitize_text_field( $term->name ) ?>'><?php echo sanitize_text_field( $term->name ) ?></a><?php echo $natdate ?></span>
+			<?php
 					} else {
 						$date = strtotime( $term->name );                                     // If it isn't, convert it to a timestamp -- why? ?>
-	        <?php
+			<?php
 					}
 				$i++;
 				}

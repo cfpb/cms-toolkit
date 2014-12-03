@@ -1,11 +1,58 @@
 @import url("multi-select.css");
+
 .inside .ms-container {
-	width: 100%;
+    width: 100%;
 }
+
 .cms-toolkit-input {
     width: 37%;
 }
 
+.cms-toolkit-wrapper {
+    margin-bottom: 0.5em;
+}
+
+.cms-toolkit-label {
+    margin-top: 1em;
+    margin-bottom: 0;
+}
+
+fieldset .cms-toolkit-label {
+    margin-top: 0;
+}
+
+.cms-toolkit-input,
+.cms-toolkit-textarea {
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+}
+
+.block-label {
+    display: block;
+}
+
+.cms-toolkit-wrapper .howto {
+    margin-top: 0;
+}
+
+.link_manager fieldset {
+    padding: 0.5em 1em;
+    margin-bottom: 1em;
+    background: #F1F2F2;
+}
+
+.link-existing {
+    margin-bottom: 1em;
+    border-spacing: 0;
+}
+
+.link-existing th,
+.link-existing td {
+    padding-right: 0.5em;
+    padding-left: 0;
+    text-align: left;
+}
+
 input:required {
-	border: 1px solid red;
+    border: 1px solid red;
 }

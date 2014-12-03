@@ -23,21 +23,21 @@ function toggle_link_field(element) {
     var slug = classes[1];
     var targeted_input;
     if ( action == 'edit' ) {
-        targeted_input = jQuery('div.' + slug + ' fieldset#' + slug + '_' + form_num);
-        jQuery('div.' + slug + ' span.' + form_num).toggle();
+        targeted_input = jQuery('.link_manager.' + slug + ' fieldset#' + slug + '_' + form_num);
+        jQuery('.link_manager.' + slug + ' .link-existing.' + form_num).toggle();
     } else if ( action == 'add' ) {
-        targeted_input = jQuery('div.' + slug + ' fieldset.hidden.new').first();
+        targeted_input = jQuery('.link_manager.' + slug + ' fieldset.hidden.new').first();
         jQuery(targeted_input).toggleClass('new');
         jQuery(targeted_input).toggleClass('expanded');
         jQuery(targeted_input).attr('disabled', false);
     } else if ( action == 'remove' ) {
-        targeted_input = jQuery('div.' + slug + ' fieldset.expanded').first();
+        targeted_input = jQuery('.link_manager.' + slug + ' fieldset.expanded').first();
         jQuery(targeted_input).toggleClass('expanded');
         jQuery(targeted_input).toggleClass('new');
     }
     jQuery(targeted_input).toggle();
     var add_new = jQuery('a.add_new_link.' + slug);
-    var remaining_fields = jQuery('div.' + slug + ' fieldset.new').length;
+    var remaining_fields = jQuery('.link_manager.' + slug + ' fieldset.new').length;
 }
 
 function toggle_fieldset_of_formset(element) {

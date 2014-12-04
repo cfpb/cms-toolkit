@@ -42,11 +42,11 @@ function toggle_link_field(element) {
 
 function toggle_fieldset_of_formset(element) {
     var classes = jQuery(element).attr('class').split(/\s+/);
-    var input_num = classes[3];
+    var form_num = classes[3];
     var action = classes[2];
     var slug = classes[1];
-    var header = jQuery('div > h4#' + slug);
-    var targeted_input = jQuery('div > fieldset#' + slug );
+    var header = jQuery('#' + slug + '_header');
+    var targeted_input = jQuery('#' + slug + '_fieldset');
     if ( action == 'add') {
         // Enable and show the fieldset
         jQuery(targeted_input).toggleClass('new');
@@ -59,16 +59,15 @@ function toggle_fieldset_of_formset(element) {
         jQuery(element).attr('disabled', true);
         
         // show the remove link
-        var remove_link = jQuery("div > p > a." + slug + ".remove");
+        var remove_link = jQuery("." + slug + ".remove");
         jQuery(remove_link).toggleClass('hidden');
         jQuery(remove_link).attr('disabled', false);
 
         // Show the header
         jQuery(header).removeClass('hidden');
-
     } else if ( action == 'remove' ) {
         // Delete form data, disable, and hide the fieldset
-        delete_form_data(input_num);
+        delete_form_data(slug, form_num);
         jQuery(targeted_input).toggleClass('expanded');
         jQuery(targeted_input).toggleClass('new');
         jQuery(targeted_input).attr('disabled', true);
@@ -80,7 +79,7 @@ function toggle_fieldset_of_formset(element) {
         jQuery(element).attr('disabled', true);
 
         // Show add link
-        var add_link = jQuery("div > a." + slug + ".add");
+        var add_link = jQuery("." + slug + ".add");
         jQuery(add_link).toggleClass('hidden');
         jQuery(add_link).attr('disabled', false);
 
@@ -89,11 +88,21 @@ function toggle_fieldset_of_formset(element) {
     }
 }
 
-function delete_form_data(input_num) {
-    jQuery( "*[class*='form-input_" + input_num + "\']" ).each(function(index){
-        jQuery( this ).val("");
+function delete_form_data(slug, form_num) {
+    var selectorBase = '#' + slug + '_fieldset .form-input_' + form_num;
+
+    // Clear text fields
+    jQuery(selectorBase).each( function(index) {
+        jQuery(this).val("");
     });
-    jQuery( "p > span[class=\"" + input_num + "\"]" ).parent().html("");
+    // Clear checkboxes & radio buttons
+    jQuery(selectorBase + ':checked').each( function(index) {
+        jQuery(this).prop("checked", false);
+    });
+    // Clear select fields
+    jQuery(selectorBase + ':selected').each( function(index) {
+        jQuery(this).prop("selected", false);
+    });
 }
 
 jQuery('a.toggle_link_manager').click( function() {

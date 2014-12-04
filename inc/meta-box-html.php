@@ -80,19 +80,21 @@ class HTML {
 			endif;
 		endfor;
 		$count = $i;
-		$form_num = substr( $field['fields'][0]['meta_key'], -1 ) ;
+		$form_num = array_pop( explode( '_', $field['fields'][0]['meta_key'] ) );
 
 		if ( ! empty( $existing_terms ) ):
 			if ( isset( $field['title'] ) ) {
-				?><h4 id="<?php echo "{$field['meta_key']}_{$form_num}"; ?>" >
+				?><h4 id="<?php echo "{$field['meta_key']}_{$form_num}_header"; ?>" >
 					<?php echo "{$field['title']} " . ($form_num + 1) . "";
 				?></h4><?php
 			}
-			?><fieldset id="<?php echo "{$field['meta_key']}_{$form_num}"; ?>"><?php
+			?><fieldset id="<?php echo "{$field['meta_key']}_{$form_num}_fieldset"; ?>"><?php
 				$this->pass_fieldset( $field, $form_num );
-			?></fieldset><?php
-			?>
-			<a class='toggle_form_manager <?php echo "{$field['meta_key']}_{$form_num} add hidden"?>' href="#subinitiative_links">
+			?></fieldset>
+
+			<a class="toggle_form_manager
+					  <?php echo "{$field['meta_key']}_{$form_num} add hidden"?>"
+			   href="#subinitiative_links">
 				<?php
 				if ( isset( $field['title'] ) ) {
 					echo "Add {$field['title']} " . ($form_num + 1);
@@ -101,7 +103,9 @@ class HTML {
 				}?>
 			</a>
 			<div class="cms-toolkit-wrapper">
-				<a class='toggle_form_manager <?php echo "{$field['meta_key']}_{$form_num} remove {$form_num}"?>' href="#subinitiative_links">
+				<a class="toggle_form_manager
+						  <?php echo "{$field['meta_key']}_{$form_num} remove {$form_num}"?>"
+				   href="#subinitiative_links">
 					<?php
 					if ( isset( $field['title'] ) ) {
 						echo "Remove {$field['title']} " . ($form_num + 1);

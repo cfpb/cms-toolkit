@@ -187,6 +187,9 @@ public function validate_formset_of_fieldsets( $field, $post_id ) {
     $validate = array();
     for ( $i = 0; $i < $count; $i++ ) {
         $ready[$i] = $field;
+        $ready[$i]['meta_key'] .= '_' . $i;
+        $ready[$i]['slug'] .= '_' . $i;
+        // $ready[$i]['title'] .= ' ' . $i;
         for ($j = 0; $j < count( $field['fields'] ); $j++ ){
             $meta_key = $ready[$i]['fields'][$j]['meta_key'];
             $ready[$i]['fields'][$j]['meta_key'] = "{$key}_{$meta_key}_{$i}";
@@ -417,7 +420,10 @@ public function validate_and_save( $post_ID ) {
     foreach ( $this->fields as $field ) {
         if ( $field['type'] == 'fieldset') {
             if ( isset( $field['params']['is_formset_of_fieldsets'] ) ) {
-                $validate = $this->validate_formset_of_fieldsets( $field, $post_ID );
+                $prevalidate = $this->validate_formset_of_fieldsets( $field, $post_ID );
+                foreach ( $prevalidate as $f ) {
+                    $validate[$f['meta_key']] = $f;
+                }
             } else {
                 foreach ( $field['fields'] as $f ) {
                     $f['meta_key'] = $field['meta_key'] . '_' . $f['meta_key'];

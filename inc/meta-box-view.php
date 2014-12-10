@@ -64,7 +64,10 @@ class View {
 				// in the group.
 				if ( isset( $field['params']['is_formset_of_fieldsets'] ) ) {
 					$field['init_num_forms'] = $this->formset_count( $field );
-					$ready = $this->process_defaults_for_formset_of_fieldsets( $field );
+					$preready = $this->process_defaults_for_formset_of_fieldsets( $field );
+					foreach ( $preready as $f ) {
+						$ready[$f['meta_key']] = $f;
+					}
 				} else {
 					$fields = $field['slug']['fields'];
 					$i = 0;
@@ -91,6 +94,9 @@ class View {
 		$key = $field['meta_key'];
 		for ( $i = 0; $i < $field['params']['max_num_forms']; $i++ ) {
 			$ready[$i] = $field;
+			$ready[$i]['meta_key'] .= '_' . $i;
+	        $ready[$i]['slug'] .= '_' . $i;
+	        // $ready[$i]['title'] .= ' ' . $i;
 			for ( $j = 0; $j < count( $field['fields'] ); $j++ ) {
 				$meta_key = $ready[$i]['fields'][$j]['meta_key'];
 				$ready[$i]['fields'][$j]['meta_key'] = "{$key}_{$meta_key}_{$i}";

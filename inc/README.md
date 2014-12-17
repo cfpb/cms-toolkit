@@ -234,6 +234,7 @@ field with options pulled from the terms attached to the taxonomy specified in
 'params' will be passed to `get_posts` and [you can use all the
 keys](http://codex.wordpress.org/Template_Tags/get_posts). 
 * `fieldset` to make a set of fields that affect the same meta key ([see  below](#fieldsets))
+* `formset` create multiple sets of fields (not necessarily `fieldset`s)([see  below](#formsets))
 
 __Note:__ invalid 'type' values will generate nothing and cause validation errors 
 and invalid values for `$post_type` or `$context` will generate `WP_Error`s
@@ -285,29 +286,30 @@ $phone_desc = array( 'Description of the phone number', );
 
 ### Formsets
 
-Formsets is a feature that allows you to repeat a set of fields (listed above) 
-up to a fixed maximum value. This is slightly different from how Django thinks 
-about formsets.
+Formset is a feature that allows you to repeat a set of fields which can be repeated up to the maximum value. Each of the fields are saved individually but have a strict naming convention to maintain uniquity. This is discussed further below.
 
-As an example of how to use them, think about this user story: As a user, I want to
-include at least 1 but no more than 6 headlines and descriptions.
+As an example of how to use them, think about this user story: As a user, I want to create a main page with a header that has at least 1 but no more than 6 articles that includes a headline and description.
 
-To do this, we could either create 6 text and text area fields within a single meta box's
-'fields' `array` with meta keys like `header_1`, `description_1`, `header_2`, `description_2`, and so on, or 
-we could make a formset of the fieldset with an initial number of forms set to 1 and the maximum 
-set to 6. That code looks like this:
-
+To do this, we could either create 6 text and text area fields within a single meta box's `fields` array with `meta_key`'s like `header_1`, `description_1`, `header_2`, `description_2`, and so on, or we could make a formset of the fields with parameters to set how many we want so we don't have to create all those fields seperately. That code looks like this:
 ```php
 <?php
     $fields =  array(
-        'article_teasers' =>   array(
-            'slug' => 'article_teasers',
-            'type' => 'fieldset',
+    	'main_header' => array(
+        	'title' => 'Main Page Header',
+            'label' => 'Main Header',
+            'slug => 'main_header',
+            'type' => 'text',
+            'meta_key' => 'main_header',
+        ),
+        'articles' => array(
+        	'title' => 'Article',
+            'slug' => 'articles',
+            'type' => 'formset',
             'fields' => array (
                 array (
                     'type' => 'text',
-                    'label' => 'Header',
-                    'meta_key' => 'header',
+                    'label' => 'Headline',
+                    'meta_key' => 'headline',
                 ),
                 array (
                     'type' => 'text_area',
@@ -322,45 +324,19 @@ set to 6. That code looks like this:
             'params' => array(
                 'init_num_forms' => 1,
                 'max_num_forms' => 6,
-                'is_formset_of_fieldsets' => true,
             ),
-            'meta_key' => 'article_teasers',
+            'meta_key' => 'articles',
         ),
     );
 ?>
 ```
-As you can see, we set one of the fields of the metabox to be a fieldset then define fields inside of it. To reiterate, if you want to have a formset _you must declare the field(s) from within a fieldset_ (with one exception: see link caveat below). Then we add the parameters to give the initial/maximum number of forms while setting the `is_formset_of_fieldsets` to true.
+As you can see, we have two fields in the metabox's `fields` array; one `text` field for the main page's header and another `formset` field for each article's header and description. The formset typed field has a `fields` array with more fields in it. Those fields are repeated according to the parameter's set in the `params` array. The `init_num_forms` is what controls how many of the formsets are displayed by default and `max_num_forms` is how many formsets there are total.
 
+Every field type is supported for this use. That means that you could declare a _formset within a formset_. Think of each of those articles from the example before. If we wanted to have at least 2 but at most 3 links associated with each article, we could declare a formset as one of the fields of the article formset.
 
-Formsets are currently supported by the following field types declared within a `fieldset`:
+The **naming convention** for formset fields are how each of the fields are saved and retrieved uniquely from the database. The `meta_key` is key that the data is associated with. The name of each field of a formset is as such: `<formset meta_key>_<formset iteration integer>_<field meta_key`. So the `meta_key` of each field of the formset in the above example would be `articles_0_headline`, `articles_0_desc`, `articles_1_headline`, `articles_1_desc`, etc until the max number of formsets. This means that _without the `meta_key`, formsets will not work at all_.
 
-- `text`
-- `text_area`
-- `number`
-- `email`
-- `url`
-- `link`\*
-
-\* **Link caveat** -- Links do not need to be declared inside of a formset. You can use `link` as a formset as well. Another use case, If the user needs to add at least 1 but no more than 10 links, they could do the following.
-
-```php
-<?php
-    $fields =  array(
-        'related_link' =>   array(
-            'slug' => 'related_link',
-            'type' => link,
-            'params' => array(
-                'init_num_forms' => 1,
-                'max_num_forms' => 10,
-            ),
-            'meta_key' => 'related_link',
-            'howto' => 'Tell the people how to use this',
-        ),
-    );
-?>
-```
-
-Links are currently the only type supported for use in this way.
+**Note**: It is important to note that in the example the fields of the metabox's `fields` array are associated with a string. (In the formset example, there were two fields; one field was called `main_header` and the other was called `articles`.) This is not supported in the formset fields array. As above, each field in the `fields` array in the formset is an unnamed array.
 
 ## Capabilities
 

@@ -24,7 +24,7 @@ class View {
 		'link',
 	);
 	private $hidden  = array( 'nonce', 'hidden' );
-	private $other   = array( 'separator', 'fieldset' );
+	private $other   = array( 'separator', 'fieldset', 'formset' );
 	public $elements;
 	private $HTML;
 
@@ -59,52 +59,43 @@ class View {
 					array( 'fields' => 'names' )
 			    );
 			}
-			if ( $field['type'] == 'fieldset' ) {
-				// if our field is a fieldset, process defaults for each field that
-				// in the group.
-				if ( isset( $field['params']['is_formset_of_fieldsets'] ) ) {
-					$field['init_num_forms'] = $this->formset_count( $field );
-					$preready = $this->process_defaults_for_formset_of_fieldsets( $field );
-					foreach ( $preready as $f ) {
-						$ready[$f['meta_key']] = $f;
-					}
-				} else {
-					$fields = $field['slug']['fields'];
-					$i = 0;
-					foreach ($field['fields'] as $f) {
-						$field['fields'][$i] = $this->assign_defaults($f);
-						$fieldset_slug = $field['meta_key'] . '_' . $f['meta_key'];
-					 	$field['fields'][$i]['meta_key'] = $fieldset_slug;
-					 	$f['meta_key'] = $field['fields'][$i]['meta_key'];
-						$field['fields'][$i]['value'] = $this->default_value($ID, $f);
-						$i++;
-					}
-					$ready[$field['slug']] = $field;
+			if ( $field['type'] == 'formset' ) {
+				$this->process_formset_defaults( $field, $ready );
+			} elseif ( $field['type'] == 'fieldset' ) {
+				for ($i = 0; $i < count( $field['fields'] ); $i++ ) {
+					$field['fields'][$i]['meta_key'] = "{$field['meta_key']}_{$field['fields'][$i]['meta_key']}";
+					$field['fields'][$i] = $this->assign_defaults( $field['fields'][$i] );
+					$field['fields'][$i]['value'] = $this->default_value( $ID, $field['fields'][$i] );
 				}
+				$ready[$field['meta_key']] = $field;
 			} else {
-				$ready[$field['slug']] = $this->assign_defaults($field);
+				$ready[$field['meta_key']] = $this->assign_defaults($field);
 			}
 		}
 		return $ready;
 	}
 
-	public function process_defaults_for_formset_of_fieldsets( $field ) {
+	public function process_formset_defaults( $field, &$ready ) {
 		$ID = get_the_ID();
-		$ready = array();
+		$processed = array();
 		$key = $field['meta_key'];
 		for ( $i = 0; $i < $field['params']['max_num_forms']; $i++ ) {
-			$ready[$i] = $field;
-			$ready[$i]['meta_key'] .= '_' . $i;
-	        $ready[$i]['slug'] .= '_' . $i;
-	        // $ready[$i]['title'] .= ' ' . $i;
-			for ( $j = 0; $j < count( $field['fields'] ); $j++ ) {
-				$meta_key = $ready[$i]['fields'][$j]['meta_key'];
-				$ready[$i]['fields'][$j]['meta_key'] = "{$key}_{$meta_key}_{$i}";
-				$ready[$i]['fields'][$j] = $this->assign_defaults( $ready[$i]['fields'][$j] );
-				$ready[$i]['fields'][$j]['value'] = $this->default_value($ID, $ready[$i]['fields'][$j]);
+			$processed[$i] = $field;
+			if ( ( $i + 1 ) <= $field['params']['init_num_forms'] ) {
+				$processed[$i]['init'] = true;
 			}
+			$processed[$i]['meta_key'] .= '_' . $i;
+	        $processed[$i]['slug'] .= '_' . $i;
+	        $processed[$i]['title'] .= isset( $processed[$i]['title'] ) ? ' ' . ( $i + 1 ) : "";
+			for ( $j = 0; $j < count( $field['fields'] ); $j++ ) {
+				$meta_key = $processed[$i]['fields'][$j]['meta_key'];
+				$processed[$i]['fields'][$j]['meta_key'] = "{$processed[$i]['meta_key']}_{$meta_key}";
+			}
+			$processed[$i]['fields'] = $this->process_defaults( $processed[$i]['fields'] );
 		}
-		return $ready;
+		foreach ( $processed as $f ) {
+			$ready[$f['meta_key']] = $f;
+		}
 	}
 
 	public function assign_defaults( $field ) {
@@ -127,15 +118,8 @@ class View {
 		} else {
 			$field['multiselect'] = false;
 		}
-		
 		if ( ! in_array($field['type'], array( 'taxonomyselect', 'tax_as_meta' ) ) ) {
 			$field['taxonomy'] = false;
-		}
-
-		if ( $field['type'] == 'link' ) {
-			// if there's existing post meta to go with, use that for the 
-			// initial value
-			$field['init_num_forms'] = $this->formset_count( $field );
 		}
 		return $field;
 	}
@@ -180,27 +164,11 @@ class View {
 		return $default;
 	}
 
-	public function formset_count( $field ) { 
-		$init_num = array_key_exists( 'init_num_forms', $field['params'] ) ? $field['params']['init_num_forms'] : 1;
-		$max_num  = isset($field['params']['max_num_forms']) ? $field['params']['max_num_forms'] : 1;
-		$existing = array();
-		$key = $field['meta_key'];
-		for ($i=0; $i < $max_num; $i++) { 
-			global $post;
-			$meta = get_post_meta( $post->ID, $key = "{$key}_{$i}", $single = false );
-			if ( isset( $meta ) ) {
-				array_push($existing, $meta);
-			}
-		}
-		$count = $max_num > count($existing) ? $max_num : count($existing);
-		return $count;
-	}
-
 	public function ready_and_print_html( $post, $fields ) {
 		$fields = $fields['args'];
 		$ready  = $this->process_defaults( $fields );
 		foreach ( $ready as $field ) {
-			$this->HTML->draw( $field, $field['slug'] );
+			$this->HTML->draw( $field );
 		}
 	}
 }

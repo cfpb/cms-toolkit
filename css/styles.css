@@ -1,5 +1,8 @@
 @import url("multi-select.css");
 
+a {
+    text-decoration: none;
+}
 .inside .ms-container {
     width: 100%;
 }
@@ -11,48 +14,45 @@
 .cms-toolkit-wrapper {
     margin-bottom: 0.5em;
 }
-
-.cms-toolkit-label {
-    margin-top: 1em;
-    margin-bottom: 0;
+.formset {
+    margin-left: .5em;
+    padding: .5em 0 .5em .5em;
+    background: #F1F2F2;
 }
-
-fieldset .cms-toolkit-label {
-    margin-top: 0;
+.formset > div > .formset-header {
+    margin: 0;
+    font-size: 1.2em;
 }
-
+.formset > div > .cms-toolkit-label {
+    margin-top: .5em;
+    margin-left: .5em;
+}
+.remove {
+    color: red;
+    font-size: .8em;
+}
 .cms-toolkit-input,
-.cms-toolkit-textarea {
+.cms-toolkit-textarea,
+.cms-toolkit-checkbox,
+ {
     margin-top: 0.5em;
-    margin-bottom: 1em;
+    margin-left: 0.5em;
 }
 
-.block-label {
-    display: block;
+.link-field > .cms-toolkit-input,
+.link-field > .cms-toolkit-label {
+    margin-left: 0.3em;
+    display: inline;
 }
 
 .cms-toolkit-wrapper .howto {
     margin-top: 0;
 }
 
-.link_manager fieldset {
-    padding: 0.5em 1em;
-    margin-bottom: 1em;
-    background: #F1F2F2;
-}
 
-.link-existing {
-    margin-bottom: 1em;
-    border-spacing: 0;
+.block-label {
+    display: block;
 }
-
-.link-existing th,
-.link-existing td {
-    padding-right: 0.5em;
-    padding-left: 0;
-    text-align: left;
-}
-
 input:required {
     border: 1px solid red;
 }

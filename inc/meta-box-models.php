@@ -436,7 +436,9 @@ public function save( $post_ID, $postvalues ) {
 public function validate_and_save( $post_ID ) {
     $validate = array();
     foreach ( $this->fields as $field ) {
-        if ( $field['type'] == 'fieldset') {
+        if ( $field['type'] == 'formset' ) {
+            $this->validate_formset( $field, $validate, $post_ID );
+        } elseif ( $field['type'] == 'fieldset') {
             $this->validate_fieldset( $field, $validate, $post_ID );
         } else {
             $value = $this->validate( $post_ID, $field );

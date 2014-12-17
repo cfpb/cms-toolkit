@@ -9,7 +9,7 @@ class HTML {
 		'hidden' => array( 'nonce', 'hidden', 'separator', 'fieldset' ),
 		);
 
-	public function draw( $field ) {
+	public function draw( $field, $form_id = NULL ) {
 		if ( empty( $field ) ) {
 			return new WP_Error( 'field_required', 'You need to pass a field array to this method. You passed a '. gettype( $field ) . ' .');
 		}?>
@@ -25,14 +25,14 @@ class HTML {
 			$this->draw_formset( $field );
 		} elseif ( $field['type'] == 'fieldset' ) {
 			?><fieldset><?php
-				$this->pass_fieldset( $field );
+				$this->pass_fieldset( $field, $form_id );
 			?></fieldset><?php				
 		} elseif ( in_array( $field['type'], $this->elements['inputs'] ) ) {
-			$this->draw_input( $field );
+			$this->draw_input( $field, $form_id );
 		} elseif ( in_array( $field['type'], $this->elements['selects'] ) ) {
-			$this->pass_select( $field );
+			$this->pass_select( $field, $form_id );
 		} elseif ( $field['type'] == 'hidden' ) {
-			HTML::hidden( $field['meta_key'], $field['value'] );
+			HTML::hidden( $field['meta_key'], $field['value'], $form_id );
 		} elseif ( $field['type'] == 'nonce' ) {
 			wp_nonce_field( plugin_basename( __FILE__ ), $field['meta_key'] );
 		}
@@ -87,19 +87,7 @@ class HTML {
 
 	private function pass_fieldset( $field, $form_id = NULL ) {
 		foreach ($field['fields'] as $f) {
-			if ( $f['type'] == 'formset' ) {
-				$this->draw_formset( $f );
-			} elseif ( $f['type'] == 'fieldset' ) {
-				?><fieldset><?php
-					$this->pass_fieldset( $f );
-				?></fieldset><?php				
-			} elseif ( in_array( $f['type'], $this->elements['inputs'] ) ) {
-				$this->draw_input( $f );
-			} elseif ( in_array( $f['type'], $this->elements['selects'] ) ) {
-				$this->pass_select( $f );
-			} elseif ( $f['type'] == 'hidden' ) {
-				HTML::hidden( $f['meta_key'], $f['value'] );
-			}
+			$this->draw( $f, $form_id );
 		}
 	}
 
@@ -131,7 +119,7 @@ class HTML {
 		}
 	}
 
-	private function pass_select( $field ) {
+	private function pass_select( $field, $form_id = NULL ) {
 		$required = array_key_exists('required', $field ) ? true : false;
 		if ( in_array( $field['type'], array('multiselect', 'select', 'taxonomyselect' ) ) ) {
 			HTML::select( 
@@ -140,7 +128,8 @@ class HTML {
 				$field['taxonomy'], 
 				$field['multiple'], 
 				$field['placeholder'], 
-				$required 
+				$required,
+				$form_id
 			);
 		} elseif ( $field['type'] == 'tax_as_meta' ) {
 			HTML::taxonomy_as_meta(
@@ -150,7 +139,8 @@ class HTML {
 				$key = $field['meta_key'],
 				$placeholder = $field['placeholder'],
 				$value = $field['value'],
-				$required
+				$required,
+				$form_id
 			);
 		} elseif ( $field['type'] == 'post_select' || $field['type'] == 'post_multiselect' ) {
 			global $post;
@@ -164,7 +154,8 @@ class HTML {
 				$value,
 				$multi,
 				$placeholder = $field['placeholder'],
-				$required 
+				$required,
+				$form_id
 			);
 		}
 	}
@@ -297,8 +288,8 @@ class HTML {
 	/**
 	 *  Generates a hidden field
 	**/
-	protected function hidden( $meta_key, $value ) { ?>
-		<input class="cms-toolkit-input"
+	protected function hidden( $meta_key, $value, $form_id ) { ?>
+		<input class="cms-toolkit-input <?php echo "form-input_{$form_id}";?>"
 			   id="<?php echo esc_attr( $meta_key ) ?>"
 			   name="<?php echo esc_attr( $meta_key ) ?>"
 			   type="hidden"
@@ -336,14 +327,14 @@ class HTML {
 	 *              if no value selected. Default: '--'
 	 *
 	**/
-	protected function select( $meta_key, $params = array(), $taxonomy = false, $multi = null, $value = null, $placeholder = '--', $required = false ) {
+	protected function select( $meta_key, $params = array(), $taxonomy = false, $multi = null, $value = null, $placeholder = '--', $required = false, $form_id = NULL ) {
 		if ( $taxonomy != false ): // if a taxonomy is set, use wp_dropdown category to generate the select box
 			$IDs = wp_get_object_terms( get_the_ID(), $taxonomy, array( 'fields' => 'ids' ) );
 			wp_dropdown_categories( 'taxonomy=' . $taxonomy . '&hide_empty=0&orderby=name&name=' . $taxonomy . '&show_option_none=Select ' . $taxonomy . '&selected='. array_pop($IDs) );
 		else :	// otherwise use all the values set in $param to generate the option
 				$multiple = isset($multi) ? 'multiple' : null;
 				?> 
-				<label for="<?php echo esc_attr($meta_key) ?>"><select id="<?php echo esc_attr( $meta_key ) ?>" name="<?php echo esc_attr( $meta_key ) ?>[]" <?php echo $multiple ?> <?php if ( $required ): echo 'required'; endif; ?>></label>
+				<label for="<?php echo esc_attr($meta_key) ?>"><select id="<?php echo esc_attr( $meta_key ) ?>" name="<?php echo esc_attr( $meta_key ) ?>[]" class="<?php echo "form-input_{$form_id}"; ?>" <?php echo $multiple ?> <?php if ( $required ): echo 'required'; endif; ?>></label>
 				<?php
 				if ( empty( $value ) ): ?>
 					<option selected value=""><?php echo esc_html( $placeholder ) ?></option>
@@ -361,10 +352,10 @@ class HTML {
 		endif;
 	}
 
-	protected function post_select( $meta_key, $posts, $value, $multi, $placeholder = '--', $required = false ) { 
+	protected function post_select( $meta_key, $posts, $value, $multi, $placeholder = '--', $required = false, $form_id = NULL ) { 
 		global $post;
 		$selected = null;?>
-			<label for="<?php echo esc_attr( $meta_key ) ?>"><select class="<?php echo esc_attr($multi)?>" id="<?php echo esc_attr( $meta_key ) ?>" name="<?php echo esc_attr( $meta_key ) ?>[]" <?php echo $multi; ?>  <?php if ( $required ): echo 'required'; endif; ?>></label>
+			<label for="<?php echo esc_attr( $meta_key ) ?>"><select class="<?php echo esc_attr($multi); echo "form-input_{$form_id}"; ?>" id="<?php echo esc_attr( $meta_key ) ?>" name="<?php echo esc_attr( $meta_key ) ?>[]" <?php echo $multi; ?>  <?php if ( $required ): echo 'required'; endif; ?>></label>
 				<?php if ( $multi == null ):
 						if ( empty( $value )  ): ?>
 							<option value='' selected>-- Nothing selected --</option>
@@ -384,8 +375,8 @@ class HTML {
 		<?php
 	}
 
-	protected function taxonomy_as_meta( $slug, $params, $taxonomy, $key, $placeholder = '--', $value, $multi=null, $required = false ) { // keep as slug?>
-		<select class="<?php echo esc_attr($multi) ?>" name='<?php echo esc_attr( $slug )?>[]' <?php echo esc_attr( $multi )?>  <?php if ( $required ): echo 'required'; endif; ?>><?php
+	protected function taxonomy_as_meta( $slug, $params, $taxonomy, $key, $placeholder = '--', $value, $multi=null, $required = false, $form_id= NULL ) { // keep as slug?>
+		<select class="<?php echo esc_attr($multi); echo "form-input_{$form_id}"; ?>" name='<?php echo esc_attr( $slug )?>[]' <?php echo esc_attr( $multi )?>  <?php if ( $required ): echo 'required'; endif; ?>><?php
 			if ( isset( $value ) ):?>
 				<option selected value="<?php echo esc_attr( $value ) ?>" id="<?php echo esc_attr( $key ) ?>"><?php echo esc_html( $value ) ?></option><?php
 			else:?>

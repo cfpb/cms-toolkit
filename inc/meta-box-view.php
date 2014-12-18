@@ -13,14 +13,14 @@ class View {
 		'post_multiselect',
 	);
 	private $inputs  = array(
-	    'text_area',
-	    'number',
-	    'text',
-	    'boolean',
-	    'email',
-	    'url',
-	    'date',
-	    'radio',
+		'text_area',
+		'number',
+		'text',
+		'boolean',
+		'email',
+		'url',
+		'date',
+		'radio',
 		'link',
 	);
 	private $hidden  = array( 'nonce', 'hidden' );
@@ -29,13 +29,13 @@ class View {
 	private $HTML;
 
 	function __construct() {
-	    $this->HTML     = new HTML();
-	    $this->elements = array_merge(
+		$this->HTML     = new HTML();
+		$this->elements = array_merge(
 			$this->selects,
-	        $this->inputs,
-	        $this->hidden,
-	        $this->other
-	    );
+			$this->inputs,
+			$this->hidden,
+			$this->other
+		);
 	}
 
 	public function replace_html( $HTML ) {
@@ -47,17 +47,17 @@ class View {
 		foreach ( $fields as $field ) {
 			// check if this post has post meta or a taxonomy term already, if it does, set that as the value
 			if ( ! in_array( $field['type'], $this->elements ) ) {
-			    return  new WP_Error( 'invalid_type', "Invalid type {$field['type']} given for {$field['slug']} in this model. Acceptable elements: {$this->elements}");
+				return  new WP_Error( 'invalid_type', "Invalid type {$field['type']} given for {$field['slug']} in this model. Acceptable elements: {$this->elements}");
 			}
 			$ID = get_the_ID();
 			if ( isset($field['meta_key'] ) ) {
 				$field['value'] = $this->default_value($ID, $field);
 			} else {
-			    $field['value'] = wp_get_object_terms(
+				$field['value'] = wp_get_object_terms(
 					$ID,
 					$taxonomy = $field['taxonomy'],
 					array( 'fields' => 'names' )
-			    );
+				);
 			}
 			if ( $field['type'] == 'formset' ) {
 				$this->process_formset_defaults( $field, $ready );
@@ -69,9 +69,9 @@ class View {
 				}
 				$ready[$field['meta_key']] = $field;
 			} else {
-				if ( array_key_exists( 'meta_key', $field ) ) {
+				if ( isset( $field['meta_key'] ) ) {
 					$ready[$field['meta_key']] = $this->assign_defaults($field);
-				} elseif ( array_key_exists( 'slug', $field ) ) {					
+				} elseif ( isset( $field['slug'] ) ) {                  
 					$ready[$field['slug']] = $this->assign_defaults($field);
 				}
 			}
@@ -89,8 +89,8 @@ class View {
 				$processed[$i]['init'] = true;
 			}
 			$processed[$i]['meta_key'] .= '_' . $i;
-	        $processed[$i]['slug'] .= '_' . $i;
-	        $processed[$i]['title'] .= isset( $processed[$i]['title'] ) ? ' ' . ( $i + 1 ) : "";
+			$processed[$i]['slug'] .= '_' . $i;
+			$processed[$i]['title'] .= isset( $processed[$i]['title'] ) ? ' ' . ( $i + 1 ) : "";
 			for ( $j = 0; $j < count( $field['fields'] ); $j++ ) {
 				$meta_key = $processed[$i]['fields'][$j]['meta_key'];
 				$processed[$i]['fields'][$j]['meta_key'] = "{$processed[$i]['meta_key']}_{$meta_key}";
@@ -164,7 +164,7 @@ class View {
 		return $default;
 	}
 	public function default_options( $field ) {
-	    $default = ! isset( $field['params']['include'] ) ? array() : $field['params']['include'];
+		$default = ! isset( $field['params']['include'] ) ? array() : $field['params']['include'];
 		return $default;
 	}
 

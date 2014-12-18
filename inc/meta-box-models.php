@@ -137,7 +137,7 @@ class Models {
 }
 
 /**
-* validate_formset validates a formset of fieldsets
+* validate_formset validates a formset
 *
 * @param  arr  $field     The formset to validate. 
 * @param  arr  $validate  The array that holds all the data to save in an

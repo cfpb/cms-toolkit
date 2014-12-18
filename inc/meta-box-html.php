@@ -118,11 +118,11 @@ class HTML {
 	}
 
 	private function pass_select( $field, $form_id = NULL ) {
-		$required = array_key_exists('required', $field ) ? $field['required'] : false;
-		$key = array_key_exists( 'meta_key', $field ) ? $field['meta_key'] : $field['slug'];
-		$label = array_key_exists( 'label', $field ) ? $field['label'] : null;
-		$title = array_key_exists( 'title', $field ) ? $field['title'] : null;
-		$multi = array_key_exists( 'multiple', $field ) ? $field['multiple'] : null;
+		$required = isset( $field['required'] ) ? $field['required'] : false;
+		$key = isset( $field['meta_key'] ) ? $field['meta_key'] : $field['slug'];
+		$label = isset( $field['label'] ) ? $field['label'] : null;
+		$title = isset( $field['title'] ) ? $field['title'] : null;
+		$multi = isset( $field['multiple'] ) ? $field['multiple'] : null;
 		if ( in_array( $field['type'], array('multiselect', 'select', 'taxonomyselect' ) ) ) {
 			HTML::select( 
 				$key, 
@@ -169,10 +169,10 @@ class HTML {
 	}
 
 	private function draw_input( $field, $form_id = NULL ) {
-		$required = array_key_exists('required', $field ) ? $field['required'] : false;
-		$value = array_key_exists( 'value', $field ) ? $field['value'] : null;
-		$label = array_key_exists( 'label', $field ) ? $field['label'] : null;
-		$title = array_key_exists( 'title', $field ) ? $field['title'] : null;
+		$required = isset( $field['required'] ) ? $field['required'] : false;
+		$value = isset( $field['value'] ) ? $field['value'] : null;
+		$label = isset( $field['label'] ) ? $field['label'] : null;
+		$title = isset( $field['title'] ) ? $field['title'] : null;
 		$tax_nice_name = $title ? $title : $label;
 		if ( $field['type'] == 'text_area' ) {
 			HTML::text_area( $field['rows'], $field['cols'], $field['meta_key'], $value, $title, $label, $field['placeholder'], $required, $form_id );

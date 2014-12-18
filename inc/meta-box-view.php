@@ -69,7 +69,11 @@ class View {
 				}
 				$ready[$field['meta_key']] = $field;
 			} else {
-				$ready[$field['meta_key']] = $this->assign_defaults($field);
+				if ( array_key_exists( 'meta_key', $field ) ) {
+					$ready[$field['meta_key']] = $this->assign_defaults($field);
+				} elseif ( array_key_exists( 'slug', $field ) ) {					
+					$ready[$field['slug']] = $this->assign_defaults($field);
+				}
 			}
 		}
 		return $ready;

@@ -14,16 +14,18 @@ a {
 .cms-toolkit-wrapper {
     margin-bottom: 0.5em;
 }
-.formset {
+.cms-toolkit-wrapper {
     margin-left: .5em;
-    padding: .5em 0 .5em .5em;
-    background: #F1F2F2;
 }
-.formset > div > .formset-header {
+div[id*="formset"] {
+    background: #F1F2F2;
+    padding: .5em 0 .5em .5em;
+}
+.cms-toolkit-wrapper > div > .formset-header {
     margin: 0;
     font-size: 1.2em;
 }
-.formset > div > .cms-toolkit-label {
+.cms-toolkit-wrapper > div > .cms-toolkit-label {
     margin-top: .5em;
     margin-left: .5em;
 }
@@ -34,7 +36,7 @@ a {
 .cms-toolkit-input,
 .cms-toolkit-textarea,
 .cms-toolkit-checkbox,
- {
+{
     margin-top: 0.5em;
     margin-left: 0.5em;
 }
@@ -47,6 +49,7 @@ a {
 
 .cms-toolkit-wrapper .howto {
     margin-top: 0;
+    margin-left: 0.5em;
 }
 
 

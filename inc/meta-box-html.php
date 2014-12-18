@@ -50,39 +50,37 @@ class HTML {
 		$init = isset( $field['init'] ) ? true : false;
 		$existing = array();
 		$this->get_existing_data( $field, $existing, $post_data );?>
-		<div class="formset">
-			<div id="<?php echo "{$field['meta_key']}_formset"; ?>" <?php
-			  if ( empty( $existing ) and ! $init ) { echo 'class="hidden new" disabled'; } ?>><?php
-				if ( isset( $field['title'] ) ) {
-					?><h4 id="<?php echo "{$field['meta_key']}_header"; ?>" class="formset-header <?php
-					if ( empty( $existing ) and ! $init ) { echo 'hidden'; } ?>">
-						<?php echo $field['title'];
-					?> <a class="toggle_form_manager
-						<?php echo "{$field['meta_key']} remove {$form_id}";
-							  if ( empty( $existing ) and ! $init ) { echo " hidden"; } ?>"
-				   		href="#remove-formset_<?php echo $form_id; ?>">
-						<?php
-						if ( isset( $field['title'] ) ) {
-							echo "Remove";
-						} else {
-							echo "Remove formset " . ( $form_id + 1 );
-						}?>
-					</a></h4><?php
-				}
-				$this->pass_fieldset( $field, $form_id );?>
-			</div>
-			<a class="toggle_form_manager
-				<?php echo "{$field['meta_key']} add {$form_id}";
-					  if ( ! empty( $existing ) or $init ) { echo " hidden"; } ?>"
-			   href="#add-formset_<?php echo $form_id; ?>">
-				<?php
-				if ( isset( $field['title'] ) ) {
-					echo "Add {$field['title']}";
-				} else {
-					echo "Add Formset " . ($form_id + 1);
-				}?>
-			</a>
-		</div><?php
+		<div id="<?php echo "{$field['meta_key']}_formset"; ?>" <?php
+		  if ( empty( $existing ) and ! $init ) { echo 'class="hidden new" disabled'; } ?>><?php
+			if ( isset( $field['title'] ) ) {
+				?><h4 id="<?php echo "{$field['meta_key']}_header"; ?>" class="formset-header <?php
+				if ( empty( $existing ) and ! $init ) { echo 'hidden'; } ?>">
+					<?php echo $field['title'];
+				?> <a class="toggle_form_manager
+					<?php echo "{$field['meta_key']} remove {$form_id}";
+						  if ( empty( $existing ) and ! $init ) { echo " hidden"; } ?>"
+			   		href="#remove-formset_<?php echo $form_id; ?>">
+					<?php
+					if ( isset( $field['title'] ) ) {
+						echo "Remove";
+					} else {
+						echo "Remove formset " . ( $form_id + 1 );
+					}?>
+				</a></h4><?php
+			}
+			$this->pass_fieldset( $field, $form_id );?>
+		</div>
+		<a class="toggle_form_manager
+			<?php echo "{$field['meta_key']} add {$form_id}";
+				  if ( ! empty( $existing ) or $init ) { echo " hidden"; } ?>"
+		   href="#add-formset_<?php echo $form_id; ?>">
+			<?php
+			if ( isset( $field['title'] ) ) {
+				echo "Add {$field['title']}";
+			} else {
+				echo "Add Formset " . ($form_id + 1);
+			}?>
+		</a><?php
 	}
 
 	private function pass_fieldset( $field, $form_id = NULL ) {
@@ -120,14 +118,20 @@ class HTML {
 	}
 
 	private function pass_select( $field, $form_id = NULL ) {
-		$required = array_key_exists('required', $field ) ? true : false;
+		$required = array_key_exists('required', $field ) ? $field['required'] : false;
+		$key = array_key_exists( 'meta_key', $field ) ? $field['meta_key'] : $field['slug'];
+		$label = array_key_exists( 'label', $field ) ? $field['label'] : null;
+		$title = array_key_exists( 'title', $field ) ? $field['title'] : null;
+		$multi = array_key_exists( 'multiple', $field ) ? $field['multiple'] : null;
 		if ( in_array( $field['type'], array('multiselect', 'select', 'taxonomyselect' ) ) ) {
 			HTML::select( 
-				$field['meta_key'], 
+				$key, 
 				$field['params'], 
 				$field['taxonomy'], 
-				$field['multiple'], 
-				$field['placeholder'], 
+				$multi, 
+				$field['placeholder'],
+				$title,
+				$label,
 				$required,
 				$form_id
 			);
@@ -136,9 +140,11 @@ class HTML {
 				$slug = $field['slug'],
 				$params = $field['include'],
 				$taxonomy = $field['taxonomy'],
-				$key = $field['meta_key'],
+				$key,
 				$placeholder = $field['placeholder'],
 				$value = $field['value'],
+				$title,
+				$label,
 				$required,
 				$form_id
 			);
@@ -154,6 +160,8 @@ class HTML {
 				$value,
 				$multi,
 				$placeholder = $field['placeholder'],
+				$title,
+				$label,
 				$required,
 				$form_id
 			);
@@ -163,29 +171,32 @@ class HTML {
 	private function draw_input( $field, $form_id = NULL ) {
 		$required = array_key_exists('required', $field ) ? $field['required'] : false;
 		$value = array_key_exists( 'value', $field ) ? $field['value'] : null;
+		$label = array_key_exists( 'label', $field ) ? $field['label'] : null;
+		$title = array_key_exists( 'title', $field ) ? $field['title'] : null;
+		$tax_nice_name = $title ? $title : $label;
 		if ( $field['type'] == 'text_area' ) {
-			HTML::text_area( $field['rows'], $field['cols'], $field['meta_key'], $value, $field['label'], $field['placeholder'], $required, $form_id );
+			HTML::text_area( $field['rows'], $field['cols'], $field['meta_key'], $value, $title, $label, $field['placeholder'], $required, $form_id );
 		}
 
 		if ( in_array( $field['type'], array( 'number', 'text', 'email', 'url' ) ) ) {
-			HTML::single_input( $field['meta_key'], $field['type'], $field['max_length'], $value, $field['label'], $field['placeholder'], $required, $form_id );
+			HTML::single_input( $field['meta_key'], $field['type'], $field['max_length'], $value, $title, $label, $field['placeholder'], $required, $form_id );
 		}
 
 		if ( $field['type'] == 'date' ) {
-			HTML::date( $taxonomy = $field['taxonomy'], $tax_nice_name = $field['title'], $multiples = $field['multiple'], $required, $form_id );
+			HTML::date( $taxonomy = $field['taxonomy'], $tax_nice_name, $multiples = $field['multiple'], $required, $form_id );
 		}
 
 		if ( $field['type'] == 'radio' ) {
-			HTML::single_input( $field['meta_key'], $field['type'] = 'radio', $max_length = null, $value = 'true', $field['label'], $field['placeholder'], $required, $form_id );
-			HTML::single_input( $field['meta_key'], $field['type'] = 'radio', $max_length = null, $value = 'false', $field['label'], $field['placeholder'], $required, $form_id );
+			HTML::single_input( $field['meta_key'], $field['type'] = 'radio', $max_length = null, $value = 'true', $title, $label, $field['placeholder'], $required, $form_id );
+			HTML::single_input( $field['meta_key'], $field['type'] = 'radio', $max_length = null, $value = 'false', $title, $label, $field['placeholder'], $required, $form_id );
 		}
 
 		if ( $field['type'] == 'boolean' ) {
-			HTML::boolean_input( $field['meta_key'], $field['label'], $value, $required, $form_id );
+			HTML::boolean_input( $field['meta_key'], $title, $label, $value, $required, $form_id );
 		}
 
 		if ( $field['type'] == 'link' ) {
-			HTML::url_input($field['meta_key'], $value, $required, $form_id );
+			HTML::url_input($field['meta_key'], $value, $title, $label, $required, $form_id );
 		}
 	}
 
@@ -203,10 +214,10 @@ class HTML {
 	 * @param str $value a default value for the <textarea>
 	 *
 	**/
-	protected function text_area( $rows, $cols, $meta_key, $value, $label, $placeholder, $required = false, $form_id = NULL ) {
+	protected function text_area( $rows, $cols, $meta_key, $value, $title, $label, $placeholder, $required, $form_id = NULL ) {
 		?>
 		<label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $meta_key ) ?>">
-			<?php echo $label; if ( $required ): echo ' (required)'; endif; ?>
+			<?php echo $title ? esc_attr( $title ) : esc_attr( $label ); if ( $required ): echo ' (required)'; endif; ?>
 		</label>
 		<textarea id="<?php echo esc_attr( $meta_key ) ?>"
 				  class="cms-toolkit-textarea <?php echo "form-input_{$form_id}"; ?>"
@@ -237,13 +248,13 @@ class HTML {
 	 * @since 1.0
 	 *
 	**/
-	protected function single_input( $meta_key, $type, $max_length = NULL, $value = NULL, $label = NULL, $placeholder = NULL, $required = false, $form_id = NULL ) {
+	protected function single_input( $meta_key, $type, $max_length = NULL, $value = NULL, $title, $label = NULL, $placeholder = NULL, $required, $form_id = NULL ) {
 		$value       = 'value="' . $value . '"';
 		$max_length  = 'maxlength="' . $max_length . '"';
 		$placeholder = 'placeholder="' . $placeholder . '"';
 		?>
 		<label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $meta_key ) ?>">
-			<?php echo $label; if ( $required ): echo ' (required)'; endif; ?>
+			<?php echo $title ? esc_attr( $title ) : esc_attr( $label ); if ( $required ): echo ' (required)'; endif; ?>
 		</label>
 		<input id="<?php echo esc_attr( $meta_key ) ?>"
 			   class="cms-toolkit-input <?php echo "form-input_{$form_id}"; ?>"
@@ -254,7 +265,7 @@ class HTML {
 		<?php
 	}
 
-	protected function boolean_input( $meta_key, $label, $value, $required = false, $form_id = NULL ) {
+	protected function boolean_input( $meta_key, $title, $label, $value, $required, $form_id = NULL ) {
 		?>
 		<input id="<?php echo esc_attr( $meta_key ) ?>"
 			   class="cms-toolkit-checkbox <?php echo "form-input_{$form_id}"; ?>"
@@ -263,12 +274,12 @@ class HTML {
 			   <?php if ( $value == 'on' ) { echo 'checked'; } ?>
 			   <?php if ( $required ) { echo 'required'; } ?>/>
 		<label class="cms-toolkit-label" for="<?php echo esc_attr( $meta_key ) ?>">
-			<?php echo $label; if ( $required ): echo ' (required)'; endif; ?>
+			<?php echo $title ? esc_attr( $title ) : esc_attr( $label ); if ( $required ): echo ' (required)'; endif; ?>
 		</label>
 		<?php
 	}
 
-	protected function url_input( $meta_key, $value = NULL, $required = false, $form_id = NULL ) {
+	protected function url_input( $meta_key, $value = NULL, $title, $label, $required, $form_id = NULL ) {
 		global $post;
 		$post_id = $post->ID;
 		?>
@@ -276,11 +287,11 @@ class HTML {
 		<?php
 		$existing = get_post_meta( $post_id, $meta_key, false);
 		if ( ! isset( $existing[0] ) || ! isset( $existing[1] ) ) { 
-				HTML::single_input( $meta_key . "_text", 'text', NULL, $value, 'Text', NULL, false, $form_id );
-				HTML::single_input( $meta_key . "_url", 'url', NULL, $value, 'URL', NULL, false, $form_id );
+				HTML::single_input( $meta_key . "_text", 'text', NULL, $value, NULL, 'Text', NULL, $required, $form_id );
+				HTML::single_input( $meta_key . "_url", 'url', NULL, $value, NULL, 'URL', NULL, $required, $form_id );
 		} else { 
-				HTML::single_input( $meta_key . "_text", 'text', NULL, $existing[1], 'Link text', NULL, false, $form_id );
-				HTML::single_input( $meta_key . "_url", 'url', NULL, $existing[0], 'Link URL', NULL, false, $form_id );
+				HTML::single_input( $meta_key . "_text", 'text', NULL, $existing[1], NULL, 'Text', NULL, $required, $form_id );
+				HTML::single_input( $meta_key . "_url", 'url', NULL, $existing[0], NULL, 'URL', NULL, $required, $form_id );
 		}
 		?></div><?php
 	}
@@ -327,35 +338,37 @@ class HTML {
 	 *              if no value selected. Default: '--'
 	 *
 	**/
-	protected function select( $meta_key, $params = array(), $taxonomy = false, $multi = null, $value = null, $placeholder = '--', $required = false, $form_id = NULL ) {
-		if ( $taxonomy != false ): // if a taxonomy is set, use wp_dropdown category to generate the select box
+	protected function select( $meta_key, $params = array(), $taxonomy = false, $multi = null, $value = null, $placeholder = '--', $title, $label, $required, $form_id = NULL ) {
+		if ( $taxonomy != false ) { // if a taxonomy is set, use wp_dropdown category to generate the select box
 			$IDs = wp_get_object_terms( get_the_ID(), $taxonomy, array( 'fields' => 'ids' ) );
 			wp_dropdown_categories( 'taxonomy=' . $taxonomy . '&hide_empty=0&orderby=name&name=' . $taxonomy . '&show_option_none=Select ' . $taxonomy . '&selected='. array_pop($IDs) );
-		else :	// otherwise use all the values set in $param to generate the option
+		} else {	// otherwise use all the values set in $param to generate the option
 				$multiple = isset($multi) ? 'multiple' : null;
 				?> 
-				<label for="<?php echo esc_attr($meta_key) ?>"><select id="<?php echo esc_attr( $meta_key ) ?>" name="<?php echo esc_attr( $meta_key ) ?>[]" class="<?php echo "form-input_{$form_id}"; ?>" <?php echo $multiple ?> <?php if ( $required ): echo 'required'; endif; ?>></label>
+				<label for="<?php echo esc_attr($meta_key) ?>"><?php echo $title ? esc_attr( $title ) : esc_attr( $label ); ?></label>
+				<select id="<?php echo esc_attr( $meta_key ) ?>" name="<?php echo esc_attr( $meta_key ) ?>[]" class="<?php echo "form-input_{$form_id}"; ?>" <?php echo $multiple ?> <?php if ( $required ): echo 'required'; endif; ?>>
 				<?php
-				if ( empty( $value ) ): ?>
+				if ( empty( $value ) ) { ?>
 					<option selected value=""><?php echo esc_html( $placeholder ) ?></option>
 				<?php
-				else : ?>
+				} else { ?>
 					<option value=""><?php echo esc_html( $placeholder ) ?></option>
-					<option selected="selected" value="<?php echo esc_attr( $value ) ?>" ><?php echo esc_html( $value ) ?></option><?php
-				endif;
+					<option selected="selected" value="<?php echo esc_attr( $value ) ?>"><?php echo esc_html( $value ) ?></option><?php
+				}
 
-			foreach ( $params as $option ): ?>
+			foreach ( $params as $option ) { ?>
 				<option value="<?php echo esc_attr( $option ) ?>"><?php echo esc_html( $option ) ?></option>
 			<?php
-			endforeach;
+			}
 		?>	</select> <?php
-		endif;
+		}
 	}
 
-	protected function post_select( $meta_key, $posts, $value, $multi, $placeholder = '--', $required = false, $form_id = NULL ) { 
+	protected function post_select( $meta_key, $posts, $value, $multi, $placeholder = '--', $title, $label, $required, $form_id = NULL ) { 
 		global $post;
 		$selected = null;?>
-			<label for="<?php echo esc_attr( $meta_key ) ?>"><select class="<?php echo esc_attr($multi); echo "form-input_{$form_id}"; ?>" id="<?php echo esc_attr( $meta_key ) ?>" name="<?php echo esc_attr( $meta_key ) ?>[]" <?php echo $multi; ?>  <?php if ( $required ): echo 'required'; endif; ?>></label>
+			<label for="<?php echo esc_attr( $meta_key ) ?>"><?php echo $title ? esc_attr( $title ) : esc_attr( $label ); ?></label>
+			<select class="<?php echo esc_attr($multi); echo "form-input_{$form_id}"; ?>" id="<?php echo esc_attr( $meta_key ) ?>" name="<?php echo esc_attr( $meta_key ) ?>[]" <?php echo $multi; ?>  <?php if ( $required ): echo 'required'; endif; ?>>
 				<?php if ( $multi == null ):
 						if ( empty( $value )  ): ?>
 							<option value='' selected>-- Nothing selected --</option>
@@ -375,7 +388,7 @@ class HTML {
 		<?php
 	}
 
-	protected function taxonomy_as_meta( $slug, $params, $taxonomy, $key, $placeholder = '--', $value, $multi=null, $required = false, $form_id= NULL ) { // keep as slug?>
+	protected function taxonomy_as_meta( $slug, $params, $taxonomy, $key, $placeholder = '--', $value, $multi=null, $required, $form_id= NULL ) { // keep as slug?>
 		<select class="<?php echo esc_attr($multi); echo "form-input_{$form_id}"; ?>" name='<?php echo esc_attr( $slug )?>[]' <?php echo esc_attr( $multi )?>  <?php if ( $required ): echo 'required'; endif; ?>><?php
 			if ( isset( $value ) ):?>
 				<option selected value="<?php echo esc_attr( $value ) ?>" id="<?php echo esc_attr( $key ) ?>"><?php echo esc_html( $value ) ?></option><?php
@@ -412,7 +425,7 @@ class HTML {
 	 * @param str  $tax_nice_name the name of the target taxonomy (i.e. Input Date)
 	 * @param bool $multiples     whether the term shoud append (true) or replace (false) existing terms
 	 **/
-	protected function date( $taxonomy, $tax_nice_name, $mutliples = false, $required = false, $form_id = NULL ) {?>
+	protected function date( $taxonomy, $tax_nice_name, $mutliples = false, $required, $form_id = NULL ) {?>
 		<?php
 			$tax_name = stripslashes( $taxonomy );
 			global $post, $wp_locale;

@@ -288,9 +288,9 @@ $phone_desc = array( 'Description of the phone number', );
 
 Formset is a feature that allows you to repeat a set of fields which can be repeated up to the maximum value. Each of the fields are saved individually but have a strict naming convention to maintain uniquity. This is discussed further below.
 
-As an example of how to use them, think about this user story: As a user, I want to create a main page with a header that has at least 1 but no more than 6 articles that includes a headline and description.
+As an example of how to use them, think about this user story: As a content editor, I want to create a page that has a main header and a listing of at least one, but no more than six, articles, each of which has its own headline and description.
 
-To do this, we could either create 6 text and text area fields within a single meta box's `fields` array with `meta_key`'s like `header_1`, `description_1`, `header_2`, `description_2`, and so on, or we could make a formset of the fields with parameters to set how many we want so we don't have to create all those fields seperately. That code looks like this:
+To create the listing of articles, we could either create 6 text and text area fields within a single meta box's `fields` array with `meta_key`'s like `header_1`, `description_1`, `header_2`, `description_2`, and so on, or we could make a formset of the fields with parameters to set how many we want so we don't have to create all those fields seperately. That code looks like this:
 ```php
 <?php
     $fields =  array(

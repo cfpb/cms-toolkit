@@ -1,11 +1,61 @@
 @import url("multi-select.css");
-.inside .ms-container {
-	width: 100%;
+
+a {
+    text-decoration: none;
 }
+.inside .ms-container {
+    width: 100%;
+}
+
 .cms-toolkit-input {
     width: 37%;
 }
 
+.cms-toolkit-wrapper {
+    margin-bottom: 0.5em;
+}
+.cms-toolkit-wrapper {
+    margin-left: .5em;
+}
+div[id*="formset"] {
+    background: #F1F2F2;
+    padding: .5em 0 .5em .5em;
+}
+.cms-toolkit-wrapper > div > .formset-header {
+    margin: 0;
+    font-size: 1.2em;
+}
+.cms-toolkit-wrapper > div > .cms-toolkit-label {
+    margin-top: .5em;
+    margin-left: .5em;
+}
+.remove {
+    color: red;
+    font-size: .8em;
+}
+.cms-toolkit-input,
+.cms-toolkit-textarea,
+.cms-toolkit-checkbox,
+{
+    margin-top: 0.5em;
+    margin-left: 0.5em;
+}
+
+.link-field > .cms-toolkit-input,
+.link-field > .cms-toolkit-label {
+    margin-left: 0.3em;
+    display: inline;
+}
+
+.cms-toolkit-wrapper .howto {
+    margin-top: 0;
+    margin-left: 0.5em;
+}
+
+
+.block-label {
+    display: block;
+}
 input:required {
-	border: 1px solid red;
+    border: 1px solid red;
 }

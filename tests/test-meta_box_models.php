@@ -370,7 +370,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$TestValidTextAreaField->error_handler($stub);
 		$_POST = array(
 			'post_ID' => 1,
-			'one' => array('one' => 'two'),
+			'one' => null,
 		);
 
 		// act
@@ -769,19 +769,15 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	**/
 	function testValidateLinkCount2ExpectsAddPostMetaTwice() {
 		$_POST = array(
-			'link_url_0' => 'http://example.com',
-			'link_url_1' => 'http://example.com',
-			'link_text_0' => 'Example dot com',
-			'link_text_1' => 'example.com',
+			'link_url' => 'http://example.com',
+			'link_text' => 'example.com',
 		);
 		$field = array(
-			'slug' => 'link',
-			'type' => 'link',
-			'params' => array(
-				'max_num_forms' => 1,
-			),
-			'meta_key' => 'link',
-			'howto' => 'Some howto text',
+            'slug' => 'link',
+            'type' => 'link',
+            'params' => array(),
+            'meta_key' => 'link',
+            'howto' => "Some howto text",
 		);
 		$form = new TestNumberField();
 		global $post;
@@ -808,15 +804,15 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	function testValidateLinkCountNotGivenExpectsUpdatePostMetaCalledOnce() {
 		// arrange
 		$_POST = array(
-			'link_url_0' => 'http://example.com',
-			'link_text_0' => 'Example dot com',
+			'link_url' => 'http://example.com',
+			'link_text' => 'example.com',
 		);
 		$field = array(
-			'slug' => 'link',
-			'type' => 'link',
-			'params' => array(),
-			'meta_key' => 'link',
-			'howto' => 'Some howto text',
+            'slug' => 'link',
+            'type' => 'link',
+            'params' => array(),
+            'meta_key' => 'link',
+            'howto' => "Some howto text",
 		);
 		$form = new TestNumberField();
 		$post_id = 1;
@@ -840,15 +836,15 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	function testValidateLinkWithExistingDataExpectsDataDeletedAndReplaced() {
 		// arrange
 		$_POST = array(
-			'link_url_0' => 'http://example.com',
-			'link_text_0' => 'Example Dot Com, Your Example Website',
+			'link_url' => 'http://example.com',
+			'link_text' => 'example.com',
 		);
 		$field = array(
-			'slug' => 'link',
-			'type' => 'link',
-			'params' => array( 'count' => 1),
-			'meta_key' => 'link',
-			'howto' => 'Some howto text',
+            'slug' => 'link',
+            'type' => 'link',
+            'params' => array(),
+            'meta_key' => 'link',
+            'howto' => "Some howto text",
 		);
 		$existing = array( 'http://google.com', 'Google');
 		$form = new TestNumberField();
@@ -890,17 +886,17 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	function testValidateLinkWithExistingDataMatchingSubmittedExpectsNoaction() {
 		// arrange
 		$_POST = array(
-			'link_url_0' => 'http://example.com',
-			'link_text_0' => 'Example Dot Com, Your Example Website',
+			'link_url' => 'http://example.com',
+			'link_text' => 'example.com',
 		);
-		$existing = array( 'http://example.com', 'Example Dot Com, Your Example Website');
 		$field = array(
-			'slug' => 'link',
-			'type' => 'link',
-			'params' => array( 'count' => 1 ),
-			'meta_key' => 'link',
-			'howto' => 'Some howto text',
+            'slug' => 'link',
+            'type' => 'link',
+            'params' => array(),
+            'meta_key' => 'link',
+            'howto' => "Some howto text",
 		);
+		$existing = array( 'http://example.com', 'example.com');
 		$form = new TestNumberField();
 		$post_id = 1;
 		$form->fields = $field;

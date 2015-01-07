@@ -523,14 +523,14 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	function testTextAreaProcessDefaultsExpectsRowsAndCols() {
 		// Arrange
 		$fields = array(
-			'field' => array(
+			'cfpb' => array(
 				'slug' => 'field',
 				'type' => 'text_area',
 				'meta_key' => 'cfpb',
 				),
 			);
 		$expected = array(
-			'field' => array(
+			'cfpb' => array(
 				'slug' => 'field',
 				'type' => 'text_area',
 				'meta_key' => 'cfpb',
@@ -578,7 +578,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		$actual = $stub->process_defaults($fields);
 
 		// Assert
-		$this->assertEquals($expected, $actual);
+		$this->assertTrue($expected == $actual);
 	}
 
 	/**
@@ -592,14 +592,14 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	function testTaxAsMetaProcessDefaultsExpectsDefaultOptions() {
 		// Arrange
 		$fields = array(
-			'field' => array(
+			'cfpb' => array(
 				'slug' => 'field',
 				'type' => 'tax_as_meta',
 				'meta_key' => 'cfpb',
 				),
 			);
 		$expected = array(
-			'field' => array(
+			'cfpb' => array(
 				'slug' => 'field',
 				'type' => 'tax_as_meta',
 				'meta_key' => 'cfpb',
@@ -647,6 +647,6 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		$actual = $stub->process_defaults($fields);
 
 		// Assert
-		$this->assertEquals($expected, $actual);
+		$this->assertTrue($expected == $actual);
 	}
 }

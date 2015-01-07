@@ -629,7 +629,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group save
 	 * @group isolated
 	 */
-	function testEmptyKeyValueExpectsDeltePostMeta() {
+	function testEmptyKeyValueExpectsDeletePostMeta() {
 		// arrange
 		$post_id = 1;
 		$postvalues = array('one' => null);
@@ -767,7 +767,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * @group stable
 	 * @group validate_link
 	**/
-	function testValidateLinkCount2ExpectsAddPostMetaTwice() {
+	function testValidateLinkExpectsAddPostMetaTwice() {
 		$_POST = array(
 			'link_url' => 'http://example.com',
 			'link_text' => 'example.com',

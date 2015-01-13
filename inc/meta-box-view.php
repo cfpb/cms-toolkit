@@ -117,12 +117,12 @@ class View {
 			$field['include'] = $this->default_options( $field );
 			unset($field['params']);
 		}
-		if ( $field['type'] == 'mutliselect' ) {
+		if ( $field['type'] == 'multiselect' ) {
 			$field['multiselect'] = true;
 		} else {
 			$field['multiselect'] = false;
 		}
-		if ( ! in_array($field['type'], array( 'taxonomyselect', 'tax_as_meta' ) ) ) {
+		if ( ! in_array($field['type'], array( 'taxonomyselect', 'tax_as_meta', 'date' ) ) ) {
 			$field['taxonomy'] = false;
 		}
 		return $field;

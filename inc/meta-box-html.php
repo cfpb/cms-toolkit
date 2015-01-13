@@ -14,7 +14,7 @@ class HTML {
 			return new WP_Error( 'field_required', 'You need to pass a field array to this method. You passed a '. gettype( $field ) . ' .');
 		}?>
 		<div class="cms-toolkit-wrapper<?php if (isset( $field['class'] )) { echo ' ' . esc_attr( $field['class'] ); } ?>"><?php
-		if ( ! $field['type'] == 'formset' ) {
+		if ( $field['type'] !== 'formset' ) {
 			if ( isset( $field['title'] ) ) {
 				?><h4 id="<?php echo "{$field['meta_key']}"; ?>" ><?php
 					echo "{$field['title']}"; 
@@ -312,12 +312,12 @@ class HTML {
 	 * Generate select form fields based on specified parameters
 	 *
 	 * Select can generate three kinds of form elements: taxonomy dropdowns,
-	 * single select fields, and mutli-select fields. For a taxonomy dropdown,
+	 * single select fields, and multi-select fields. For a taxonomy dropdown,
 	 * pass a taxonomy name as the fourth parameter and select uses
 	 * wp_dropdown_categories to do all the hard work for you. If the post you
 	 * use it on has a term from that taxonomy it will be autoselected. Select
 	 * and multi-select fields use an array in the $param parameter to generate
-	 * options. To make a select a mutli-select, just pass 'true' to the fifth
+	 * options. To make a select a multi-select, just pass 'true' to the fifth
 	 * parameter. A protected function, this method may only be called from
 	 * within this class.
 	 *
@@ -331,7 +331,7 @@ class HTML {
 	 *              default empty, required for non-taxonomy selections
 	 * @param str/bool $taxonomy, pass a string with a valid taxonomy name to
 	 *                 generate a taxonomy dropdown. Default: false
-	 * @param bool  $multi if true, generates a mutli-select. Default: false
+	 * @param bool  $multi if true, generates a multi-select. Default: false
 	 * @param str 	$value if not null, sets this value to selected.
 	 *				Default: null
 	 * @param str   $placeholder A string that will be the first value, default
@@ -425,7 +425,7 @@ class HTML {
 	 * @param str  $tax_nice_name the name of the target taxonomy (i.e. Input Date)
 	 * @param bool $multiples     whether the term shoud append (true) or replace (false) existing terms
 	 **/
-	protected function date( $taxonomy, $tax_nice_name, $mutliples = false, $required, $form_id = NULL ) {?>
+	protected function date( $taxonomy, $tax_nice_name, $multiples = false, $required, $form_id = NULL ) {?>
 		<?php
 			$tax_name = stripslashes( $taxonomy );
 			global $post, $wp_locale;
@@ -443,10 +443,10 @@ class HTML {
 		<input id="<?php echo esc_attr( $tax_name ) ?>_day" type="text" name="<?php echo esc_attr( $tax_name ) ?>_day" class="<?php echo "form-input_{$form_id}"; ?>" value="<?php echo esc_attr( $day ) ?>" size="2" maxlength="2" placeholder="DD"/>
 		<input id="<?php echo esc_attr( $tax_name ) ?>_year" type="text" name="<?php echo esc_attr( $tax_name ) ?>_year" class="<?php echo "form-input_{$form_id}"; ?>" value="<?php echo esc_attr( $year ) ?>" size="4" maxlength="4" placeholder="YYYY"/>
 		<?php
-			if ( $multiples = false ) { ?>
+			if ( $multiples == false ) { ?>
 		  <p class="howto">If one is set already, selecting a new month, day and year will override it.</p>
 		<?php } else { ?>
-		  <p class='howto'>Select a month, day and year to add another <?php echo sanitize_text_field( $tax_nice_name ) ?></p>
+		  <p class='howto'>Select a month, day and year to add another.</p>
 		<?php } ?>
 
 		<div class='tagchecklist'>
@@ -459,10 +459,11 @@ class HTML {
 					if ( is_numeric( $term->name ) ) {
 						$natdate = date( 'j F, Y', intval( $term->name ) );
 	?>
-			  <span><a id='<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>' class='ntdelbutton <?php echo sanitize_text_field( $term->name ) ?>'><?php echo sanitize_text_field( $term->name ) ?></a><?php echo $natdate ?></span>
+			  <span><a id='<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>' class='ntdelbutton <?php echo sanitize_text_field( $term->name ) ?>'><?php echo sanitize_text_field( $term->name ) ?></a>&nbsp;<?php echo $natdate ?></span>
 			<?php
 					} else {
-						$date = strtotime( $term->name );                                     // If it isn't, convert it to a timestamp -- why? ?>
+						$date = strtotime( $term->name ); // If it isn't, convert it to a timestamp -- why? ?>
+			<span><a id='<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>' class='ntdelbutton <?php echo sanitize_text_field( $term->name ) ?>'><?php echo sanitize_text_field( $term->name ) ?></a>&nbsp;<?php echo sanitize_text_field( $term->name ) ?></span>
 			<?php
 					}
 				$i++;

@@ -318,7 +318,7 @@ public function validate_date($field, $post_ID) {
     }
     $date = DateTime::createFromFormat('F j Y', $data[$field['taxonomy']]);
     if ( $date ) {
-        $this->Callbacks->date( $post_ID, $field['taxonomy'], $multiples = $field['multiples'], $data );
+        $this->Callbacks->date( $post_ID, $field['taxonomy'], $multiples = $field['multiple'], $data );
     }
 }
 
@@ -338,7 +338,7 @@ public function validate( $post_ID, $field ) {
     // $data = array_intersect_key($_POST, $this->fields);
     if ( array_key_exists( 'meta_key', $field ) ) {
         $key = $field['meta_key'];
-    } elseif ( array_key_exists( $field['taxonomy'], $field ) ) {
+    } elseif ( array_key_exists( 'taxonomy', $field ) ) {
         $key = $field['taxonomy'];
     } else {
         return null;
@@ -455,7 +455,7 @@ public function validate_and_save( $post_ID ) {
 * @since v1.0
 *
 **/
-public function date_meta_box( $taxonomy, $tax_nice_name, $mutliples = false ) {
+public function date_meta_box( $taxonomy, $tax_nice_name, $multiples = false ) {
     $error = new $this->error( 'moved', __( 'This function has moved to the \CFPB\Utils\MetaBox\HTML namespace. Look for it there as simply date()!' ) );
     echo $error->get_error_message('moved');
 }

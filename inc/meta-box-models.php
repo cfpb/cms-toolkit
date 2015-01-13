@@ -303,6 +303,11 @@ public function validate_taxonomyselect($field, $post_ID) {
  */
 
 public function validate_date($field, $post_ID) {
+    $i = 0;
+    while ( isset( $_POST['rm_' . $field['taxonomy'] . '_' . $i ]) ) {
+        $this->Callbacks->date( $post_ID, $field['taxonomy'], $multiples = $field['multiple'], null, $i );
+        $i++;
+    }
     $year = $field['taxonomy'] . '_year';
     $month = $field['taxonomy'] . '_month';
     $day = $field['taxonomy'] . '_day';
@@ -318,7 +323,7 @@ public function validate_date($field, $post_ID) {
     }
     $date = DateTime::createFromFormat('F j Y', $data[$field['taxonomy']]);
     if ( $date ) {
-        $this->Callbacks->date( $post_ID, $field['taxonomy'], $multiples = $field['multiple'], $data );
+        $this->Callbacks->date( $post_ID, $field['taxonomy'], $multiples = $field['multiple'], $data, null );
     }
 }
 

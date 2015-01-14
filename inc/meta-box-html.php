@@ -463,7 +463,7 @@ class HTML {
 			<?php
 					} else {
 						$date = strtotime( $term->name ); // If it isn't, convert it to a timestamp -- why? ?>
-			<span><a id='<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>' class='datedelbutton <?php echo esc_attr( $term->name ) ?>'><?php echo esc_attr( $term->name ) ?></a>&nbsp;<?php echo esc_attr( $term->name ) ?></span>
+			<span><a id='<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>' class='datedelbutton <?php echo esc_attr( $date ) ?>'><?php echo esc_attr( $term->name ) ?></a>&nbsp;<?php echo esc_attr( $term->name ) ?></span>
 			<?php
 					}
 					HTML::hidden( 'rm_' . $tax_name . '_' . $i, null, null );

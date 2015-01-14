@@ -437,7 +437,7 @@ class HTML {
 			?><select id="<?php echo esc_attr( $tax_name ) ?>_month" name="<?php echo esc_attr( $tax_name ) ?>_month" class="<?php echo "form-input_{$form_id}"; ?>"><option selected="selected" value='<?php echo esc_attr( $month ) ?>' <?php if ( $required ): echo 'required'; endif; ?>>Month</option>
 		<?php
 			for ( $i = 1; $i < 13; $i++ ) {
-				?><option value="<?php echo esc_attr( $wp_locale->get_month( $i ) ) ?>"><?php echo sanitize_text_field( $wp_locale->get_month( $i ) )  ?></option>
+				?><option value="<?php echo esc_attr( $wp_locale->get_month( $i ) ) ?>"><?php echo esc_attr( $wp_locale->get_month( $i ) )  ?></option>
 		<?php } ?>
 		</select>
 		<input id="<?php echo esc_attr( $tax_name ) ?>_day" type="text" name="<?php echo esc_attr( $tax_name ) ?>_day" class="<?php echo "form-input_{$form_id}"; ?>" value="<?php echo esc_attr( $day ) ?>" size="2" maxlength="2" placeholder="DD"/>
@@ -459,14 +459,15 @@ class HTML {
 					if ( is_numeric( $term->name ) ) {
 						$natdate = date( 'j F, Y', intval( $term->name ) );
 	?>
-			  <span><a id='<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>' class='ntdelbutton <?php echo sanitize_text_field( $term->name ) ?>'><?php echo sanitize_text_field( $term->name ) ?></a>&nbsp;<?php echo $natdate ?></span>
+			  <span><a id='<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>' class='datedelbutton <?php echo esc_attr( $term->name ) ?>'><?php echo esc_attr( $term->name ) ?></a>&nbsp;<?php echo esc_attr( $natdate ) ?></span>
 			<?php
 					} else {
 						$date = strtotime( $term->name ); // If it isn't, convert it to a timestamp -- why? ?>
-			<span><a id='<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>' class='ntdelbutton <?php echo sanitize_text_field( $term->name ) ?>'><?php echo sanitize_text_field( $term->name ) ?></a>&nbsp;<?php echo sanitize_text_field( $term->name ) ?></span>
+			<span><a id='<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>' class='datedelbutton <?php echo esc_attr( $date ) ?>'><?php echo esc_attr( $term->name ) ?></a>&nbsp;<?php echo esc_attr( $term->name ) ?></span>
 			<?php
 					}
-				$i++;
+					HTML::hidden( 'rm_' . $tax_name . '_' . $i, null, null );
+					$i++;
 				}
 			}
 			?>

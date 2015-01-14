@@ -72,3 +72,13 @@ jQuery(document).ready(function($){
         selectionHeader: "<label>Click a post name to remove it.</label>",
     });
 } );
+
+jQuery('.datedelbutton').click( function() {
+    var taxAndTagNum = jQuery(this).attr('id').split('-');
+    var taxonomy = taxAndTagNum[0];
+    var tagNum = taxAndTagNum[3];
+    var term = jQuery(this).attr('class').split(' ')[1];
+    jQuery('input[id=rm_' + taxonomy + '_' + tagNum + ']').val(term);
+
+    jQuery(this).parent().html('');
+});

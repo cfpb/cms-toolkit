@@ -35,10 +35,10 @@ class Callbacks {
 	 * @param boolean $multiples, Determines whether the term shoud append (true) or replace (false) existing terms
 	 * @return identical to wp_set_object_terms
 	 */
-	public function date( $post_id, $taxonomy, $multiples = false, $data = array() ) {
+	public function date( $post_id, $taxonomy, $multiples = false, $data = array(), $term_num = null ) {
 		global $post;
 		
-		$rmTerm     = 'rm_' . $taxonomy;
+		$rmTerm     = 'rm_' . $taxonomy . '_' . $term_num;
 		if ( isset( $_POST[$rmTerm] ) ) {
 			$tounset = get_term_by( 'name', $_POST[$rmTerm], $taxonomy );
 			$this->Taxonomy->remove_post_term( $post_id, $tounset->term_id, $taxonomy );

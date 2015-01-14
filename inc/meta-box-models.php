@@ -303,10 +303,15 @@ public function validate_taxonomyselect($field, $post_ID) {
  */
 
 public function validate_date($field, $post_ID) {
-    $i = 0;
-    while ( isset( $_POST['rm_' . $field['taxonomy'] . '_' . $i ]) ) {
-        $this->Callbacks->date( $post_ID, $field['taxonomy'], $multiples = $field['multiple'], null, $i );
-        $i++;
+    $terms = wp_get_post_terms( $post_ID, $field['taxonomy'], array( 'fields' => 'ids' ) );
+    $terms_to_remove = array();
+    for ( $i = 0; $i < count( $terms ); $i++ ) {
+        if ( isset( $_POST['rm_' . $field['taxonomy'] . '_' . $i ] ) ) {
+            array_push( $terms_to_remove, $i );
+        }
+    }
+    foreach ( $terms_to_remove as $t ) {
+        $this->Callbacks->date( $post_ID, $field['taxonomy'], $multiples = $field['multiple'], null, $t );
     }
     $year = $field['taxonomy'] . '_year';
     $month = $field['taxonomy'] . '_month';

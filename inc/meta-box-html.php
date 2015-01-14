@@ -461,13 +461,13 @@ class HTML {
 	?>
 			  <span><a id='<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>' class='datedelbutton <?php echo esc_attr( $term->name ) ?>'><?php echo sanitize_text_field( $term->name ) ?></a><?php echo $natdate ?></span>
 			<?php
-						HTML::hidden( 'rm_' . $tax_name . '_' . $i, null, null );
 					} else {
 						$date = strtotime( $term->name ); // If it isn't, convert it to a timestamp -- why? ?>
-			<span><a id='<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>' class='ntdelbutton <?php echo sanitize_text_field( $term->name ) ?>'><?php echo sanitize_text_field( $term->name ) ?></a>&nbsp;<?php echo sanitize_text_field( $term->name ) ?></span>
+			<span><a id='<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>' class='datedelbutton <?php echo sanitize_text_field( $term->name ) ?>'><?php echo sanitize_text_field( $term->name ) ?></a>&nbsp;<?php echo sanitize_text_field( $term->name ) ?></span>
 			<?php
 					}
-				$i++;
+					HTML::hidden( 'rm_' . $tax_name . '_' . $i, null, null );
+					$i++;
 				}
 			}
 			?>

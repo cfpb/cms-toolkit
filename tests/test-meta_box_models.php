@@ -115,6 +115,48 @@ class TestValidDateField extends Models {
 	);
 }
 
+class TestValidFieldsetField extends Models {
+	public $post_type = 'post';
+	public $fields = array(
+		'field' => array(
+            'type' => 'fieldset',
+            'fields' => array(
+                array(
+                    'type' => 'text',
+                    'meta_key' => 'num',
+                ),
+                array(
+                    'type' => 'text',
+                    'meta_key' => 'desc',
+                ),
+            ),
+            'params' => array(),
+            'meta_key' => 'field',
+        ),
+	);
+}
+
+class TestValidFormsetField extends Models {
+	public $post_type = 'post';
+	public $fields = array(
+		'field' => array(
+            'type' => 'formset',
+            'fields' => array(
+                array(
+                    'title' => 'Title',
+                    'type' => 'text',
+                    'meta_key' => 'title',
+                ),
+            ),
+            'params' => array(
+                'init_num_forms' => 1,
+                'max_num_forms' => 2,
+            ),
+            'meta_key' => 'field',
+        ),
+	);
+}
+
 class ValidationTest extends PHPUnit_Framework_TestCase {
 	function setUp() {
 		global $post;
@@ -151,10 +193,11 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$_POST = array();
 		global $post;
 		$TestValidTextField = new TestValidTextField();
+		$actual = array();
 		// act
-		$actual = $TestValidTextField->validate( $post->ID, array_pop( $TestValidTextField->fields ) );
+		$TestValidTextField->validate( $post->ID, array_pop( $TestValidTextField->fields ), $actual );
 		// assert
-		$this->assertEquals($actual, null);
+		$this->assertTrue( empty( $actual ) );
 	}
 	/**
 	 * Tests whether the validate method when called on an email field calls
@@ -174,8 +217,9 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$_POST = array(
 			'one' => 'foo@bar.baz',
 		);
+		$actual = array();
 		// act
-		$actual = $TestValidEmailField->validate($post->ID, $TestValidEmailField->fields['one']);
+		$TestValidEmailField->validate($post->ID, $TestValidEmailField->fields['one'], $actual);
 	}
 
 	/**
@@ -195,8 +239,9 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$form = new TestValidDateField();
 		$form->set_callbacks($stub);
 		$_POST =array('post_ID' => 1, 'category_year' => '1970');
+		$actual = array();
 		// act
-		$actual = $form->validate($_POST['post_ID'], $form->fields['category']);
+		$form->validate($_POST['post_ID'], $form->fields['category'], $actual);
 
 		// assert
 	}
@@ -216,15 +261,16 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'post_ID' => 1,
 			'field_one' => 2,
 		);
+		$actual = array();
 
 		// act
-		$actual = $TestNumberField->validate($_POST['post_ID'], $TestNumberField->fields['field_one']);
+		$TestNumberField->validate($_POST['post_ID'], $TestNumberField->fields['field_one'], $actual);
 
 		// assert
 		$expected = 2;
 		$this->assertEquals(
 			$expected,
-			$actual,
+			$actual['field_one'],
 			'Numeric strings should be accepted and converted to a number.');
 	}
 
@@ -247,14 +293,15 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'post_ID' => 1,
 			'field_one' => 'Two',
 		);
+		$actual = array();
 
 		// act
-		$actual = $TestNumberField->validate($_POST['post_ID'], $TestNumberField->fields['field_one']);
+		$TestNumberField->validate($_POST['post_ID'], $TestNumberField->fields['field_one'], $actual);
 		// assert
 		$expected = null;
 		$this->assertEquals(
 			$expected,
-			$actual,
+			$actual['field_one'],
 			'Non-numeric strings should not be accepted for a number input type.'
 		);
 	}
@@ -277,14 +324,15 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'post_ID' => 1,
 			'one' => 'Text field expects a string',
 		);
+		$actual = array();
 
 		// act
-		$actual = $TestValidTextField->validate($_POST['post_ID'], $TestValidTextField->fields['one']);
+		$TestValidTextField->validate($_POST['post_ID'], $TestValidTextField->fields['one'], $actual);
 
 		// assert
 		$this->assertEquals(
 			'Text field expects a string',
-			$actual
+			$actual['one']
 		);
 	}
 
@@ -307,12 +355,13 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'post_ID' => 1,
 			'one' => 1,
 		);
+		$actual = array();
 
 		// act
-		$actual = $TestValidTextField->validate($_POST['post_ID'], $TestValidTextField->fields['one']);
+		$TestValidTextField->validate($_POST['post_ID'], $TestValidTextField->fields['one'], $actual);
 
 		// assert
-		$this->assertEquals('1', $actual);
+		$this->assertEquals('1', $actual['one']);
 	}
 
 	/**
@@ -339,12 +388,13 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'post_ID' => 1,
 			'one' => 'Foo',
 		);
+		$actual = array();
 
 		// act
-		$actual = $TestValidTextAreaField->validate($post->ID, $TestValidTextAreaField->fields['one']);
+		$TestValidTextAreaField->validate($post->ID, $TestValidTextAreaField->fields['one'], $actual);
 
 		//assert
-		$this->assertEquals('Foo', $actual);
+		$this->assertEquals('Foo', $actual['one']);
 	}
 
 	/**
@@ -372,12 +422,13 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'post_ID' => 1,
 			'one' => null,
 		);
+		$actual = array();
 
 		// act
-		$actual = $TestValidTextAreaField->validate($post->ID, $TestValidTextAreaField->fields['one']);
+		$TestValidTextAreaField->validate($post->ID, $TestValidTextAreaField->fields['one'], $actual);
 
 		// assert
-		$this->assertTrue( is_null($actual) );
+		$this->assertTrue( is_null($actual['one']) );
 	}
 
 	/**
@@ -405,12 +456,13 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$_POST = array(
 			'one' => 'http://google.com',
 		);
+		$actual = array();
 
 		// act
-		$actual = $TestValidEmailField->validate($post->ID, $TestValidEmailField->fields['one'] );
+		$TestValidEmailField->validate($post->ID, $TestValidEmailField->fields['one'], $actual );
 
 		// assert
-		$this->assertEquals($actual, 'http://google.com');
+		$this->assertEquals($actual['one'], 'http://google.com');
 	}
 
 	/**
@@ -433,9 +485,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 				->method('validate_taxonomyselect')
 				->will($this->returnValue(true));
 		$factory->fields['field_one']['type'] = 'taxonomyselect';
+		$actual = array();
 
 		// act
-		$validate = $factory->validate($post->ID, $factory->fields['field_one']);
+		$factory->validate($post->ID, $factory->fields['field_one'], $actual);
 
 		// assert
 		// Test will fail if validate_taxonomyselect called more than once
@@ -461,9 +514,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 				->method('validate_select')
 				->will($this->returnValue(true));
 		$factory->fields['field_one']['type'] = 'select';
+		$actual = array();
 
 		// act
-		$validate = $factory->validate($post->ID, $factory->fields['field_one']);
+		$factory->validate($post->ID, $factory->fields['field_one'], $actual);
 
 		// assert
 		// Test will fail if validate_taxonomyselect called more than once
@@ -489,9 +543,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 				->method('validate_link')
 				->will($this->returnValue(true));
 		$factory->fields['field_one']['type'] = 'link';
+		$actual = array();
 
 		// act
-		$validate = $factory->validate($post->ID, $factory->fields['field_one']);
+		$factory->validate($post->ID, $factory->fields['field_one'], $actual);
 
 		// assert
 		// Test will fail if validate_taxonomyselect called more than once
@@ -514,14 +569,68 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'post_ID' => 1,
 			'field_one' => 2,
 		);
+		$actual = array();
 
 		// act
 		$TestNumberField->fields['field_one']['do_not_validate'] = true;
-		$actual = $TestNumberField->validate($_POST['post_ID'], $TestNumberField->fields['field_one'] );
+		$TestNumberField->validate($_POST['post_ID'], $TestNumberField->fields['field_one'], $actual );
 
 		// assert
 		$this->assertTrue(empty($actual));
 	}
+	/**
+	 * Tests whether the validate_fieldset method is called when validating a 
+	 * field of type 'fieldset'
+	 *
+	 * @group stable
+	 * @group fieldset
+	 * @group isolated
+	 * @group validate_fieldset
+	 */
+	function testValidFieldsetExpectsValidateToBeCalled() {
+		// arrange
+		global $post;
+ 		$factory = $this->getMockBuilder('TestValidFieldsetField')
+						->setMethods( array( 'validate_fieldset', ) )
+						->getMock();
+		$factory->expects($this->once())
+				->method('validate_fieldset')
+				->will($this->returnValue(true));
+		$validate = array();
+
+		// act
+		$factory->validate( $post->ID, $factory->fields['field'], $validate );
+
+		// assert
+		// Test will fail if validate_fieldset isn't executed once and only once
+	}
+	/**
+	 * Tests whether the validate_formset method is called when validating a 
+	 * field of type 'formset'
+	 *
+	 * @group stable
+	 * @group formset
+	 * @group isolated
+	 * @group validate_formset
+	 */
+	function testValidFormsetExpectsValidateToBeCalled() {
+		// arrange
+		global $post;
+ 		$factory = $this->getMockBuilder('TestValidFormsetField')
+						->setMethods( array( 'validate_formset', ) )
+						->getMock();
+		$factory->expects($this->once())
+				->method('validate_formset')
+				->will($this->returnValue(true));
+		$validate = array();
+
+		// act
+		$factory->validate( $post->ID, $factory->fields['field'], $validate );
+
+		// assert
+		// Test will fail if validate_formset isn't executed once and only once
+	}
+
 
 /***************
  * Save method *
@@ -665,19 +774,18 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	function testVerifyAndSaveExpectsSuccess() {
 		// arrange
 		$_POST = array('post_ID' => 1, 'field_one' => 'value');
-		$sanitized = 'Values';
+		$actual = array();
 		$factory = $this->getMockBuilder('TestNumberField')
 						->setMethods( array( 'validate', 'save' ) )
 						->getMock();
 
 		$factory->expects($this->once())
 				->method('validate')
-				->will($this->returnValue($sanitized))
-				->with(1, $factory->fields['field_one']);
-		$save_it['field_one'] = $sanitized;
+				->will($this->returnValue(true))
+				->with(1, $factory->fields['field_one'], $actual);
 		$factory->expects($this->once())
 				->method('save')
-				->with(1, $save_it);
+				->with(1, $actual);
 
 		// act
 		$factory->validate_and_save( 1 );
@@ -1091,6 +1199,107 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		// act
 		$form->validate_select($form->fields['field_one'],$post->ID);
 
+	}
+	/**
+	* Tests a fieldset to make sure that validate is called for each of the 
+	* fieldset's fields.
+	*
+	 * @group stable
+	 * @group validate
+	 * @group fieldset
+	 * @group validate_fieldset
+	 * @group isolated
+	*/
+	function testValidFieldsetOfTwoFieldsCallsValidateTwice() {
+		//arrange
+		global $post;
+		$factory = $this->getMockBuilder('TestValidFieldsetField')
+						->setMethods( array( 'validate',) )
+						->getMock();
+		$factory->expects( $this->exactly( 2 ) )
+				->method( 'validate' )
+				->will( $this->returnValue( true ) );
+		$expected = array();
+
+		//act
+		$factory->validate_fieldset( $factory->fields['field'], $expected, $post->ID );
+
+		//assert
+		// Test will fail if only each of the fields in the fieldset are validated
+	}
+	/**
+	* Tests a fieldset to make sure that validate adds validated values to the 
+	* array that was passed in by reference.
+	*
+	 * @group stable
+	 * @group validate
+	 * @group fieldset
+	 * @group validate_fieldset
+	 * @group isolated
+	*/
+	function testValidateAddsValidatedValuesToPassedInArrayByValidateFieldset() {
+		// arrange
+		global $post;
+		$_POST = array( 'field_num' => '0123456789', 'field_desc' => 'description' );
+		$testValidFieldsetField = new TestValidFieldsetField();
+		$actual = array();
+		$expected = array( 'field_num' => '0123456789', 'field_desc' => 'description' );
+
+		//act
+		$testValidFieldsetField->validate_fieldset( $testValidFieldsetField->fields['field'], $actual, $post->ID );
+
+		//assert
+		$this->assertEquals( $expected, $actual );
+	}
+	/**
+	* Tests a formset to make sure that validate is called for each of the 
+	* formset's fields.
+	*
+	 * @group stable
+	 * @group validate
+	 * @group fieldset
+	 * @group validate_formset
+	 * @group isolated
+	*/
+	function testValidFormsetOfTwoFieldsCallsValidateTwice() {
+		//arrange
+		global $post;
+		$factory = $this->getMockBuilder('TestValidFormsetField')
+						->setMethods( array( 'validate', ) )
+						->getMock();
+		$factory->expects( $this->exactly( 2 ) )
+				->method( 'validate' )
+				->will( $this->returnValue( true ) );
+		$actual = array();
+
+		//act
+		$factory->validate_formset( $factory->fields['field'], $actual, $post->ID );
+
+		//assert
+	}
+	/**
+	* Tests a formset to make sure that validate adds validated values to the 
+	* array that was passed in by reference.
+	*
+	 * @group stable
+	 * @group validate
+	 * @group formset
+	 * @group validate_fieldset
+	 * @group isolated
+	*/
+	function testValidateAddsValidatedValuesToPassedInArrayByValidateFormset() {
+		// arrange
+		global $post;
+		$_POST = array( 'field_0_title' => 'Title 1', 'field_1_title' => 'Title 2' );
+		$testValidFormsetField = new TestValidFormsetField();
+		$actual = array();
+		$expected = array( 'field_0_title' => 'Title 1', 'field_1_title' => 'Title 2' );
+
+		//act
+		$testValidFormsetField->validate_formset( $testValidFormsetField->fields['field'], $actual, $post->ID );
+
+		//assert
+		$this->assertEquals( $expected, $actual );
 	}
 /**************
  * Generators *

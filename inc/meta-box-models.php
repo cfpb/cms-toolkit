@@ -159,16 +159,7 @@ public function validate_formset( $field, &$validate, $post_ID ) {
         $processed[$i]['meta_key'] .= '_' . $i;
         foreach ( $processed[$i]['fields'] as $f ) {
             $f['meta_key'] = "{$processed[$i]['meta_key']}_{$f['meta_key']}";
-            if ( $f['type'] == 'formset' ) {
-                $this->validate_formset( $f, $validate, $post_ID );
-            } elseif ( $f['type'] == 'fieldset' ) {
-                $this->validate_fieldset( $f, $validate, $post_ID );
-            } else {
-                $value = $this->validate( $post_ID, $f );
-                if ( isset( $value ) ) {
-                    $validate[$f['meta_key']] = $value;
-                }
-            }
+            $this->validate( $post_ID, $f, $validate );
         }
     }
 }
@@ -185,17 +176,10 @@ public function validate_formset( $field, &$validate, $post_ID ) {
 *                         so data is saved through that array.
 */
 
-private function validate_fieldset( $field, &$validate, $post_ID ) {
+public function validate_fieldset( $field, &$validate, $post_ID ) {
     foreach ( $field['fields'] as $f ) {
         $f['meta_key'] = "{$field['meta_key']}_{$f['meta_key']}";
-        if ( $f['type'] == 'formset' ) {
-            $this->validate_formset( $f, $validate, $post_ID );
-        } elseif ( $f['type'] == 'fieldset' ) {
-            $this->validate_fieldset( $f, $validate, $post_ID );
-        } else {
-            $value = $this->validate( $post_ID, $f );
-            $validate[$f['meta_key']] = $value;
-        }
+        $this->validate( $post_ID, $f, $validate );
     }
 }
 
@@ -344,7 +328,7 @@ public function validate_date($field, $post_ID) {
  *               like $this->save()
  */
 
-public function validate( $post_ID, $field ) {
+public function validate( $post_ID, $field, &$validate ) {
     // $data = array_intersect_key($_POST, $this->fields);
     if ( array_key_exists( 'meta_key', $field ) ) {
         $key = $field['meta_key'];
@@ -360,11 +344,16 @@ public function validate( $post_ID, $field ) {
         return;
     }
 
-
-    /* if this field is a taxonomy select, date, link or select field, we
-       send it out to another validator
+    /* if this field is a formset, fieldset, taxonomy select, date, link or 
+       select field, we send it out to another validator
     */
-    if ( $field['type'] == 'taxonomyselect') {
+    if ( $field['type'] == 'formset' ) {
+        $this->validate_formset( $field, $validate, $post_ID );
+        return;
+    } elseif ( $field['type'] == 'fieldset' ) {
+        $this->validate_fieldset( $field, $validate, $post_ID );
+        return;
+    } elseif ( $field['type'] == 'taxonomyselect') {
         $this->validate_taxonomyselect( $field, $post_ID );
         return;
     } elseif ( in_array( $field['type'], $this->selects ) ) {
@@ -404,7 +393,7 @@ public function validate( $post_ID, $field ) {
             $value = (string)$value;
         }
     }
-    return $value;
+    $validate[$field['meta_key']] = $value;
 }
 
 /**
@@ -446,16 +435,7 @@ public function save( $post_ID, $postvalues ) {
 public function validate_and_save( $post_ID ) {
     $validate = array();
     foreach ( $this->fields as $field ) {
-        if ( $field['type'] == 'formset' ) {
-            $this->validate_formset( $field, $validate, $post_ID );
-        } elseif ( $field['type'] == 'fieldset') {
-            $this->validate_fieldset( $field, $validate, $post_ID );
-        } else {
-            $value = $this->validate( $post_ID, $field );
-            if ( isset( $value ) ) {
-                $validate[$field['meta_key']] = $value;
-            }
-        }
+        $this->validate( $post_ID, $field, $validate );
     }
     $this->save( $post_ID, $validate );
 }

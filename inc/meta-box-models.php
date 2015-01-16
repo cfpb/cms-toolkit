@@ -176,7 +176,7 @@ public function validate_formset( $field, &$validate, $post_ID ) {
 *                         so data is saved through that array.
 */
 
-private function validate_fieldset( $field, &$validate, $post_ID ) {
+public function validate_fieldset( $field, &$validate, $post_ID ) {
     foreach ( $field['fields'] as $f ) {
         $f['meta_key'] = "{$field['meta_key']}_{$f['meta_key']}";
         $this->validate( $post_ID, $f, $validate );

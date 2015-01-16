@@ -12,14 +12,12 @@ class HTML {
 	public function draw( $field, $form_id = NULL ) {
 		if ( empty( $field ) ) {
 			return new WP_Error( 'field_required', 'You need to pass a field array to this method. You passed a '. gettype( $field ) . ' .');
-		}?>
-		<div class="cms-toolkit-wrapper<?php if (isset( $field['class'] )) { echo ' ' . esc_attr( $field['class'] ); } ?>"><?php
-		if ( $field['type'] !== 'formset' ) {
-			if ( isset( $field['title'] ) ) {
-				?><h4 id="<?php echo "{$field['meta_key']}"; ?>" ><?php
-					echo "{$field['title']}"; 
-				?></h4><?php
-			}
+		}
+		?><div class="cms-toolkit-wrapper<?php if (isset( $field['class'] )) { echo ' ' . esc_attr( $field['class'] ); } ?>"><?php
+		if ( $field['type'] !== 'formset' and isset( $field['title'] ) ) {
+			?><h4 id="<?php echo "{$field['meta_key']}"; ?>" ><?php
+				echo "{$field['title']}"; 
+			?></h4><?php
 		}
 		if ( $field['type'] == 'formset' ) {
 			$this->draw_formset( $field );
@@ -32,64 +30,63 @@ class HTML {
 		} elseif ( in_array( $field['type'], $this->elements['selects'] ) ) {
 			$this->pass_select( $field, $form_id );
 		} elseif ( $field['type'] == 'hidden' ) {
-			HTML::hidden( $field['meta_key'], $field['value'], $form_id );
+			$this->hidden( $field['meta_key'], $field['value'], $form_id );
 		} elseif ( $field['type'] == 'nonce' ) {
 			wp_nonce_field( plugin_basename( __FILE__ ), $field['meta_key'] );
 		}
-		if ( isset( $field['howto'] ) ) { ?>
-			<p class="howto"><?php echo esc_html( $field['howto'] ) ?></p><?php
-		}?>
-		</div><?php
+		if ( isset( $field['howto'] ) ) { 
+			?><p class="howto"><?php echo esc_html( $field['howto'] ) ?></p><?php
+		}
+		?></div><?php
 	}
 
-	private function draw_formset( $field ) {
+	protected function draw_formset( $field ) {
 		global $post;
 		$post_id = $post->ID;	
 		$post_data = get_post_custom( $post_id );
 		$form_id = $this->get_formset_id( $field['meta_key'] );
 		$init = isset( $field['init'] ) ? true : false;
 		$existing = array();
-		$this->get_existing_data( $field, $existing, $post_data );?>
-		<div id="<?php echo "{$field['meta_key']}_formset"; ?>" <?php
+		$this->get_existing_data( $field, $existing, $post_data );
+		?><div id="<?php echo "{$field['meta_key']}_formset"; ?>" <?php
 		  if ( empty( $existing ) and ! $init ) { echo 'class="hidden new" disabled'; } ?>><?php
 			if ( isset( $field['title'] ) ) {
 				?><h4 id="<?php echo "{$field['meta_key']}_header"; ?>" class="formset-header <?php
-				if ( empty( $existing ) and ! $init ) { echo 'hidden'; } ?>">
-					<?php echo $field['title'];
-				?> <a class="toggle_form_manager
-					<?php echo "{$field['meta_key']} remove {$form_id}";
-						  if ( empty( $existing ) and ! $init ) { echo " hidden"; } ?>"
-			   		href="#remove-formset_<?php echo $form_id; ?>">
-					<?php
-					if ( isset( $field['title'] ) ) {
-						echo "Remove";
-					} else {
-						echo "Remove formset " . ( $form_id + 1 );
-					}?>
-				</a></h4><?php
+				if ( empty( $existing ) and ! $init ) { echo 'hidden'; } ?>"><?php 
+				echo $field['title'];
+					?><a class="toggle_form_manager <?php
+						echo "{$field['meta_key']} remove {$form_id}";
+						if ( empty( $existing ) and ! $init ) { echo " hidden"; } 
+				   		?>" href="#remove-formset_<?php echo $form_id; ?>"><?php
+							if ( isset( $field['title'] ) ) {
+								echo "Remove";
+							} else {
+								echo "Remove formset " . ( $form_id + 1 );
+							}
+					?></a>
+				</h4><?php
 			}
-			$this->pass_fieldset( $field, $form_id );?>
-		</div>
-		<a class="toggle_form_manager
-			<?php echo "{$field['meta_key']} add {$form_id}";
-				  if ( ! empty( $existing ) or $init ) { echo " hidden"; } ?>"
-		   href="#add-formset_<?php echo $form_id; ?>">
-			<?php
+			$this->pass_fieldset( $field, $form_id );
+		?></div>
+		<a class="toggle_form_manager <?php
+			echo "{$field['meta_key']} add {$form_id}";
+			if ( ! empty( $existing ) or $init ) { echo " hidden"; } 
+			?>"href="#add-formset_<?php echo $form_id; ?>"><?php
 			if ( isset( $field['title'] ) ) {
 				echo "Add {$field['title']}";
 			} else {
 				echo "Add Formset " . ($form_id + 1);
-			}?>
-		</a><?php
+			}
+		?></a><?php
 	}
 
-	private function pass_fieldset( $field, $form_id = NULL ) {
+	protected function pass_fieldset( $field, $form_id = NULL ) {
 		foreach ($field['fields'] as $f) {
 			$this->draw( $f, $form_id );
 		}
 	}
 
-	private function get_formset_id( $form_meta_key ) {
+	protected function get_formset_id( $form_meta_key ) {
 		$id = "";
 		$key_parts = explode( '_', $form_meta_key );
 		foreach ( $key_parts as $part ) {
@@ -103,7 +100,7 @@ class HTML {
 		return $id;
 	}
 
-	private function get_existing_data( $field, &$existing, $data ) {
+	protected function get_existing_data( $field, &$existing, $data ) {
 		foreach ( $field['fields'] as $f ) {
 			if ( $f['type'] == 'fieldset' ) {
 				$this->get_existing_data( $f, $existing, $data );
@@ -117,7 +114,7 @@ class HTML {
 		}
 	}
 
-	private function pass_select( $field, $form_id = NULL ) {
+	protected function pass_select( $field, $form_id = NULL ) {
 		$required = isset( $field['required'] ) ? $field['required'] : false;
 		$key = isset( $field['meta_key'] ) ? $field['meta_key'] : $field['slug'];
 		$label = isset( $field['label'] ) ? $field['label'] : null;
@@ -168,7 +165,7 @@ class HTML {
 		}
 	}
 
-	private function draw_input( $field, $form_id = NULL ) {
+	protected function draw_input( $field, $form_id = NULL ) {
 		$required = isset( $field['required'] ) ? $field['required'] : false;
 		$value = isset( $field['value'] ) ? $field['value'] : null;
 		$label = isset( $field['label'] ) ? $field['label'] : null;
@@ -215,19 +212,18 @@ class HTML {
 	 *
 	**/
 	protected function text_area( $rows, $cols, $meta_key, $value, $title, $label, $placeholder, $required, $form_id = NULL ) {
-		?>
-		<label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $meta_key ) ?>">
-			<?php echo $title ? esc_attr( $title ) : esc_attr( $label ); if ( $required ): echo ' (required)'; endif; ?>
-		</label>
-		<textarea id="<?php echo esc_attr( $meta_key ) ?>"
-				  class="cms-toolkit-textarea <?php echo "form-input_{$form_id}"; ?>"
-				  name="<?php echo esc_attr( $meta_key ) ?>"
-				  rows="<?php echo esc_attr( $rows ) ?>"
-				  cols="<?php echo esc_attr( $cols ) ?>"
-				  value="<?php echo esc_attr( $value ) ?>"
-				  placeholder="<?php echo esc_attr( $placeholder ) ?>"
-				  <?php if ( $required ): echo 'required'; endif; ?>><?php echo esc_html( $value ) ?></textarea>
-		<?php
+		?><label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $meta_key ) ?>"><?php 
+			echo $title ? esc_attr( $title ) : esc_attr( $label ); if ( $required ): echo ' (required)'; endif; 
+		?></label>
+		<textarea id="<?php echo esc_attr( $meta_key ) 
+				  ?>" class="cms-toolkit-textarea <?php echo "form-input_{$form_id}"; 
+				  ?>" name="<?php echo esc_attr( $meta_key ) 
+				  ?>" rows="<?php echo esc_attr( $rows ) 
+				  ?>" cols="<?php echo esc_attr( $cols ) 
+				  ?>" value="<?php echo esc_attr( $value ) 
+				  ?>" placeholder="<?php echo esc_attr( $placeholder ) ?>" <?php
+				   if ( $required ): echo 'required'; endif; ?>><?php echo esc_html( $value ) 
+		?></textarea><?php
 	}
 
 	/**
@@ -252,27 +248,24 @@ class HTML {
 		$value       = 'value="' . $value . '"';
 		$max_length  = 'maxlength="' . $max_length . '"';
 		$placeholder = 'placeholder="' . $placeholder . '"';
-		?>
-		<label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $meta_key ) ?>">
-			<?php echo $title ? esc_attr( $title ) : esc_attr( $label ); if ( $required ): echo ' (required)'; endif; ?>
-		</label>
-		<input id="<?php echo esc_attr( $meta_key ) ?>"
-			   class="cms-toolkit-input <?php echo "form-input_{$form_id}"; ?>"
-			   name="<?php echo esc_attr( $meta_key ) ?>"
-			   type="<?php echo esc_attr( $type ) ?>"
-			   <?php echo " $max_length $value $placeholder" ?>
-			   <?php if ( $required ): echo 'required '; endif; ?>/>
-		<?php
+		?><label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $meta_key ) ?>"><?php 
+			echo $title ? esc_attr( $title ) : esc_attr( $label ); if ( $required ): echo ' (required)'; endif; 
+		?></label>
+		<input id="<?php echo esc_attr( $meta_key ) 
+			   ?>" class="cms-toolkit-input <?php echo "form-input_{$form_id}"; 
+			   ?>" name="<?php echo esc_attr( $meta_key ) 
+			   ?>" type="<?php echo esc_attr( $type ) ?>" <?php 
+			   echo " $max_length $value $placeholder";
+			   if ( $required ): echo 'required '; endif; ?>/><?php
 	}
 
 	protected function boolean_input( $meta_key, $title, $label, $value, $required, $form_id = NULL ) {
-		?>
-		<input id="<?php echo esc_attr( $meta_key ) ?>"
-			   class="cms-toolkit-checkbox <?php echo "form-input_{$form_id}"; ?>"
-			   name="<?php echo esc_attr( $meta_key ) ?>"
-			   type="checkbox"
-			   <?php if ( $value == 'on' ) { echo 'checked'; } ?>
-			   <?php if ( $required ) { echo 'required'; } ?>/>
+		?><input id="<?php echo esc_attr( $meta_key ) 
+			   ?>" class="cms-toolkit-checkbox <?php echo "form-input_{$form_id}"; 
+			   ?>" name="<?php echo esc_attr( $meta_key ) 
+			   ?>" type="checkbox" <?php
+			   if ( $value == 'on' ) { echo 'checked'; }
+			   if ( $required ) { echo 'required'; } ?>/>
 		<label class="cms-toolkit-label" for="<?php echo esc_attr( $meta_key ) ?>">
 			<?php echo $title ? esc_attr( $title ) : esc_attr( $label ); if ( $required ): echo ' (required)'; endif; ?>
 		</label>

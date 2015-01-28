@@ -28,9 +28,7 @@ functionality in WordPress a little easier.
 
 This plugin can be installed as a normal WordPress plugin.
 
-__Warning:__ This plugin uses features introduced in PHP 5.3, since WordPress
-supports back to 5.2.7, make sure your host is running the correct version. See
-[namespacing](#whats-a-namespace) below.
+__Warning:__ __This plugin requires PHP 5.3+.__
 
 ## Activate
 

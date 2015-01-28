@@ -42,12 +42,12 @@ To activate the plugin follow the steps below:
 
 ## Develop
 
-See Contributing.md
+See [Contributing.md](Contributing.md)
 
-## Extend
+## How to Use
 
 Out of the box this plugin makes namespaces, classes, and methods available to
-WordPress. Developers should consider writing 'child' plugins that import
+WordPress. Developers should write 'child' plugins that import
 classes and functionality from this one. Importing with `use...as` in PHP is
 kind of like using `import <module> as` in python.
 

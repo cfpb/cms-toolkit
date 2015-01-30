@@ -180,29 +180,31 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$TestValidEmailField->validate($post->ID, $TestValidEmailField->fields['one'], $actual);
 	}
 
-	/**
-	 * Tests whether WP_Error is returned if missing a piece of a date.
-	 *
-	 * @group stable
-	 * @group isolated
-	 * @group date
-	 * @group user_input
-	 * @group validation
-	 */
-	function testInvalidDateValidateExpectsDateCalledNone() {
-		// arrange
-		$stub = $this->getMockBuilder('Callbacks')
-			->getMock();
+	// /**
+	//  * Tests whether WP_Error is returned if missing a piece of a date.
+	//  *
+	//  * @group stable
+	//  * @group isolated
+	//  * @group date
+	//  * @group user_input
+	//  * @group validation
+	//  */
+	// function testInvalidDateValidateExpectsDateCalledNone() {
+	// 	// arrange
+	// 	$stub = $this->getMockBuilder('Callbacks')
+	// 				 ->setMethods( array( 'validate_date' ) )
+	// 				 ->getMock();
 
-		$form = new TestValidDateField();
-		$form->set_callbacks($stub);
-		$_POST =array('post_ID' => 1, 'category_year' => '1970');
-		$actual = array();
-		// act
-		$form->validate($_POST['post_ID'], $form->fields['category'], $actual);
+	// 	$form = new TestValidDateField();
+	// 	$form->set_callbacks($stub);
+	// 	$_POST =array('post_ID' => 1, 'category_year' => '1970');
+	// 	$actual = array();
+	// 	// act
+	// 	$form->validate($_POST['post_ID'], $form->fields['category'], $actual);
 
-		// assert
-	}
+	// 	// assert
+	// 	$this->assertInstanceOf( 'WP_Error', $actual)
+	// }
 
 	/**
 	 * Tests whether a number field has data replaced
@@ -724,6 +726,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 
 		$form = new TestValidDateField();
 		$form->set_callbacks($stub);
+		$term = \WP_Mock::wpFunction( 'wp_get_post_terms' ); 
 		$_POST = array(
 			'post_ID' => 1,
 			'category_year' => '1970' ,

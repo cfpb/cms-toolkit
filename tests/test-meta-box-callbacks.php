@@ -74,7 +74,7 @@ class MetaBoxCallbacksTest extends \PHPUnit_Framework_TestCase {
 	function testRmTermKeyDateExpectsRemovePostTermCalled() {
 		// Arrange
 		$post_id = 0;
-		$_POST['rm_category'] = 'term';
+		$_POST['rm_category_1'] = 'term';
 		$taxonomy = 'category';
 		$return = new \StdClass;
 		$return->term_id = 1;
@@ -86,7 +86,7 @@ class MetaBoxCallbacksTest extends \PHPUnit_Framework_TestCase {
 		$c->replace_Taxonomy($Mock);
 
 		// Act
-		$c->date($post_id, $taxonomy);
+		$c->date($post_id, $taxonomy, false, array(), 1);
 
 		// Assert: test fails if remove_post_term is called more or fewer than 1 time.
 	}

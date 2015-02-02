@@ -295,7 +295,7 @@ public function validate_date($field, $post_ID) {
         }
     }
     foreach ( $terms_to_remove as $t ) {
-        $this->Callbacks->date( $post_ID, $field['taxonomy'], $multiples = $field['multiple'], null, $t );
+        $this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], null, $t );
     }
     $year = $field['taxonomy'] . '_year';
     $month = $field['taxonomy'] . '_month';
@@ -312,7 +312,7 @@ public function validate_date($field, $post_ID) {
     }
     $date = DateTime::createFromFormat('F j Y', $data[$field['taxonomy']]);
     if ( $date ) {
-        $this->Callbacks->date( $post_ID, $field['taxonomy'], $multiples = $field['multiple'], $data, null );
+        $this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], $data, null );
     }
 }
 

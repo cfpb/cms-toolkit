@@ -107,7 +107,7 @@ class TestValidDateField extends Models {
 			'label' => '',
 			'type' => 'date',
 			'params' => array(),
-			'multiples' => false,
+			'multiple' => false,
 			'placeholder' => '',
 			'howto' => '',
 			'taxonomy' => 'category',

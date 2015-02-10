@@ -1290,29 +1290,51 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		$this->assertContains( $needle, $haystack );
 	}
 
-	// function testDatePrintsMessageForMultipleDates() {
-	// 	//arrange
-	// 	global $wp_locale;
-	// 	$term = new \StdClass;
-	// 	$term->name = 'Term';
-	// 	$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-	// 				 ->setMethods( null )
-	// 				 ->getMock();
-	// 	\WP_Mock::wpPassthruFunction( 'esc_attr' );
-	// 	\WP_Mock::wpPassthruFunction( 'sanitize_text_field' );
-	// 	\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
-	// 	\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
-	// 	$needle = 'Select a month, day and year to add another.</p>';
+	function testDatePrintsDateWhenStoredAsNumeric() {
+		//arrange
+		global $wp_locale;
+		$term = new \StdClass;
+		$term->name = '1420748634';
+		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
+					 ->setMethods( null )
+					 ->getMock();
+		\WP_Mock::wpPassthruFunction( 'esc_attr' );
+		\WP_Mock::wpPassthruFunction( 'sanitize_text_field' );
+		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
+		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
+		$needle = '<span><a id="tax-check-num-0" class="ntdelbutton1420748634">1420748634</a>&nbsp;8 January, 2015</span>';
 
-	// 	//act
-	// 	ob_start();
-	// 	$HTML->date( 'tax', true );
-	// 	$haystack = ob_get_flush();
+		//act
+		ob_start();
+		$HTML->date( 'tax', true );
+		$haystack = ob_get_flush();
 
-	// 	//assert
-	// 	$this->assertContains( $needle, $haystack );
-	// }
+		//assert
+		$this->assertContains( $needle, $haystack );
+	}
 
+	function testDatePrintsDateWhenStoredAsString() {
+		//arrange
+		global $wp_locale;
+		$term = new \StdClass;
+		$term->name = '1 April, 1992';
+		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
+					 ->setMethods( null )
+					 ->getMock();
+		\WP_Mock::wpPassthruFunction( 'esc_attr' );
+		\WP_Mock::wpPassthruFunction( 'sanitize_text_field' );
+		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
+		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
+		$needle = '<span><a id="tax-check-num-0" class="ntdelbutton1 April, 1992">1 April, 1992</a>&nbsp;1 April, 1992</span>';
+
+		//act
+		ob_start();
+		$HTML->date( 'tax', true );
+		$haystack = ob_get_flush();
+
+		//assert
+		$this->assertContains( $needle, $haystack );
+	}
 }
 /**
  * Call protected/private method of a class.

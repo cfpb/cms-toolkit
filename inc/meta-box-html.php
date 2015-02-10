@@ -433,10 +433,9 @@ class HTML {
 					// Checks if the current set term is wholly numeric (in this case a timestamp)
 					if ( is_numeric( $term->name ) ) {
 						$natdate = date( 'j F, Y', intval( $term->name ) );
-						?><span><a id='<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>' class='ntdelbutton<?php echo sanitize_text_field( $term->name ) . " " ?>'><?php echo sanitize_text_field( $term->name ) ?></a>&nbsp;<?php echo $natdate ?></span><?php
+						?><span><a id="<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>" class="ntdelbutton<?php echo sanitize_text_field( $term->name ) ?>"><?php echo sanitize_text_field( $term->name ) ?></a>&nbsp;<?php echo $natdate ?></span><?php
 					} else {
-						$date = strtotime( $term->name ); // If it isn't, convert it to a timestamp -- why? 
-						?><span><a id='<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>' class='ntdelbutton<?php echo sanitize_text_field( $term->name ) . " " ?>'><?php echo sanitize_text_field( $term->name ) ?></a>&nbsp;<?php echo sanitize_text_field( $term->name ) ?></span><?php
+						?><span><a id="<?php echo sanitize_text_field( $taxonomy ) ?>-check-num-<?php echo sanitize_text_field( $i ) ?>" class="ntdelbutton<?php echo sanitize_text_field( $term->name ) ?>"><?php echo sanitize_text_field( $term->name ) ?></a>&nbsp;<?php echo sanitize_text_field( $term->name ) ?></span><?php
 					}
 				$i++;
 				}

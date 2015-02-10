@@ -50,10 +50,9 @@ class HTML {
 		$this->get_existing_data( $field, $existing, $post_data );
 		?><div id="<?php echo "{$field['meta_key']}_formset"; ?>"<?php
 		  if ( empty( $existing ) and ! $init ) { echo ' class="hidden new" disabled'; } ?>><?php
-			if ( isset( $field['title'] ) ) {
-				?><h4 id="<?php echo "{$field['meta_key']}_header"; ?>" class="formset-header<?php
-				if ( empty( $existing ) and ! $init ) { echo ' hidden'; } ?>"><?php 
-				echo $field['title'];
+			?><h4 id="<?php echo "{$field['meta_key']}_header"; ?>" class="formset-header<?php
+			if ( empty( $existing ) and ! $init ) { echo ' hidden'; } ?>"><?php 
+				echo isset( $field['title'] ) ? $field['title'] : "Formset";
 				?><a class="toggle_form_manager <?php
 					echo "{$field['meta_key']} remove {$form_id}";
 					if ( empty( $existing ) and ! $init ) { echo " hidden"; } 
@@ -61,19 +60,20 @@ class HTML {
 						if ( isset( $field['title'] ) ) {
 							echo "Remove";
 						} else {
-							echo "Remove formset " . ( $form_id + 1 );
+							echo "Remove formset";
 						}
-				?></a></h4><?php
-			}
+				?></a><?php
+			?></h4><?php
 			$this->pass_fieldset( $field, $form_id );
-		?></div><a class="toggle_form_manager <?php
+		?></div><?php
+		?><a class="toggle_form_manager <?php
 			echo "{$field['meta_key']} add {$form_id}";
-			if ( ! empty( $existing ) or $init ) { echo " hidden"; } 
+			if ( $existing or $init ) { echo " hidden"; } 
 			?>" href="#add-formset_<?php echo $form_id; ?>"><?php
 			if ( isset( $field['title'] ) ) {
 				echo "Add {$field['title']}";
 			} else {
-				echo "Add Formset " . ($form_id + 1);
+				echo "Add Formset";
 			}
 		?></a><?php
 	}
@@ -112,18 +112,19 @@ class HTML {
 		}
 	}
 
-	protected function pass_select( $field, $form_id = NULL ) {
+	public function pass_select( $field, $form_id = NULL ) {
 		$required = isset( $field['required'] ) ? $field['required'] : false;
 		$key = isset( $field['meta_key'] ) ? $field['meta_key'] : $field['slug'];
 		$label = isset( $field['label'] ) ? $field['label'] : null;
 		$title = isset( $field['title'] ) ? $field['title'] : null;
-		$multi = isset( $field['multiple'] ) ? $field['multiple'] : null;
+		$multi = isset( $field['multiple'] ) ? $field['multiple'] : false;
 		if ( in_array( $field['type'], array('multiselect', 'select', 'taxonomyselect' ) ) ) {
-			HTML::select( 
+			$this->select( 
 				$key, 
 				$field['params'], 
 				$field['taxonomy'], 
-				$multi, 
+				$multi,
+				$field['value'],
 				$field['placeholder'],
 				$title,
 				$label,
@@ -131,16 +132,16 @@ class HTML {
 				$form_id
 			);
 		} elseif ( $field['type'] == 'tax_as_meta' ) {
-			HTML::taxonomy_as_meta(
+			$this->taxonomy_as_meta(
 				$slug = $field['slug'],
 				$params = $field['include'],
 				$taxonomy = $field['taxonomy'],
-				$key,
-				$placeholder = $field['placeholder'],
 				$value = $field['value'],
-				$title,
-				$label,
+				$multi,
+				$placeholder = $field['placeholder'],
 				$required,
+				// $title,
+				// $label,
 				$form_id
 			);
 		} elseif ( $field['type'] == 'post_select' || $field['type'] == 'post_multiselect' ) {
@@ -149,15 +150,15 @@ class HTML {
 			$posts = get_posts($args);
 			$value = get_post_meta( $post->ID, $field['meta_key'], $single = false );
 			$multi = $field['type'] == 'post_multiselect' ? 'multiple' : null;
-			HTML::post_select(
-				$meta_key = $field['meta_key'],
+			$this->post_select(
+				$key,
 				$posts,
 				$value,
 				$multi,
-				$placeholder = $field['placeholder'],
 				$title,
 				$label,
 				$required,
+				$placeholder = $field['placeholder'],
 				$form_id
 			);
 		}
@@ -324,71 +325,66 @@ class HTML {
 	 *              if no value selected. Default: '--'
 	 *
 	**/
-	protected function select( $meta_key, $params = array(), $taxonomy = false, $multi = null, $value = null, $placeholder = '--', $title, $label, $required, $form_id = NULL ) {
+	public function select( $meta_key, $params = array(), $taxonomy = false, $multi = false, $value = null, $placeholder = '--', $title = NULL, $label = NULL, $required = false, $form_id = NULL ) {
 		if ( $taxonomy != false ) { // if a taxonomy is set, use wp_dropdown category to generate the select box
 			$IDs = wp_get_object_terms( get_the_ID(), $taxonomy, array( 'fields' => 'ids' ) );
 			wp_dropdown_categories( 'taxonomy=' . $taxonomy . '&hide_empty=0&orderby=name&name=' . $taxonomy . '&show_option_none=Select ' . $taxonomy . '&selected='. array_pop($IDs) );
 		} else {	// otherwise use all the values set in $param to generate the option
-				$multiple = isset($multi) ? 'multiple' : null;
-				?> 
-				<label for="<?php echo esc_attr($meta_key) ?>"><?php echo $title ? esc_attr( $title ) : esc_attr( $label ); ?></label>
-				<select id="<?php echo esc_attr( $meta_key ) ?>" name="<?php echo esc_attr( $meta_key ) ?>[]" class="<?php echo "form-input_{$form_id}"; ?>" <?php echo $multiple ?> <?php if ( $required ): echo 'required'; endif; ?>>
-				<?php
-				if ( empty( $value ) ) { ?>
-					<option selected value=""><?php echo esc_html( $placeholder ) ?></option>
-				<?php
-				} else { ?>
-					<option value=""><?php echo esc_html( $placeholder ) ?></option>
-					<option selected="selected" value="<?php echo esc_attr( $value ) ?>"><?php echo esc_html( $value ) ?></option><?php
-				}
-
-			foreach ( $params as $option ) { ?>
-				<option value="<?php echo esc_attr( $option ) ?>"><?php echo esc_html( $option ) ?></option>
-			<?php
+			$multiple = isset($multi) ? 'multiple' : null;
+			?><label for="<?php echo esc_attr($meta_key) ?>"><?php echo $title ? esc_attr( $title ) : esc_attr( $label ); ?></label><?php
+			?><select id="<?php echo esc_attr( $meta_key ) ?>" name="<?php echo esc_attr( $meta_key ) ?>[]" class="<?php echo "form-input_{$form_id}"; ?>" <?php echo $multiple ?> <?php if ( $required ): echo 'required'; endif; ?>><?php
+			if ( empty( $value ) ) {
+				?><option selected value=""><?php echo esc_attr( $placeholder ) ?></option><?php
+			} else {
+				?><option value=""><?php echo esc_attr( $placeholder ) ?></option><?php
+				?><option selected="selected" value="<?php echo esc_attr( $value ) ?>"><?php echo esc_attr( $value ) ?></option><?php
 			}
-		?>	</select> <?php
+			foreach ( $params as $option ) {
+				if ( $option != $value ) {
+					?><option value="<?php echo esc_attr( $option ) ?>"><?php echo esc_attr( $option ) ?></option><?php
+				}
+			}
+			?></select><?php
 		}
 	}
 
-	protected function post_select( $meta_key, $posts, $value, $multi, $placeholder = '--', $title, $label, $required, $form_id = NULL ) { 
+	public function post_select( $meta_key, $posts, $value, $multi, $title, $label, $required, $placeholder = '--', $form_id = NULL ) { 
 		global $post;
-		$selected = null;?>
-			<label for="<?php echo esc_attr( $meta_key ) ?>"><?php echo $title ? esc_attr( $title ) : esc_attr( $label ); ?></label>
-			<select class="<?php echo esc_attr($multi); echo "form-input_{$form_id}"; ?>" id="<?php echo esc_attr( $meta_key ) ?>" name="<?php echo esc_attr( $meta_key ) ?>[]" <?php echo $multi; ?>  <?php if ( $required ): echo 'required'; endif; ?>>
-				<?php if ( $multi == null ):
-						if ( empty( $value )  ): ?>
-							<option value='' selected>-- Nothing selected --</option>
-						<?php else: ?>
-					<option value=''>-- Nothing selected --</option>
-					<?php endif; 
-				endif; ?>
-				<?php foreach ( $posts as $p ):
-					if ( in_array($p->post_name, (array)$value) ):
-						$selected = "selected";
-					else:
-						$selected = null;
-					endif;?>
-					<option <?php echo $selected ?> value="<?php echo esc_attr( $p->post_name )?>"><?php echo $p->post_title; ?></option>
-				<?php endforeach; ?>
-			</select>			
-		<?php
+		$selected = null;
+		?><label for="<?php echo esc_attr( $meta_key ) ?>"><?php echo $title ? esc_attr( $title ) : esc_attr( $label ); ?></label><?php
+		?><select class="<?php echo $multi ? esc_attr( $multi ) . " ": null; echo "form-input_{$form_id}"; ?>" id="<?php echo esc_attr( $meta_key ) ?>" name="<?php echo esc_attr( $meta_key ) ?>[]"<?php echo " " . $multi; if ( $required ): echo ' required '; endif; ?>><?php
+			if ( $multi == null ) {
+				if ( empty( $value ) ) {
+					?><option selected value=""><?php echo esc_attr( $placeholder ); ?></option><?php
+				} else {
+					?><option value=""><?php echo esc_attr( $placeholder ); ?></option><?php
+				}
+			}
+			foreach ( $posts as $p ) {
+				if ( in_array($p->post_name, (array)$value) ) {
+					$selected = "selected";
+				} else {
+					$selected = null;
+				}
+				?><option <?php echo $selected ?> value="<?php echo esc_attr( $p->post_name )?>"><?php echo $p->post_title; ?></option><?php
+			}
+		?></select><?php
 	}
 
-	protected function taxonomy_as_meta( $slug, $params, $taxonomy, $key, $placeholder = '--', $value, $multi=null, $required, $form_id= NULL ) { // keep as slug?>
-		<select class="<?php echo esc_attr($multi); echo "form-input_{$form_id}"; ?>" name='<?php echo esc_attr( $slug )?>[]' <?php echo esc_attr( $multi )?>  <?php if ( $required ): echo 'required'; endif; ?>><?php
-			if ( isset( $value ) ):?>
-				<option selected value="<?php echo esc_attr( $value ) ?>" id="<?php echo esc_attr( $key ) ?>"><?php echo esc_html( $value ) ?></option><?php
-			else:?>
-			<option value="" id="no_<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>"><?php echo esc_html( $placeholder ) ?></option><?php
-			endif;
-				foreach ( $params as $term_id ):
-					$term = get_term_by( $field = 'id', $value = strval( $term_id ), $taxonomy, $output = OBJECT, $filter = 'raw' ); 
-					if ($term):?>
-					<option value="<?php echo esc_attr( $term->slug ) ?>"><?php echo esc_html( $term->name )  ?> (<?php echo esc_html( $term->count ) ?>)</option><?php
-					endif;
-				endforeach;?>
-		</select>
-		<?php
+	public function taxonomy_as_meta( $slug, $params, $taxonomy, $value, $multi = NULL, $placeholder = '--', $required = false, $form_id= NULL ) { // keep as slug
+		?><select class="<?php echo esc_attr($multi) . " "; echo "form-input_{$form_id}"; ?>" name="<?php echo esc_attr( $slug )?>[]" <?php echo esc_attr( $multi ) . " "; if ( $required ): echo 'required'; endif; ?>><?php
+			if ( isset( $value ) ) {
+				?><option selected value="<?php echo esc_attr( $value ) ?>" id="<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>"><?php echo esc_attr( $value ) ?></option><?php
+			} else {
+				?><option selected value="" id="no_<?php echo esc_attr( $slug ) ?>" name="<?php echo esc_attr( $slug ) ?>"><?php echo esc_attr( $placeholder ) ?></option><?php
+			}
+			foreach ( $params as $term_id ) {
+				$term = get_term_by( $field = 'id', $value = strval( $term_id ), $taxonomy, $output = OBJECT, $filter = 'raw' ); 
+				if ($term) {
+					?><option value="<?php echo esc_attr( $term->slug ) ?>"><?php echo esc_attr( $term->name ) ?> (<?php echo esc_attr( $term->count ) ?>)</option><?php
+				}
+			}
+		?></select><?php
 	}
 
 	/**
@@ -410,7 +406,7 @@ class HTML {
 	 * @param str  $taxonomy      the slug of the target taxonomy for this metabox (i.e., cfpb_input_date)
 	 * @param bool $multiples     whether the term shoud append (true) or replace (false) existing terms
 	 **/
-	public function date( $taxonomy, $multiples = false, $required=false, $form_id = NULL ) {
+	public function date( $taxonomy, $multiple = false, $required=false, $form_id = NULL ) {
 		$tax_name = stripslashes( $taxonomy );
 		global $post, $wp_locale;
 		$month = NULL;
@@ -424,10 +420,10 @@ class HTML {
 		?></select><?php
 		?><input id="<?php echo esc_attr( $tax_name ) ?>_day" type="text" name="<?php echo esc_attr( $tax_name ) ?>_day" class="<?php echo "form-input_{$form_id}"; ?>" value="<?php echo esc_attr( $day ) ?>" size="2" maxlength="2" placeholder="DD"/><?php
 		?><input id="<?php echo esc_attr( $tax_name ) ?>_year" type="text" name="<?php echo esc_attr( $tax_name ) ?>_year" class="<?php echo "form-input_{$form_id}"; ?>" value="<?php echo esc_attr( $year ) ?>" size="4" maxlength="4" placeholder="YYYY"/><?php
-		if ( $multiples == false ) {
-			?><p class="howto">If one is set already, selecting a new month, day and year will override it.</p><?php
-		} else {
+		if ( $multiple ) {
 			?><p class="howto">Select a month, day and year to add another.</p><?php 
+		} else {
+			?><p class="howto">If one is set already, selecting a new month, day and year will override it.</p><?php
 		} 
 		?><div class="tagchecklist"><?php
 			if ( has_term( '', $taxonomy, $post->id ) ) {

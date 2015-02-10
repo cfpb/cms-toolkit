@@ -238,7 +238,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		$this->assertContains( $needle, $haystack );
 	}
 
-	function testDrawFormsetShowsExistingField() {
+	function testDrawFormsetHidesAddLinkForExistingField() {
 		//arrange
 		$field = array( 
 			'fields' => array(
@@ -251,9 +251,11 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'get_formset_id', 'pass_fieldset' ) )
 					 ->getMock();
-		\WP_Mock::wpFunction( 'get_post_custom', array( 'return' => array('test_field' => 'data' ) ) );
+		$HTML->method( 'get_formset_id' )
+			 ->will( $this->returnValue( 1 ) );
+		\WP_Mock::wpFunction( 'get_post_custom', array( 'return' => array('test_field' => 'add 1 hidden' ) ) );
 		\WP_Mock::wpPassthruFunction( 'esc_attr', array( 'return' => 'test') );
-		$needle = '<div id="test_formset">';
+		$needle = 'add 1 hidden';
 
 		//act
 		ob_start();
@@ -974,7 +976,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 					 ->setMethods( null )
 					 ->getMock();
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
-		$needle = '<select id="field_key" name="field_key[]" class="form-input_12" multiple required >';
+		$needle = '<select id="field_key" name="field_key[]" class="form-input_12" multiple required>';
 		$needle .= '<option selected value="">--</option></select>';
 
 		//act
@@ -1046,11 +1048,11 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 					 ->setMethods( null )
 					 ->getMock();
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
-		$needle = '<select class="multi form-input_12" id="field_key" name="field_key[]" multi required>';
+		$needle = '<select class="multi form-input_12" id="field_key" name="field_key[]" multi required >';
 
 		//act
 		ob_start();
-		$HTML->post_select( 'field_key', array(), null, 'multi', null, 'title', null, true, 12 );
+		$HTML->post_select( 'field_key', array(), null, 'multi', 'title', null, true, '--', 12 );
 		$haystack = ob_get_flush();
 
 		//assert
@@ -1059,17 +1061,20 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 
 	function testPostSelectPrintsBlankOptionSelectedWithoutValue() {
 		//arrange
+		$posts = array();
+		$post = new \StdClass;
+		$post->post_name = 'name1';
+		$post->post_title = 'title1';
+		array_push($posts, $post);
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( null )
 					 ->getMock();
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
 		$needle = '<option selected value="">--</option>';
-		$needle .= '<option value="option1">option1</option>';
-		$needle .= '<option value="option2">option2</option></select>';
 
 		//act
 		ob_start();
-		$HTML->post_select( 'field_key', array( 'option1', 'option2' ), null, null, '--', 'Title', null, true, 12 );
+		$HTML->post_select( 'field_key', $posts, null, null, 'Title', null, true, '--', 12 );
 		$haystack = ob_get_flush();
 
 		//assert
@@ -1078,16 +1083,20 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 
 	function testPostSelectPrintsBlankOptionWithSelectedValue() {
 		//arrange
+		$posts = array();
+		$post = new \StdClass;
+		$post->post_name = 'name1';
+		$post->post_title = 'title1';
+		array_push($posts, $post);
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( null )
 					 ->getMock();
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
-		$needle = '<option selected="selected" value="option1">option1</option>';
-		$needle .= '<option value="option2">option2</option></select>';
+		$needle = '<option selected value="name1">title1</option>';
 
 		//act
 		ob_start();
-		$HTML->post_select( 'field_key', array( 'option1', 'option2' ), 'option1', null, '--', 'Title', null, true, 12 );
+		$HTML->post_select( 'field_key', $posts, 'name1', null, 'Title', null, true, '--', 12 );
 		$haystack = ob_get_flush();
 
 		//assert
@@ -1104,7 +1113,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 
 		//act
 		ob_start();
-		$HTML->taxonomy_as_meta( 'field_slug', 'field_key', null, 'tax', array(), '--', 'multi', true, 12 );
+		$HTML->taxonomy_as_meta( 'field_slug', array(), 'tax', null, 'multi', '--', true, 12 );
 		$haystack = ob_get_flush();
 
 		//assert
@@ -1127,7 +1136,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 
 		//act
 		ob_start();
-		$HTML->taxonomy_as_meta( 'field_slug','field_key', null, 'tax',  array( 'option1' ), '--', 'multi', true, 12 );
+		$HTML->taxonomy_as_meta( 'field_slug', array( 'option1' ), 'tax', null, 'multi',  '--', true, 12 );
 		$haystack = ob_get_flush();
 
 		//assert
@@ -1146,36 +1155,11 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
 		\WP_Mock::wpFunction( 'get_term_by', array( 'return' => $term ) );
 		$needle = '<option selected value="option1" id="field_slug" name="field_slug">option1</option>';
-		$needle .= '<option value="" id="field_slug" name="field_slug">--</option>';
 		$needle .= '<option value="option2">Option 2 (1)</option></select>';
 
 		//act
 		ob_start();
-		$HTML->taxonomy_as_meta( 'field_slug', 'field_key', 'option1', 'tax', array( 'option2' ), '--', 'multi', true, 12 );
-		$haystack = ob_get_flush();
-
-		//assert
-		$this->assertContains( $needle, $haystack );
-	}
-
-	function testTaxonomyAsMetaRemovesTermIfValueMatchesSlug() {
-		//arrange
-		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( null )
-					 ->getMock();
-		$term = new \StdClass;
-		$term->slug = 'option2';
-		$term->name = 'Option 2';
-		$term->count = 1;
-		\WP_Mock::wpPassthruFunction( 'esc_attr' );
-		\WP_Mock::wpFunction( 'get_term_by', array( 'return' => $term ) );
-		$needle = '<option selected value="option1" id="field_slug" name="field_slug">option1</option>';
-		$needle .= '<option value="" id="field_slug" name="field_slug">--</option>';
-		$needle .= '<option value="option2">Option 2 (1)</option></select>';
-
-		//act
-		ob_start();
-		$HTML->taxonomy_as_meta( 'field_slug', 'field_key', 'option1', 'tax', array( 'option2' ), '--', 'multi', true, 12 );
+		$HTML->taxonomy_as_meta( 'field_slug', array( 'option2' ), 'tax', 'option1', 'multi', '--', true, 12 );
 		$haystack = ob_get_flush();
 
 		//assert

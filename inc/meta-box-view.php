@@ -103,7 +103,6 @@ class View {
 	}
 
 	public function assign_defaults( $field ) {
-		
 		$field['label'] = $this->default_label($field);
 		if ( ! in_array( $field['type'], $this->hidden ) ) {
 			$field['max_length'] = $this->default_max_length($field);
@@ -129,7 +128,7 @@ class View {
 	}
 
 	public function default_value( $ID, $field, $index = 0 ) {
-		if ( $field['type'] == 'link' ) {
+		if ( $field['type'] == 'link' or $field['type'] == 'fieldset' or $field['type'] == 'formset' ) {
 			$default = null;
 		} else {
 			$existing = get_post_meta( $ID, $field['meta_key'], false );

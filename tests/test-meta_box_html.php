@@ -1302,7 +1302,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		\WP_Mock::wpPassthruFunction( 'sanitize_text_field' );
 		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
 		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
-		$needle = '<span><a id="tax-check-num-0" class="ntdelbutton1420748634">1420748634</a>&nbsp;8 January, 2015</span>';
+		$needle = '<span><a id="tax-check-num-0" class="datedelbutton 1420748634">1420748634</a>&nbsp;8 January, 2015</span>';
 
 		//act
 		ob_start();
@@ -1325,7 +1325,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		\WP_Mock::wpPassthruFunction( 'sanitize_text_field' );
 		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
 		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
-		$needle = '<span><a id="tax-check-num-0" class="ntdelbutton1 April, 1992">1 April, 1992</a>&nbsp;1 April, 1992</span>';
+		$needle = '<span><a id="tax-check-num-0" class="datedelbutton 1 April, 1992">1 April, 1992</a>&nbsp;1 April, 1992</span>';
 
 		//act
 		ob_start();

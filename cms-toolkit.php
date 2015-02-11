@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: WordPress CMS Toolkit
-Plugin URI: http://github.com/CFPB/cms-toolkit/
+Plugin URI: https://github.com/cfpb/cms-toolkit/
 Description: This plugin contains classes that help developers turn WordPress into a full CMS.
 
 This plugin provides tools for extending WordPress for as a CMS. This includes 
@@ -13,9 +13,9 @@ think of it as a library. A collection of methods which, when installed, are
 available throughout the application and make building complex functionality 
 in WordPress a little easier.
 
-Version: 1.2
-Author: Greg Boone, Aman Kaur, Matthew Duran
-Author URI: http://github.com/cfpb/
+Version: 1.3.0
+Author: Greg Boone, Aman Kaur, Matthew Duran, Scott Cranfill, Kurt Wall
+Author URI: https://github.com/cfpb/
 License: Public Domain work of the Federal Government
 
 */

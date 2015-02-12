@@ -115,6 +115,48 @@ class TestValidDateField extends Models {
 	);
 }
 
+class TestValidFieldsetField extends Models {
+	public $post_type = 'post';
+	public $fields = array(
+		'field' => array(
+            'type' => 'fieldset',
+            'fields' => array(
+                array(
+                    'type' => 'text',
+                    'meta_key' => 'num',
+                ),
+                array(
+                    'type' => 'text',
+                    'meta_key' => 'desc',
+                ),
+            ),
+            'params' => array(),
+            'meta_key' => 'field',
+        ),
+	);
+}
+
+class TestValidFormsetField extends Models {
+	public $post_type = 'post';
+	public $fields = array(
+		'field' => array(
+            'type' => 'formset',
+            'fields' => array(
+                array(
+                    'title' => 'Title',
+                    'type' => 'text',
+                    'meta_key' => 'title',
+                ),
+            ),
+            'params' => array(
+                'init_num_forms' => 1,
+                'max_num_forms' => 2,
+            ),
+            'meta_key' => 'field',
+        ),
+	);
+}
+
 class ValidationTest extends PHPUnit_Framework_TestCase {
 	function setUp() {
 		global $post;
@@ -538,6 +580,59 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		// assert
 		$this->assertTrue(empty($actual));
 	}
+	/**
+	 * Tests whether the validate_fieldset method is called when validating a 
+	 * field of type 'fieldset'
+	 *
+	 * @group stable
+	 * @group fieldset
+	 * @group isolated
+	 * @group validate_fieldset
+	 */
+	function testValidFieldsetExpectsValidateToBeCalled() {
+		// arrange
+		global $post;
+ 		$factory = $this->getMockBuilder('TestValidFieldsetField')
+						->setMethods( array( 'validate_fieldset', ) )
+						->getMock();
+		$factory->expects($this->once())
+				->method('validate_fieldset')
+				->will($this->returnValue(true));
+		$validate = array();
+
+		// act
+		$factory->validate( $post->ID, $factory->fields['field'], $validate );
+
+		// assert
+		// Test will fail if validate_fieldset isn't executed once and only once
+	}
+	/**
+	 * Tests whether the validate_formset method is called when validating a 
+	 * field of type 'formset'
+	 *
+	 * @group stable
+	 * @group formset
+	 * @group isolated
+	 * @group validate_formset
+	 */
+	function testValidFormsetExpectsValidateToBeCalled() {
+		// arrange
+		global $post;
+ 		$factory = $this->getMockBuilder('TestValidFormsetField')
+						->setMethods( array( 'validate_formset', ) )
+						->getMock();
+		$factory->expects($this->once())
+				->method('validate_formset')
+				->will($this->returnValue(true));
+		$validate = array();
+
+		// act
+		$factory->validate( $post->ID, $factory->fields['field'], $validate );
+
+		// assert
+		// Test will fail if validate_formset isn't executed once and only once
+	}
+
 
 /***************
  * Save method *
@@ -1107,6 +1202,107 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		// act
 		$form->validate_select($form->fields['field_one'],$post->ID);
 
+	}
+	/**
+	* Tests a fieldset to make sure that validate is called for each of the 
+	* fieldset's fields.
+	*
+	 * @group stable
+	 * @group validate
+	 * @group fieldset
+	 * @group validate_fieldset
+	 * @group isolated
+	*/
+	function testValidFieldsetOfTwoFieldsCallsValidateTwice() {
+		//arrange
+		global $post;
+		$factory = $this->getMockBuilder('TestValidFieldsetField')
+						->setMethods( array( 'validate',) )
+						->getMock();
+		$factory->expects( $this->exactly( 2 ) )
+				->method( 'validate' )
+				->will( $this->returnValue( true ) );
+		$expected = array();
+
+		//act
+		$factory->validate_fieldset( $factory->fields['field'], $expected, $post->ID );
+
+		//assert
+		// Test will fail if only each of the fields in the fieldset are validated
+	}
+	/**
+	* Tests a fieldset to make sure that validate adds validated values to the 
+	* array that was passed in by reference.
+	*
+	 * @group stable
+	 * @group validate
+	 * @group fieldset
+	 * @group validate_fieldset
+	 * @group isolated
+	*/
+	function testValidateAddsValidatedValuesToPassedInArrayByValidateFieldset() {
+		// arrange
+		global $post;
+		$_POST = array( 'field_num' => '0123456789', 'field_desc' => 'description' );
+		$testValidFieldsetField = new TestValidFieldsetField();
+		$actual = array();
+		$expected = array( 'field_num' => '0123456789', 'field_desc' => 'description' );
+
+		//act
+		$testValidFieldsetField->validate_fieldset( $testValidFieldsetField->fields['field'], $actual, $post->ID );
+
+		//assert
+		$this->assertEquals( $expected, $actual );
+	}
+	/**
+	* Tests a formset to make sure that validate is called for each of the 
+	* formset's fields.
+	*
+	 * @group stable
+	 * @group validate
+	 * @group fieldset
+	 * @group validate_formset
+	 * @group isolated
+	*/
+	function testValidFormsetOfTwoFieldsCallsValidateTwice() {
+		//arrange
+		global $post;
+		$factory = $this->getMockBuilder('TestValidFormsetField')
+						->setMethods( array( 'validate', ) )
+						->getMock();
+		$factory->expects( $this->exactly( 2 ) )
+				->method( 'validate' )
+				->will( $this->returnValue( true ) );
+		$actual = array();
+
+		//act
+		$factory->validate_formset( $factory->fields['field'], $actual, $post->ID );
+
+		//assert
+	}
+	/**
+	* Tests a formset to make sure that validate adds validated values to the 
+	* array that was passed in by reference.
+	*
+	 * @group stable
+	 * @group validate
+	 * @group formset
+	 * @group validate_fieldset
+	 * @group isolated
+	*/
+	function testValidateAddsValidatedValuesToPassedInArrayByValidateFormset() {
+		// arrange
+		global $post;
+		$_POST = array( 'field_0_title' => 'Title 1', 'field_1_title' => 'Title 2' );
+		$testValidFormsetField = new TestValidFormsetField();
+		$actual = array();
+		$expected = array( 'field_0_title' => 'Title 1', 'field_1_title' => 'Title 2' );
+
+		//act
+		$testValidFormsetField->validate_formset( $testValidFormsetField->fields['field'], $actual, $post->ID );
+
+		//assert
+		$this->assertEquals( $expected, $actual );
 	}
 /**************
  * Generators *

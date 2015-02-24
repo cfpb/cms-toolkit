@@ -75,13 +75,17 @@ class View {
 					$field['meta_key'] = $field['slug'];
 				}
 			}
-			if ( $field['type'] == 'formset' ) {
-				$field = $this->assign_defaults($field);
-				$this->process_formset_defaults( $field, $ready );
-			} elseif ( $field['type'] == 'fieldset' ) {
-				$ready[$field['meta_key']] = $this->process_fieldset( $field );
+			if ( isset( $field['meta_key'] ) ) {
+				if ( $field['type'] == 'formset' ) {
+					$field = $this->assign_defaults($field);
+					$this->process_formset_defaults( $field, $ready );
+				} elseif ( $field['type'] == 'fieldset' ) {
+					$ready[$field['meta_key']] = $this->process_fieldset( $field );
+				} else {
+					$ready[$field['meta_key']] = $this->assign_defaults($field);
+				}
 			} else {
-				$ready[$field['meta_key']] = $this->assign_defaults($field);
+				return new WP_Error( 'no_metakey-slug', "'meta_key' and 'slug' are not set for this field." );
 			}
 		}
 		return $ready;

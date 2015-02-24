@@ -540,7 +540,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		// Passes when boolean_input() is called once
 	}
 	/**
-     * Tests that the draw_input() method will call url_input() if given field
+     * Tests that the draw_input() method will call link_input() if given field
      * of type 'link'.
      *
      * @group stable
@@ -550,24 +550,24 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		//arrange
 		$field = array( 'type' => 'link' );
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( array( 'url_input', ) )
+					 ->setMethods( array( 'link_input', ) )
 					 ->getMock();
 		$HTML->expects( $this->once() )
-			 ->method( 'url_input' )
+			 ->method( 'link_input' )
 			 ->will( $this->returnValue( true ) );
 
 		//act
 		$HTML->draw_input( $field );
 
 		//assert
-		// Passes when url_input() is called once
+		// Passes when link_input() is called once
 	}
 	/**
-     * Tests that the url_input() method will call single_input() twice if given 
+     * Tests that the link_input() method will call single_input() twice if given 
      * field of type 'single_input'.
      *
      * @group stable
-     * @group url_input
+     * @group link_input
      */
 	function testURLInputCallsSingleInputTwice() {		
 		//arrange
@@ -580,7 +580,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 			 ->will( $this->returnValue( true ) );
 
 		//act
-		$HTML->url_input( 'field', 'title', null, null, null );
+		$HTML->link_input( 'field', 'title', null, null, null );
 
 		//assert
 		// Passes when single_input() is called only once
@@ -590,7 +590,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      * field of type 'single_input'.
      *
      * @group stable
-     * @group url_input
+     * @group link_input
      */
 	function testSelectWithGivenTaxonomyCallsWPGetObjectTermsAndGetTheIDAndWPDropdownCategories() {
 		//arrange
@@ -1137,10 +1137,10 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		$this->assertContains( $needle, $haystack );
 	}
 	/**
-     * Tests that the url_input() method will draw div with class 'link-field'.
+     * Tests that the link_input() method will draw div with class 'link-field'.
      *
      * @group unstable
-     * @group url_input
+     * @group link_input
      */
 	function testURLInputPrintsDiv() {		
 		//arrange
@@ -1152,7 +1152,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 
 		//act
 		ob_start();
-		$HTML->url_input( 'field_key', null, null, null, null, null, null );
+		$HTML->link_input( 'field_key', null, null, null, null, null, null );
 		$haystack = ob_get_flush();
 
 		//assert

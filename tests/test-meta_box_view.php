@@ -418,6 +418,31 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * Tests whether no meta_key or slug returns error
+	 *
+	 * @group stable
+	 * @group isolated
+	 * @group defaults
+	 */
+	function testNoMetakeyOrSlugExpectsWPError() {
+		$fields= array(
+			0 => array(
+				'type' => 'text',
+				'taxonomy' => 'tax',
+			)
+		);
+
+		$mock = $this->getMock('WP_Error');
+		$HTML = $this->getMock('HTML');
+		$View = new View();
+		$View->replace_HTML($HTML);
+
+		$cleaned = $View->process_defaults($fields);
+
+		$this->assertInstanceOf('WP_Error', $cleaned);
+	}
+
+	/**
 	 * Tests whether ready_and_print calls \HTML->Draw();
 	 *
 	 * @group stable

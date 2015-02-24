@@ -529,7 +529,6 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 			array('times' => 1, 'return' => 1));
 		// Act
 		$actual = $stub->process_defaults($fields);
-		echo print_r($actual);
 
 		// Assert
 		$this->assertEquals($expected, $actual);

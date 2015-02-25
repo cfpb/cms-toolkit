@@ -4,6 +4,18 @@ function delete_form_data(slug, form_id) {
     // Clear text fields
     jQuery(selectorBase).each( function(index) {
         jQuery(this).val("");
+        var iframe = "iframe[id=" + this.id + "_ifr";
+        var contents = jQuery(iframe).contents();
+        var wysiwyg = contents.find("body");
+        wysiwyg.html("");
+        // var wysiwyg = 
+
+        // console.log(wysiwyg);
+        // Clear WYSIWYG
+        // jQuery(wysiwyg).each( function(index) {
+        //     console.log(this);
+            // jQuery(this).html("");
+        // });
     });
     // Clear checkboxes & radio buttons
     jQuery(selectorBase + ':checked').each( function(index) {

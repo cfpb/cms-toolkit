@@ -33,4 +33,13 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		// Act
 		$HTML->draw($fields);
 	}
+
+	function testWYSIWYGFieldCallsWPEditor() {
+		//arrange
+		$HTML = new HTML();
+		\WP_Mock::wpFunction( 'wp_editor', array( 'times' => 1 ) );
+
+		//act
+		$HTML->wysiwyg( 'content', 'meta_key', array(), null, null);
+	}
 }

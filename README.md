@@ -40,7 +40,7 @@ To activate the plugin follow the steps below:
 
 ## Develop
 
-See [Contributing.md](Contributing.md)
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## How to Use
 

@@ -28,9 +28,7 @@ functionality in WordPress a little easier.
 
 This plugin can be installed as a normal WordPress plugin.
 
-__Warning:__ This plugin uses features introduced in PHP 5.3, since WordPress
-supports back to 5.2.7, make sure your host is running the correct version. See
-[namespacing](#whats-a-namespace) below.
+__Warning:__ __This plugin requires PHP 5.3+.__
 
 ## Activate
 
@@ -42,12 +40,12 @@ To activate the plugin follow the steps below:
 
 ## Develop
 
-See Contributing.md
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
-## Extend
+## How to Use
 
 Out of the box this plugin makes namespaces, classes, and methods available to
-WordPress. Developers should consider writing 'child' plugins that import
+WordPress. Developers should write 'child' plugins that import
 classes and functionality from this one. Importing with `use...as` in PHP is
 kind of like using `import <module> as` in python.
 

@@ -649,4 +649,28 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		// Assert
 		$this->assertTrue($expected == $actual);
 	}
+
+	function testAssignDefaultsSetsParamArrayIfNotSet() {
+		//arrange
+		$View = new View();
+		$field = array( 'type' => 'wysiwyg', 'params' => null );
+
+		//act
+		$field = $View->assign_defaults( $field );
+
+		// assert
+		$this->assertTrue( isset( $field['params'] ) );
+	}
+
+	function testAssignDefaultsAddsClassToEditorClassParam() {
+		//arrange
+		$View = new View();
+		$field = array( 'type' => 'wysiwyg', 'params' => array( 'editor_class' => 'class') );
+
+		//act
+		$field = $View->assign_defaults( $field );
+
+		// assert
+		$this->assertEquals( $field['params']['editor_class'], "class cms-toolkit-wysiwyg" );
+	}
 }

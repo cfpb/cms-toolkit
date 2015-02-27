@@ -125,6 +125,13 @@ class View {
 		if ( ! in_array($field['type'], array( 'taxonomyselect', 'tax_as_meta', 'date' ) ) ) {
 			$field['taxonomy'] = false;
 		}
+		if ( $field['type'] == 'wysiwyg' ) {
+			if ( ! isset( $field['params'] ) or empty( $field['params'] ) ) {
+				$field['params'] = array( 'textarea_rows' => 5, 'editor_class' => "cms-toolkit-wysiwyg" );
+			} else {
+				$field['params']['editor_class'] .= " cms-toolkit-wysiwyg";
+			}
+		}
 		return $field;
 	}
 

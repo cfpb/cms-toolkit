@@ -208,6 +208,11 @@ correspond to IDs and classes used in the WordPress admin. Changing the value of
 below. Check the unit tests for examples of how to use each type.
 
 * `text_area` generates a text area meta box.
+* `wysiwyg` calls `wp_editor` to generate a text editor. Defaults to TinyMCE with
+Quicktags enabled. A `params` array is directly related to the `settings` array
+seen [here](http://codex.wordpress.org/Function_Reference/wp_editor) so use it
+the same way.
+that is used as the settings for the 
 * `number` generates an input field with the number type, optionally add a 
 'max_num' key to the params array to limit the length of input. For example:
 `'param' => array( 'max_length' => 2),` 

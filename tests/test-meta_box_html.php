@@ -656,6 +656,20 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		//assert
 		// Fails if date doesn't call hidden() once
 	}
+    /**
+     * Tests that the wysiwyg() method will call wp_editor() once.
+     *
+     * @group stable
+     * @group wysiwyg
+     */
+    function testWYSIWYGFieldCallsWPEditor() {
+        //arrange
+        $HTML = new HTML();
+        \WP_Mock::wpFunction( 'wp_editor', array( 'times' => 1 ) );
+
+        //act
+        $HTML->wysiwyg( 'content', 'meta_key', array(), null, null);
+    }
 	/***************************
 	 * HTML output tests *
 	 ***************************/

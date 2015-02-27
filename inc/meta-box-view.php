@@ -166,6 +166,13 @@ class View {
 		if ( $field['type'] == 'formset' ) {
 			$field = $this->default_formset_params( $field );
 		}
+		if ( $field['type'] == 'wysiwyg' ) {
+			if ( ! isset( $field['params'] ) or empty( $field['params'] ) ) {
+				$field['params'] = array( 'textarea_rows' => 5, 'editor_class' => "cms-toolkit-wysiwyg" );
+			} else {
+				$field['params']['editor_class'] .= " cms-toolkit-wysiwyg";
+			}
+		}
 		return $field;
 	}
 

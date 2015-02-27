@@ -5,7 +5,7 @@ class HTML {
 
 	private $elements = array(
 		'selects' => array( 'select', 'multiselect', 'taxonomyselect', 'tax_as_meta', 'post_select', 'post_multiselect' ),
-		'inputs' => array( 'text_area', 'number', 'text', 'boolean', 'email', 'url', 'date', 'radio', 'link', ),
+		'inputs' => array( 'text_area', 'number', 'text', 'boolean', 'email', 'url', 'date', 'radio', 'link', 'wysiwyg', ),
 		'hidden' => array( 'nonce', 'hidden', 'separator', 'fieldset' ),
 		);
 
@@ -108,6 +108,7 @@ class HTML {
 		$taxonomy = isset( $field['taxonomy'] ) ? $field['taxonomy'] : false;
 		$required = isset( $field['required'] ) ? $field['required'] : false;
 		$multi = isset( $field['multiple'] ) ? $field['multiple'] : false;
+		$label = isset( $field['label'] ) ? $field['label'] : null;
 		if ( in_array( $field['type'], array('multiselect', 'select', 'taxonomyselect' ) ) ) {
 			$this->select( 
 				$field['meta_key'], 
@@ -117,7 +118,7 @@ class HTML {
 				$field['value'],
 				$required,
 				$field['placeholder'],
-				$field['label'],
+				$label,
 				$form_id
 			);
 		} elseif ( $field['type'] == 'tax_as_meta' ) {
@@ -128,7 +129,7 @@ class HTML {
 				$value = $field['value'],
 				$multi,
 				$required,
-				$field['label'],
+				$label,
 				$placeholder = $field['placeholder'],
 				$form_id
 			);
@@ -144,7 +145,7 @@ class HTML {
 				$value,
 				$multi,
 				$required,
-				$field['label'],
+				$label,
 				$field['placeholder'],
 				$form_id
 			);
@@ -158,6 +159,10 @@ class HTML {
 		$max_length = isset ( $field['max_length'] ) ? $field['max_length'] : null;
 		if ( $field['type'] == 'text_area' ) {
 			$this->text_area( $field['meta_key'], $value, $required, $field['rows'], $field['cols'], $label, $field['placeholder'], $form_id );
+		}
+
+		if ( $field['type'] == 'wysiwyg' ) {
+			$this->wysiwyg( $value, $field['meta_key'], $field['params'], $label, $form_id );
 		}
 
 		if ( in_array( $field['type'], array( 'number', 'text', 'email', 'url' ) ) ) {
@@ -212,6 +217,26 @@ class HTML {
 				  ?>" placeholder="<?php echo esc_attr( $placeholder ) ?>"<?php
 				   if ( $required ): echo ' required'; endif; ?>><?php echo esc_attr( $value ) 
 		?></textarea><?php
+	}
+
+	/**
+	 * Generate a wysiwyg field
+	 *
+	 * Uses the built in Wordpress function wp_editor to generate the field.
+	 *
+	 * @param str $value is the text within the editor that has been saved
+	 * @param str $meta_key the id associated with the HTML tag and data
+	 * @param str $params are the settings for the wp_editor function
+	 * @param str $form_id the numeric id for a formset that the field could be in
+	 *
+	**/
+	public function wysiwyg( $value, $meta_key, $params, $label, $form_id = NULL ) {
+		if ( isset( $form_id ) ) {
+			$params['editor_class'] .= " form-input_{$form_id}";
+		}
+		?><label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $meta_key ) ?>"><?php echo esc_attr( $label ) ?></label><?php
+		wp_editor( $value, $meta_key, $params );
+
 	}
 
 	/**

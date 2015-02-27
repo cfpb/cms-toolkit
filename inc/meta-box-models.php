@@ -40,6 +40,7 @@ class Models {
         'date',
         'radio',
         'link',
+        'wysiwyg',
     );
     private $other   = array( 'nonce', 'hidden', 'separator', 'fieldset', 'formset' );
     

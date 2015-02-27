@@ -129,6 +129,7 @@ class HTML {
 				$field['params'], 
 				$field['taxonomy'], 
 				$multi, 
+				$field['value'],
 				$field['placeholder'],
 				$title,
 				$label,

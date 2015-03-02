@@ -157,19 +157,12 @@ into `save_post` as illustrated above.
 Because all of these functions are contained in classes you are extending, you 
 can overwrite them if needed. Just declare a function with the same name as the 
 one in the parent class and WordPress will use yours instead of ours. If you 
-want to still run the parent's version, you can always call `parent::
-overwritten_function_name()`. In certain cases you can also fully replace a 
-class from the cms-toolkit by injecting a new dependency. See the unit tests for
-an example of how to do this.
+want to still run the parent's version, you can always call `parent::overwritten_function_name()`. In certain cases you can also fully replace a class from the cms-toolkit by injecting a new dependency. See the unit tests for an example of how to do this.
 
 ### Fields
 
 A meta box class can accept many different field types that correspond to valid
-HTML elements. Each field array should contain the following keys: 'slug',
-'title', 'type', 'params', 'placeholder', 'howto', and 'meta_key'. It can also
-contain 'class', which assigns a class to a div wrapping the header and fields.
-With the exception of 'params' these are all strings. A field array like the
-following:
+HTML elements. Each field array should contain the following keys: 'slug', 'title' or 'label', 'type', 'params', 'placeholder', 'howto', and 'meta_key'. It can also contain 'class', which assigns a class to a div wrapping the header and fields. With the exception of 'params' these are all strings. A field array like the following:
 
 ```php 
 <?php 
@@ -208,11 +201,7 @@ correspond to IDs and classes used in the WordPress admin. Changing the value of
 below. Check the unit tests for examples of how to use each type.
 
 * `text_area` generates a text area meta box.
-* `wysiwyg` calls `wp_editor` to generate a text editor. Defaults to TinyMCE with
-Quicktags enabled. A `params` array is directly related to the `settings` array
-seen [here](http://codex.wordpress.org/Function_Reference/wp_editor) so use it
-the same way.
-that is used as the settings for the 
+* `wysiwyg` calls `wp_editor` to generate a text editor. Defaults to TinyMCE with Quicktags enabled. A `params` array is directly related to the `settings` array seen [here](http://codex.wordpress.org/Function_Reference/wp_editor) so use it the same way.
 * `number` generates an input field with the number type, optionally add a 
 'max_num' key to the params array to limit the length of input. For example:
 `'param' => array( 'max_length' => 2),` 
@@ -227,9 +216,7 @@ as an array like `array(0 => 'url', 1 => 'text')`;
 input fields for day and year 
 * `select` generates a `<select>` field with options specified in the 'params' 
 array. For example `'param' => array( 'one', 'two', 'three',),` 
-* `mutliselect` is identical to `select` except that it
-passes the 'multiple' attribute, generating a multiselect box styled with
-[multiselect.js](http://loudev.com) 
+* `mutliselect` is identical to `select` except that it passes the 'multiple' attribute, generating a multiselect box styled with [multiselect.js](http://loudev.com) 
 * `taxonomyselect` generates a `<select>`
 field with options pulled from the terms attached to the taxonomy specified in
 `meta_key` 

@@ -180,32 +180,6 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$TestValidEmailField->validate($post->ID, $TestValidEmailField->fields['one'], $actual);
 	}
 
-	// /**
-	//  * Tests whether WP_Error is returned if missing a piece of a date.
-	//  *
-	//  * @group stable
-	//  * @group isolated
-	//  * @group date
-	//  * @group user_input
-	//  * @group validation
-	//  */
-	// function testInvalidDateValidateExpectsDateCalledNone() {
-	// 	// arrange
-	// 	$stub = $this->getMockBuilder('Callbacks')
-	// 				 ->setMethods( array( 'validate_date' ) )
-	// 				 ->getMock();
-
-	// 	$form = new TestValidDateField();
-	// 	$form->set_callbacks($stub);
-	// 	$_POST =array('post_ID' => 1, 'category_year' => '1970');
-	// 	$actual = array();
-	// 	// act
-	// 	$form->validate($_POST['post_ID'], $form->fields['category'], $actual);
-
-	// 	// assert
-	// 	$this->assertInstanceOf( 'WP_Error', $actual)
-	// }
-
 	/**
 	 * Tests whether a number field has data replaced
 	 *
@@ -734,8 +708,187 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_day' => '01');
 
 		// act
-		$form->validate_date( $form->fields['category'], $_POST['post_ID']);
-		// $stub->method();
+		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+	}
+	/**
+	 * Tests whether the validate_datetime method when called on an invalid field
+	 * does not call the callback method.
+	 *
+	 * @group stable
+	 * @group date
+	 * @group isolated
+	 * @group user_input
+	 */
+	function testInvalidDateFieldExpectsCallbackNotCalled() {
+		// arrange
+		$stub = $this->getMockBuilder('Callbacks')
+					->setMethods(array('date'))
+					->getMock();
+
+		$stub->expects( $this->exactly( 0 ) )
+			 ->method( 'date' )
+			 ->with( $this->anything(), $this->anything(), $this->anything() );
+
+		// $stub->expects( $this->once() )
+		// 	->method( 'method' );
+
+		$form = new TestValidDateField();
+		$form->set_callbacks($stub);
+		$term = \WP_Mock::wpFunction( 'wp_get_post_terms' ); 
+		$_POST = array(
+			'post_ID' => 1,
+			'category_year' => '' ,
+			'category_month' => 'January',
+			'category_day' => '01');
+
+		// act
+		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+	}
+	/**
+	 * Tests whether the validate_datetime method when called on a time field calls the
+	 * date method from the Callbacks class.
+	 *
+	 * @group stable
+	 * @group date
+	 * @group isolated
+	 * @group user_input
+	 */
+	function testValidTimeFieldExpectsCallbackCalledOnce() {
+		// arrange
+		$stub = $this->getMockBuilder('Callbacks')
+					->setMethods(array('date'))
+					->getMock();
+
+		$stub->expects( $this->once() )
+			 ->method( 'date' )
+			 ->with( $this->anything(), $this->anything(), $this->anything() );
+
+		// $stub->expects( $this->once() )
+		// 	->method( 'method' );
+
+		$form = new TestValidDateField();
+		$form->fields['category']['type'] = 'time';
+		$form->set_callbacks($stub);
+		$term = \WP_Mock::wpFunction( 'wp_get_post_terms' ); 
+		$_POST = array(
+			'post_ID' => 1,
+			'category_hour' => array('9') ,
+			'category_minute' => array('30'),
+			'category_ampm' => array('am'));
+
+		// act
+		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+	}
+	/**
+	 * Tests whether the validate_datetime method when called on an invalid time 
+	 * does not call the date callback method.
+	 *
+	 * @group stable
+	 * @group date
+	 * @group isolated
+	 * @group user_input
+	 */
+	function testInvalidTimeFieldExpectsCallbackNotCalled() {
+		// arrange
+		$stub = $this->getMockBuilder('Callbacks')
+					->setMethods(array('date'))
+					->getMock();
+
+		$stub->expects( $this->exactly( 0 ) )
+			 ->method( 'date' )
+			 ->with( $this->anything(), $this->anything(), $this->anything() );
+
+		// $stub->expects( $this->once() )
+		// 	->method( 'method' );
+
+		$form = new TestValidDateField();
+		$form->fields['category']['type'] = 'time';
+		$form->set_callbacks($stub);
+		$term = \WP_Mock::wpFunction( 'wp_get_post_terms' ); 
+		$_POST = array(
+			'post_ID' => 1,
+			'category_hour' => array('9') ,
+			'category_minute' => array('30'),
+			'category_ampm' => array(''));
+
+		// act
+		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+	}
+	/**
+	 * Tests whether the validate_datetime method when called on a datetime field calls the
+	 * date method from the Callbacks class.
+	 *
+	 * @group stable
+	 * @group date
+	 * @group isolated
+	 * @group user_input
+	 */
+	function testValidDatetimeFieldExpectsCallbackCalledOnce() {
+		// arrange
+		$stub = $this->getMockBuilder('Callbacks')
+					->setMethods(array('date'))
+					->getMock();
+
+		$stub->expects( $this->once() )
+			 ->method( 'date' )
+			 ->with( $this->anything(), $this->anything(), $this->anything() );
+
+		// $stub->expects( $this->once() )
+		// 	->method( 'method' );
+
+		$form = new TestValidDateField();
+		$form->fields['category']['type'] = 'datetime';
+		$form->set_callbacks($stub);
+		$term = \WP_Mock::wpFunction( 'wp_get_post_terms' ); 
+		$_POST = array(
+			'post_ID' => 1,
+			'category_hour' => array('9') ,
+			'category_minute' => array('30'),
+			'category_ampm' => array('am'),
+			'category_year' => '2014' ,
+			'category_month' => 'January',
+			'category_day' => '01');
+
+		// act
+		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+	}
+	/**
+	 * Tests whether the validate_datetime method when called on an invalid datetime 
+	 * does not call the date callback method.
+	 *
+	 * @group stable
+	 * @group date
+	 * @group isolated
+	 * @group user_input
+	 */
+	function testInvalidDatetimeFieldExpectsCallbackNotCalled() {
+		// arrange
+		$stub = $this->getMockBuilder('Callbacks')
+					->setMethods(array('date'))
+					->getMock();
+
+		$stub->expects( $this->exactly( 0 ) )
+			 ->method( 'date' )
+			 ->with( $this->anything(), $this->anything(), $this->anything() );
+
+		// $stub->expects( $this->once() )
+		// 	->method( 'method' );
+
+		$form = new TestValidDateField();
+		$form->fields['category']['type'] = 'datetime';
+		$form->set_callbacks($stub);
+		$term = \WP_Mock::wpFunction( 'wp_get_post_terms' ); 
+		$_POST = array(
+			'post_ID' => 1,
+			'category_hour' => array('9') ,
+			'category_minute' => array('30'),
+			'category_ampm' => array(''),
+			'category_year' => '' ,
+			'category_month' => 'January',
+			'category_day' => '01');
+
+		// act
+		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
 	}
 
 	/**

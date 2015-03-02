@@ -1,6 +1,7 @@
 <?php
 namespace CFPB\Tests;
 use \CFPB\Utils\MetaBox\Callbacks;
+use \CFPB\Utils\Taxonomy;
 
 function strtotime() {
 	return MetaBoxCallbacksTest::$now ?: time('now');
@@ -36,6 +37,54 @@ class MetaBoxCallbacksTest extends \PHPUnit_Framework_TestCase {
 		// Act
 		$c = new Callbacks();
 		$c->date($post_id, $taxonomy, false, $data);
+		// Assert
+	}
+
+	/**
+	 * Tests whether the date() method properly calls get_term_by when attempting
+	 * to delete a term from a taxonomy
+	 *
+	 * @group isolated
+	 * @group stable
+	 * @group date
+	 * @group taxonomy_save
+	 * 
+	 */
+	function testDateCallsGetTermByWhenAttemptingToDeleteATerm() {
+		// Arrange
+		$c = new Callbacks();
+		$_POST = array( 'rm_tax_0' => '' );
+		\WP_Mock::wpFunction('get_term_by', array('times' => 1, 'return' => false ) );
+		// Act
+		$c->date( 0, 'tax', false, array(), 0 );
+		// Assert
+	}
+
+	/**
+	 * Tests whether the date() method properly calls remove_post_term when attempting
+	 * to delete a term from a taxonomy after it confirms the term exists
+	 *
+	 * @group isolated
+	 * @group stable
+	 * @group date
+	 * @group taxonomy_save
+	 * 
+	 */
+	function testDateCallsRemovePostTermWhenAttemptingToDeleteATerm() {
+		// Arrange
+		$_POST = array( 'rm_tax_0' => 'term' );
+		$term = new \StdClass;
+		$term->term_id = 1;
+		\WP_Mock::wpFunction('get_term_by', array( 'return' => $term ) );
+		$Taxonomy = $this->getMockBuilder( 'Taxonomy' )
+						 ->setMethods( array( 'remove_post_term' ) )
+						 ->getMock();
+		$Taxonomy->expects( $this->once() )
+				 ->method( 'remove_post_term' );
+		$c = new Callbacks();
+		$c->replace_Taxonomy( $Taxonomy );
+		// Act
+		$c->date( 0, 'tax', false, array(), 0 );
 		// Assert
 	}
 

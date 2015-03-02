@@ -279,7 +279,7 @@ public function validate_taxonomyselect($field, $post_ID) {
 }
 
 /** 
- * Validates a date field by converting $_POST keys into date strings before passing
+ * Validates a date, time, or datetime field by converting $_POST keys into date strings before passing
  * to a date method in $this->Callbacks->date()
  * 
  * @param  array $field    The field to be processed
@@ -287,7 +287,7 @@ public function validate_taxonomyselect($field, $post_ID) {
  * @return void
  */
 
-public function validate_date($field, $post_ID) {
+public function validate_datetime($field, $post_ID) {
     $terms = wp_get_post_terms( $post_ID, $field['taxonomy'], array( 'fields' => 'ids' ) );
     $terms_to_remove = array();
     for ( $i = 0; $i < count( $terms ); $i++ ) {
@@ -298,20 +298,45 @@ public function validate_date($field, $post_ID) {
     foreach ( $terms_to_remove as $t ) {
         $this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], null, $t );
     }
-    $year = $field['taxonomy'] . '_year';
-    $month = $field['taxonomy'] . '_month';
-    $day = $field['taxonomy'] . '_day';
     $data = array($field['taxonomy'] => '');
-    if ( isset($_POST[$month]) ) {
-        $data[$field['taxonomy']] = $_POST[$month];
+    if ( $field['type'] != 'date') {
+        $hour = $field['taxonomy'] . '_hour';
+        $minute = $field['taxonomy'] . '_minute';
+        $ampm = $field['taxonomy'] . '_ampm';
+        if ( isset($_POST[$hour]) ) {
+            $data[$field['taxonomy']] .= $_POST[$hour][0];
+        }
+        if ( isset( $_POST[$minute] ) ) {
+            $data[$field['taxonomy']] .= ':' . $_POST[$minute][0];
+        }
+        if ( isset( $_POST[$ampm] ) ) {
+            $data[$field['taxonomy']] .= $_POST[$ampm][0];
+        }
     }
-    if ( isset( $_POST[$day] ) ) {
-        $data[$field['taxonomy']] .= ' ' . $_POST[$day];
+    if ( $field['type'] == 'datetime' ) {
+        $data[$field['taxonomy']] .= ' ';
     }
-    if ( isset( $_POST[$year] ) ) {
-        $data[$field['taxonomy']] .= ' ' . $_POST[$year];
+    if ( $field['type'] != 'time') {
+        $month = $field['taxonomy'] . '_month';
+        $day = $field['taxonomy'] . '_day';
+        $year = $field['taxonomy'] . '_year';
+        if ( isset($_POST[$month]) ) {
+            $data[$field['taxonomy']] .= $_POST[$month];
+        }
+        if ( isset( $_POST[$day] ) ) {
+            $data[$field['taxonomy']] .= ' ' . $_POST[$day];
+        }
+        if ( isset( $_POST[$year] ) ) {
+            $data[$field['taxonomy']] .= ' ' . $_POST[$year];
+        }
     }
-    $date = DateTime::createFromFormat('F j Y', $data[$field['taxonomy']]);
+    if ( $field['type'] == 'time' ) {
+        $date = DateTime::createFromFormat('h:ia', $data[$field['taxonomy']]);
+    } elseif ( $field['type'] == 'date' ) {
+        $date = DateTime::createFromFormat('F j Y', $data[$field['taxonomy']]);
+    } elseif ( $field['type'] == 'datetime' ) {
+        $date = DateTime::createFromFormat('h:ia F j Y', $data[$field['taxonomy']]);
+    }
     if ( $date ) {
         $this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], $data, null );
     }
@@ -360,8 +385,8 @@ public function validate( $post_ID, $field, &$validate ) {
     } elseif ( in_array( $field['type'], $this->selects ) ) {
         $this->validate_select( $field, $post_ID );
         return;
-    } elseif ( $field['type'] === 'date' ) {
-        $this->validate_date( $field, $post_ID );
+    } elseif ( $field['type'] == 'date' or $field['type'] == 'time' or $field['type'] == 'datetime' ) {
+        $this->validate_datetime( $field, $post_ID );
         return;
     } elseif ( $field['type'] === 'link' ) {
         $this->validate_link($field, $post_ID);

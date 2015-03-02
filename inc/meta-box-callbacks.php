@@ -41,7 +41,9 @@ class Callbacks {
 		$rmTerm     = 'rm_' . $taxonomy . '_' . $term_num;
 		if ( isset( $_POST[$rmTerm] ) ) {
 			$tounset = get_term_by( 'name', $_POST[$rmTerm], $taxonomy );
-			$this->Taxonomy->remove_post_term( $post_id, $tounset->term_id, $taxonomy );
+			if ( $tounset ) {
+				$this->Taxonomy->remove_post_term( $post_id, $tounset->term_id, $taxonomy );
+			}
 		}
 		
 		if ( isset($data[$taxonomy] ) ) {

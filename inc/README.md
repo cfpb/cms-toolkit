@@ -216,7 +216,7 @@ as an array like `array(0 => 'url', 1 => 'text')`;
 input fields for day and year 
 * `select` generates a `<select>` field with options specified in the 'params' 
 array. For example `'param' => array( 'one', 'two', 'three',),` 
-* `mutliselect` is identical to `select` except that it passes the 'multiple' attribute, generating a multiselect box styled with [multiselect.js](http://loudev.com) 
+* `multiselect` is identical to `select` except that it passes the 'multiple' attribute, generating a multiselect box styled with [multiselect.js](http://loudev.com) 
 * `taxonomyselect` generates a `<select>`
 field with options pulled from the terms attached to the taxonomy specified in
 `meta_key` 

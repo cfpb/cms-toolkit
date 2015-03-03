@@ -27,6 +27,7 @@ class View {
 	private $other   = array( 'separator', 'fieldset', 'formset' );
 	public $elements;
 	private $HTML;
+	private $error;
 
 	function __construct() {
 		$this->HTML     = new HTML();
@@ -36,44 +37,55 @@ class View {
 			$this->hidden,
 			$this->other
 		);
+		$this->error = '\WP_Error';
 	}
 
 	public function replace_html( $HTML ) {
 		$this->HTML = $HTML;
 	}
 
+    public function error_handler( $Class ) {
+        $this->error = $Class;
+    }
+
 	public function process_defaults( $fields ) {
 		$ready = array();
 		foreach ( $fields as $field ) {
 			// check if this post has post meta or a taxonomy term already, if it does, set that as the value
 			if ( ! in_array( $field['type'], $this->elements ) ) {
-				return  new WP_Error( 'invalid_type', "Invalid type {$field['type']} given for {$field['slug']} in this model. Acceptable elements: {$this->elements}");
+				return new WP_Error( 'invalid_type', "Invalid type {$field['type']} given for {$field['slug']} in this model. Acceptable elements: {$this->elements}");
 			}
 			$ID = get_the_ID();
 			if ( isset($field['meta_key'] ) ) {
+				if ( ! isset( $field['slug'] ) ) {
+					$field['slug'] = $field['meta_key'];
+				}
 				$field['value'] = $this->default_value($ID, $field);
-			} else {
+			} elseif ( isset( $field['taxonomy'] ) ) {
 				$field['value'] = wp_get_object_terms(
 					$ID,
 					$taxonomy = $field['taxonomy'],
 					array( 'fields' => 'names' )
 				);
-			}
-			if ( $field['type'] == 'formset' ) {
-				$this->process_formset_defaults( $field, $ready );
-			} elseif ( $field['type'] == 'fieldset' ) {
-				for ($i = 0; $i < count( $field['fields'] ); $i++ ) {
-					$field['fields'][$i]['meta_key'] = "{$field['meta_key']}_{$field['fields'][$i]['meta_key']}";
-					$field['fields'][$i] = $this->assign_defaults( $field['fields'][$i] );
-					$field['fields'][$i]['value'] = $this->default_value( $ID, $field['fields'][$i] );
-				}
-				$ready[$field['meta_key']] = $field;
 			} else {
-				if ( isset( $field['meta_key'] ) ) {
-					$ready[$field['meta_key']] = $this->assign_defaults($field);
-				} elseif ( isset( $field['slug'] ) ) {                  
-					$ready[$field['slug']] = $this->assign_defaults($field);
+				return new WP_Error( 'no_slug', "No meta_key/slug/taxonomy is set.");
+			}
+			if ( isset( $field['slug'] ) ) {
+				if ( ! isset( $field['meta_key'] ) ) {
+					$field['meta_key'] = $field['slug'];
 				}
+			}
+			if ( isset( $field['meta_key'] ) ) {
+				if ( $field['type'] == 'formset' ) {
+					$field = $this->assign_defaults($field);
+					$this->process_formset_defaults( $field, $ready );
+				} elseif ( $field['type'] == 'fieldset' ) {
+					$ready[$field['meta_key']] = $this->process_fieldset( $field );
+				} else {
+					$ready[$field['meta_key']] = $this->assign_defaults($field);
+				}
+			} else {
+				return new WP_Error( 'no_metakey-slug', "'meta_key' and 'slug' are not set for this field." );
 			}
 		}
 		return $ready;
@@ -92,18 +104,44 @@ class View {
 			$processed[$i]['slug'] .= '_' . $i;
 			$processed[$i]['title'] .= isset( $processed[$i]['title'] ) ? ' ' . ( $i + 1 ) : "";
 			for ( $j = 0; $j < count( $field['fields'] ); $j++ ) {
-				$meta_key = $processed[$i]['fields'][$j]['meta_key'];
-				$processed[$i]['fields'][$j]['meta_key'] = "{$processed[$i]['meta_key']}_{$meta_key}";
+				if ( isset( $processed[$i]['fields'][$j]['meta_key'] ) ) {
+					$processed[$i]['fields'][$j]['meta_key'] = "{$processed[$i]['meta_key']}_{$processed[$i]['fields'][$j]['meta_key']}";
+				}
+				if ( isset( $processed[$i]['fields'][$j]['slug'] ) ) {
+					$processed[$i]['fields'][$j]['slug'] = "{$processed[$i]['slug']}_{$processed[$i]['fields'][$j]['slug']}";
+				}
 			}
 			$processed[$i]['fields'] = $this->process_defaults( $processed[$i]['fields'] );
 		}
 		foreach ( $processed as $f ) {
-			$ready[$f['meta_key']] = $f;
+			if ( isset( $f['meta_key'] ) ) {
+				$ready[$f['meta_key']] = $f;
+			} elseif ( isset( $f['slug'] ) ) {
+				$ready[$f['slug']] = $f;
+			}
 		}
 	}
 
+	public function process_fieldset( $field ){
+		$ID = get_the_ID();
+		for ($i = 0; $i < count( $field['fields'] ); $i++ ) {
+			if ( isset( $field['fields'][$i]['meta_key'] ) ) {
+				$field['fields'][$i]['meta_key'] = "{$field['meta_key']}_{$field['fields'][$i]['meta_key']}";
+			}
+			if ( isset( $field['fields'][$i]['slug'] ) ) {
+				$field['fields'][$i]['slug'] = "{$field['slug']}_{$field['fields'][$i]['slug']}";
+			}
+			if ( $field['fields'][$i]['type'] == 'fieldset' ) {
+				$field['fields'][$i] = $this->process_fieldset( $field['fields'][$i] );
+			} else {
+				$field['fields'][$i] = $this->assign_defaults( $field['fields'][$i] );
+				$field['fields'][$i]['value'] = $this->default_value( $ID, $field['fields'][$i] );
+			}
+		}
+		return $field;
+	}
+
 	public function assign_defaults( $field ) {
-		
 		$field['label'] = $this->default_label($field);
 		if ( ! in_array( $field['type'], $this->hidden ) ) {
 			$field['max_length'] = $this->default_max_length($field);
@@ -125,6 +163,9 @@ class View {
 		if ( ! in_array($field['type'], array( 'taxonomyselect', 'tax_as_meta', 'date', 'time', 'datetime' ) ) ) {
 			$field['taxonomy'] = false;
 		}
+		if ( $field['type'] == 'formset' ) {
+			$field = $this->default_formset_params( $field );
+		}
 		if ( $field['type'] == 'wysiwyg' ) {
 			if ( ! isset( $field['params'] ) or empty( $field['params'] ) ) {
 				$field['params'] = array( 'textarea_rows' => 5, 'editor_class' => "cms-toolkit-wysiwyg" );
@@ -136,7 +177,9 @@ class View {
 	}
 
 	public function default_value( $ID, $field, $index = 0 ) {
-		if ( $field['type'] == 'link' or $field['type'] == 'time' or $field['type'] == 'datetime' or $field['type'] == 'date' ) {
+		if ( $field['type'] == 'formset' or $field['type'] == 'fieldset' or
+			 $field['type'] == 'link' or $field['type'] == 'time' or
+			 $field['type'] == 'datetime' or $field['type'] == 'date' ) {
 			$default = null;
 		} else {
 			$existing = get_post_meta( $ID, $field['meta_key'], false );
@@ -173,6 +216,19 @@ class View {
 	public function default_options( $field ) {
 		$default = ! isset( $field['params']['include'] ) ? array() : $field['params']['include'];
 		return $default;
+	}
+	public function default_formset_params( $field ) {
+        if ( isset( $field['params'] ) ) {
+        	if ( ! isset( $field['params']['init_num_forms'] ) ) {
+        		$field['params']['init_num_forms'] = 1;
+        	}
+            if ( ! isset( $field['params']['max_num_forms'] ) ) {
+            	$field['params']['max_num_forms'] = 1;
+            }
+        } else {
+            $field['params'] = array( 'init_num_forms' => 1, 'max_num_forms' => 1 );
+        }
+        return $field;
 	}
 
 	public function ready_and_print_html( $post, $fields ) {

@@ -305,6 +305,27 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * Tests whether a field passed to default_formset_params will set params if
+	 * none are given.
+	 *
+	 * @group stable
+	 * @group isolated
+	 * @group defaults
+	 */
+	function testDefaultFormsetParamsWillSetParamsArrayWhenNotSet() {
+		// arrange
+		$View = new View();
+		$field['params'] = null;
+		$expected = array( 'init_num_forms' => 1, 'max_num_forms' => 1 );
+
+		// Act
+		$actual = $View->default_formset_params( $field );
+
+		// Assert
+		$this->assertEquals($expected, $actual['params'], 'The params array should have been set');
+	}
+
+	/**
 	 * Tests whether when more than one field is passed and one is hidden if both
 	 * fields are generated with the correct values.
 	 * @group maybe_delete
@@ -397,6 +418,32 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * Tests whether no meta_key or slug returns error
+	 *
+	 * @group stable
+	 * @group isolated
+	 * @group defaults
+	 */
+	function testNoMetakeyOrSlugExpectsWPError() {
+		$fields= array(
+			0 => array(
+				'type' => 'text',
+				'taxonomy' => 'tax',
+			)
+		);
+
+		$mock = $this->getMock('WP_Error');
+		$HTML = $this->getMock('HTML');
+		$View = new View();
+		$View->replace_HTML($HTML);
+		\WP_Mock::wpFunction( 'wp_get_object_terms' );
+
+		$cleaned = $View->process_defaults($fields);
+
+		$this->assertInstanceOf('WP_Error', $cleaned);
+	}
+
+	/**
 	 * Tests whether ready_and_print calls \HTML->Draw();
 	 *
 	 * @group stable
@@ -477,10 +524,11 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 				'taxonomy' => 'category',
 				'slug' => 'field',
 				'max_length' => 255,
+				'value' => 'term',
 				'label' => '',
 				'placeholder' => '',
-				'value' => 'term',
 				'multiselect' => false,
+				'meta_key' => 'field',
 			),
 		);
 		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
@@ -512,6 +560,244 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($expected, $actual);
 	}
 
+	function testFormsetFieldExpectsProcessFormsetDefaultsCalled() {
+		// arrange
+		$fields = array(
+			'field' => array(
+	            'type' => 'formset',
+	            'fields' => array(
+	                array(
+	                    'title' => 'Title',
+	                    'type' => 'text',
+	                    'meta_key' => 'title',
+	                ),
+	            ),
+	            'params' => array(
+	                'init_num_forms' => 1,
+	                'max_num_forms' => 2,
+	            ),
+	            'meta_key' => 'field',
+	        ),
+		);
+		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
+					 ->setMethods( array( 'process_formset_defaults', 'default_value' ) )
+					 ->getMock();
+		$stub->expects( $this->once() )
+			 ->method( 'process_formset_defaults' )
+			 ->will( $this->returnValue( true ) );
+		$stub->expects( $this->once() )
+			 ->method( 'default_value' )
+			 ->will( $this->returnValue( array() ) );
+
+		// act
+		$stub->process_defaults( $fields );
+
+		// assert
+		// Passes when process_formset_defaults and default_value are called
+	}
+
+	function testFieldsetFieldCallsAssignDefaultsAndDefaultValuePerField() {
+		// arrange
+		$fields = array(
+			'field' => array(
+		        'type' => 'fieldset',
+		        'fields' => array(
+		            array(
+		                'type' => 'text',
+		                'meta_key' => 'num',
+		            ),
+		            array(
+		                'type' => 'text',
+		                'meta_key' => 'desc',
+		            ),
+		        ),
+		        'params' => array(),
+		        'meta_key' => 'field',
+		    ),
+		);
+		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
+					 ->setMethods( array( 'assign_defaults', 'default_value' ) )
+					 ->getMock();
+		$stub->expects( $this->exactly( 2 ) )
+			 ->method( 'assign_defaults' )
+			 ->will( $this->returnValue( array() ) );
+		$stub->expects( $this->exactly( 3 ) )
+			 ->method( 'default_value' )
+			 ->will( $this->returnValue( array() ) );
+
+		// act
+		$stub->process_defaults( $fields );
+
+		// assert
+		// Passes when each field (including the fieldset field) gets a call to assign_defaults and default_value
+	}
+
+	function testOtherFieldTypesWithMetakeySetToCallAssignDefaults() {
+		$fields = array(
+			'field' => array(
+				'slug' => 'field',
+				'title' => 'This is another field',
+				'type' => 'number',
+				'params' => array(),
+				'placeholder' => '0-100',
+				'howto' => 'Type a number',
+				'meta_key' => 'field',
+			),
+		);
+		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
+					 ->setMethods( array( 'assign_defaults', ) )
+					 ->getMock();
+		$stub->expects( $this->once() )
+			 ->method( 'assign_defaults' )
+			 ->will( $this->returnValue( true ) );
+		\WP_Mock::wpFunction('get_post_meta', array('times' => 1, 'return' => array()));
+
+		//act
+		$stub->process_defaults( $fields );
+
+		//assert
+		// Passes when process_defaults is called on field
+	}
+
+	function testOtherFieldTypesWithoutMetakeySetAndSlugSetToCallAssignDefaults() {
+		$fields = array(
+			'field' => array(
+				'meta_key' => 'field',
+				'title' => 'This is another field',
+				'type' => 'number',
+				'params' => array(),
+				'placeholder' => '0-100',
+				'howto' => 'Type a number',
+			),
+		);
+		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
+					 ->setMethods( array( 'assign_defaults', 'default_value' ) )
+					 ->getMock();
+		$stub->expects( $this->once() )
+			 ->method( 'assign_defaults' )
+			 ->will( $this->returnValue( true ) );
+		// \WP_Mock::wpFunction('get_post_meta', array('times' => 0, 'return' => array()));
+
+		//act
+		$stub->process_defaults( $fields );
+
+		//assert
+		// Passes when process_defaults is called on field
+	}
+
+	function testProcessDefaultsIsCalledForEachFieldInProcessFormsetDefaults() {
+		// arrange
+		$fields = array(
+			'field' => array(
+	            'type' => 'formset',
+	            'fields' => array(
+	                array(
+	                    'title' => 'Title',
+	                    'type' => 'text',
+	                    'meta_key' => 'title',
+	                ),
+	            ),
+	            'params' => array(
+	                'init_num_forms' => 1,
+	                'max_num_forms' => 2,
+	            ),
+	            'meta_key' => 'field',
+	        ),
+		);
+		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
+					 ->setMethods( array( 'process_defaults', ) )
+					 ->getMock();
+		$stub->expects( $this->exactly( 2 ) )
+			 ->method( 'process_defaults' )
+			 ->will( $this->returnValue( true ) );
+		$ready = array();
+
+		// act
+		$stub->process_formset_defaults( $fields['field'], $ready );
+
+		//assert
+		// Passes when each field of each formset calls process_defaults
+	}
+
+	function testProcessFormsetDefaultsAssignsCorrectValuesToEachField() {
+		//arrange
+		$fields = array(
+			'field' => array(
+	            'type' => 'formset',
+	            'fields' => array(
+	                array(
+	                    'title' => 'Title',
+	                    'type' => 'text',
+	                    'meta_key' => 'title',
+	                ),
+	            ),
+	            'params' => array(
+	                'init_num_forms' => 1,
+	                'max_num_forms' => 2,
+	            ),
+	            'meta_key' => 'field',
+	        ),
+		);
+		$View = new View();
+		\WP_Mock::wpFunction('get_post_meta', array('times' => 2, 'return' => array()));
+		$actual = array();
+		$expected = array(
+			'field_0' => array(
+	            'type' => 'formset',
+	            'fields' => array(
+	                'field_0_title' => array(
+	                    'title' => 'Title',
+	                    'type' => 'text',
+	                    'meta_key' => 'field_0_title',
+	                    'slug' => 'field_0_title',
+	                    'value' => '',
+	                    'label' => '',
+	                    'max_length' => 255,
+	                    'placeholder' => '',
+	                    'multiselect' => false,
+	                    'taxonomy' => false,
+	                ),
+	            ),
+		        'params' => array(
+		                'init_num_forms' => 1,
+		                'max_num_forms' => 2,
+		        ),
+		        'meta_key' => 'field_0',
+		        'init' => true,
+		        'slug' => '_0',
+		        'title' => '',
+	        ),
+			'field_1' => array(
+	            'type' => 'formset',
+	            'fields' => array(
+	                'field_1_title' => array(
+	                    'title' => 'Title',
+	                    'type' => 'text',
+	                    'meta_key' => 'field_1_title',
+	                    'slug' => 'field_1_title',
+	                    'value' => '',
+	                    'label' => '',
+	                    'max_length' => 255,
+	                    'placeholder' => '',
+	                    'multiselect' => false,
+	                    'taxonomy' => false,
+	                ),
+	            ),
+		        'params' => array(
+		                'init_num_forms' => 1,
+		                'max_num_forms' => 2,
+	            ),
+		        'meta_key' => 'field_1',
+		        'slug' => '_1',
+		        'title' => '',
+	        ),
+	    );
+		//act
+		$View->process_formset_defaults( $fields['field'], $actual );
+
+		//assert
+		$this->assertEquals( $expected, $actual );
+	}
 	/**
 	 * Tests that a text_area field calls for default_rows and default_cols
 	 *

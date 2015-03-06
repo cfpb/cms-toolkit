@@ -43,8 +43,7 @@ class HTML {
 	}
 
 	public function draw_formset( $field ) {
-		global $post;
-		$post_id = $post->ID;	
+		$post_id = get_the_ID();	
 		$post_data = get_post_custom( $post_id );
 		$form_id = $this->get_formset_id( $field['meta_key'] );
 		$init = isset( $field['init'] ) ? true : false;
@@ -134,10 +133,10 @@ class HTML {
 				$form_id
 			);
 		} elseif ( $field['type'] == 'post_select' || $field['type'] == 'post_multiselect' ) {
-			global $post;
+			$post_id = get_the_ID();
 			$args = $field['params'];
 			$posts = get_posts($args);
-			$value = get_post_meta( $post->ID, $field['meta_key'], $single = false );
+			$value = get_post_meta( $post_id, $field['meta_key'], $single = false );
 			$multi = $field['type'] == 'post_multiselect' ? 'multiple' : null;
 			$this->post_select(
 				$field['meta_key'],
@@ -296,8 +295,7 @@ class HTML {
 	}
 
 	public function link_input( $meta_key, $value, $required, $label, $form_id = NULL ) {
-		global $post;
-		$post_id = $post->ID;
+		$post_id = get_the_ID();
 		$existing = get_post_meta( $post_id, $meta_key, false);
 		?><div class="link-field <?php echo "{$meta_key}" ?>"><?php
 		if ( ! isset( $existing[0] ) || ! isset( $existing[1] ) ) { 
@@ -439,19 +437,20 @@ class HTML {
 	 * @param bool $multiples     whether the term shoud append (true) or replace (false) existing terms
 	 **/
 	public function date( $taxonomy, $multiple, $required, $label, $form_id = NULL ) {
+		global $wp_locale;
 		$tax_name = stripslashes( $taxonomy );
 		global $wp_locale;
-		?><div id="<?php echo esc_attr( $slug) ?>" name="<?php echo esc_attr( $slug) ?>" class="cms-toolkit-date" ><?php
+		?><div id="<?php echo esc_attr( $taxonomy ) ?>" name="<?php echo esc_attr( $taxonomy ) ?>" class="cms-toolkit-date" ><?php
 			if ( $label ) {
 				?><label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $taxonomy ) ?>"><?php echo esc_attr( $label ); ?></label><?php
 			}
-			?><select id="<?php echo esc_attr( $tax_name ) ?>_month" name="<?php echo esc_attr( $tax_name ) ?>_month" class="<?php echo "form-input_{$form_id}"; ?>"><option selected="selected" value="<?php echo esc_attr( $month ) ?>" <?php if ( $required ): echo 'required'; endif; ?>>Month</option><?php
+			?><select id="<?php echo esc_attr( $tax_name ) ?>_month" name="<?php echo esc_attr( $tax_name ) ?>_month" class="<?php echo "form-input_{$form_id}"; ?>"><option selected="selected" value="" <?php if ( $required ): echo 'required'; endif; ?>>Month</option><?php
 			for ( $i = 1; $i < 13; $i++ ) {
 				?><option value="<?php echo esc_attr( $wp_locale->get_month( $i ) ) ?>"><?php echo esc_attr( $wp_locale->get_month( $i ) )  ?></option><?php 
 			} 
 			?></select><?php
-			?><input id="<?php echo esc_attr( $tax_name ) ?>_day" type="text" name="<?php echo esc_attr( $tax_name ) ?>_day" class="<?php echo "form-input_{$form_id}"; ?>" value="<?php echo esc_attr( $day ) ?>" size="2" maxlength="2" placeholder="DD"/><?php
-			?><input id="<?php echo esc_attr( $tax_name ) ?>_year" type="text" name="<?php echo esc_attr( $tax_name ) ?>_year" class="<?php echo "form-input_{$form_id}"; ?>" value="<?php echo esc_attr( $year ) ?>" size="4" maxlength="4" placeholder="YYYY"/><?php
+			?><input id="<?php echo esc_attr( $tax_name ) ?>_day" type="text" name="<?php echo esc_attr( $tax_name ) ?>_day" class="<?php echo "form-input_{$form_id}"; ?>" value="" size="2" maxlength="2" placeholder="DD"/><?php
+			?><input id="<?php echo esc_attr( $tax_name ) ?>_year" type="text" name="<?php echo esc_attr( $tax_name ) ?>_year" class="<?php echo "form-input_{$form_id}"; ?>" value="" size="4" maxlength="4" placeholder="YYYY"/><?php
 		?></div><?php
 	}
 
@@ -483,10 +482,10 @@ class HTML {
 	}
 
 	public function displayTags( $taxonomy, $type ) {
-		global $post;
+		$post_id = get_the_ID();
 		?><div class='tagchecklist'><?php
-			if ( has_term( '', $taxonomy, $post->id ) ) {
-				$terms = get_the_terms( $post->id, $taxonomy );
+			if ( has_term( '', $taxonomy, $post_id ) ) {
+				$terms = get_the_terms( $post_id, $taxonomy );
 				$i = 0;
 				foreach ( $terms as $term ) {
 					// Checks if the current set term is wholly numeric (in this case a timestamp)

@@ -44,9 +44,9 @@ class View {
 		$this->HTML = $HTML;
 	}
 
-    public function error_handler( $Class ) {
-        $this->error = $Class;
-    }
+	public function error_handler( $Class ) {
+		$this->error = $Class;
+	}
 
 	public function process_defaults( $fields ) {
 		$ready = array();
@@ -218,17 +218,17 @@ class View {
 		return $default;
 	}
 	public function default_formset_params( $field ) {
-        if ( isset( $field['params'] ) ) {
-        	if ( ! isset( $field['params']['init_num_forms'] ) ) {
-        		$field['params']['init_num_forms'] = 1;
-        	}
-            if ( ! isset( $field['params']['max_num_forms'] ) ) {
-            	$field['params']['max_num_forms'] = 1;
-            }
-        } else {
-            $field['params'] = array( 'init_num_forms' => 1, 'max_num_forms' => 1 );
-        }
-        return $field;
+		if ( isset( $field['params'] ) ) {
+			if ( ! isset( $field['params']['init_num_forms'] ) ) {
+				$field['params']['init_num_forms'] = 1;
+			}
+			if ( ! isset( $field['params']['max_num_forms'] ) ) {
+				$field['params']['max_num_forms'] = 1;
+			}
+		} else {
+			$field['params'] = array( 'init_num_forms' => 1, 'max_num_forms' => 1 );
+		}
+		return $field;
 	}
 
 	public function ready_and_print_html( $post, $fields ) {

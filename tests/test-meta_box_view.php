@@ -436,7 +436,9 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		$HTML = $this->getMock('HTML');
 		$View = new View();
 		$View->replace_HTML($HTML);
-		\WP_Mock::wpFunction( 'wp_get_object_terms' );
+		\WP_Mock::wpFunction(
+			'wp_get_object_terms',
+			array('times'=>1, 'return' => 'term'));
 
 		$cleaned = $View->process_defaults($fields);
 
@@ -564,20 +566,20 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		// arrange
 		$fields = array(
 			'field' => array(
-	            'type' => 'formset',
-	            'fields' => array(
-	                array(
-	                    'title' => 'Title',
-	                    'type' => 'text',
-	                    'meta_key' => 'title',
-	                ),
-	            ),
-	            'params' => array(
-	                'init_num_forms' => 1,
-	                'max_num_forms' => 2,
-	            ),
-	            'meta_key' => 'field',
-	        ),
+				'type' => 'formset',
+				'fields' => array(
+					array(
+						'title' => 'Title',
+						'type' => 'text',
+						'meta_key' => 'title',
+					),
+				),
+				'params' => array(
+					'init_num_forms' => 1,
+					'max_num_forms' => 2,
+				),
+				'meta_key' => 'field',
+			),
 		);
 		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
 					 ->setMethods( array( 'process_formset_defaults', 'default_value' ) )
@@ -600,20 +602,20 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		// arrange
 		$fields = array(
 			'field' => array(
-		        'type' => 'fieldset',
-		        'fields' => array(
-		            array(
-		                'type' => 'text',
-		                'meta_key' => 'num',
-		            ),
-		            array(
-		                'type' => 'text',
-		                'meta_key' => 'desc',
-		            ),
-		        ),
-		        'params' => array(),
-		        'meta_key' => 'field',
-		    ),
+				'type' => 'fieldset',
+				'fields' => array(
+					array(
+						'type' => 'text',
+						'meta_key' => 'num',
+					),
+					array(
+						'type' => 'text',
+						'meta_key' => 'desc',
+					),
+				),
+				'params' => array(),
+				'meta_key' => 'field',
+			),
 		);
 		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
 					 ->setMethods( array( 'assign_defaults', 'default_value' ) )
@@ -689,20 +691,23 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		// arrange
 		$fields = array(
 			'field' => array(
-	            'type' => 'formset',
-	            'fields' => array(
-	                array(
-	                    'title' => 'Title',
-	                    'type' => 'text',
-	                    'meta_key' => 'title',
-	                ),
-	            ),
-	            'params' => array(
-	                'init_num_forms' => 1,
-	                'max_num_forms' => 2,
-	            ),
-	            'meta_key' => 'field',
-	        ),
+				'type' => 'formset',
+				'title' => 'title',
+				'fields' => array(
+					array(
+						'title' => 'Title',
+						'type' => 'text',
+						'meta_key' => 'title',
+						'slug' => 'title',
+					),
+				),
+				'params' => array(
+					'init_num_forms' => 1,
+					'max_num_forms' => 2,
+				),
+				'meta_key' => 'field',
+				'slug' => 'field',
+			),
 		);
 		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
 					 ->setMethods( array( 'process_defaults', ) )
@@ -723,75 +728,78 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		//arrange
 		$fields = array(
 			'field' => array(
-	            'type' => 'formset',
-	            'fields' => array(
-	                array(
-	                    'title' => 'Title',
-	                    'type' => 'text',
-	                    'meta_key' => 'title',
-	                ),
-	            ),
-	            'params' => array(
-	                'init_num_forms' => 1,
-	                'max_num_forms' => 2,
-	            ),
-	            'meta_key' => 'field',
-	        ),
+				'type' => 'formset',
+				'title' => 'title',
+				'fields' => array(
+					array(
+						'title' => 'Title',
+						'type' => 'text',
+						'meta_key' => 'title',
+						'slug' => 'title',
+					),
+				),
+				'params' => array(
+					'init_num_forms' => 1,
+					'max_num_forms' => 2,
+				),
+				'meta_key' => 'field',
+				'slug' => 'field',
+			),
 		);
 		$View = new View();
 		\WP_Mock::wpFunction('get_post_meta', array('times' => 2, 'return' => array()));
 		$actual = array();
 		$expected = array(
 			'field_0' => array(
-	            'type' => 'formset',
-	            'fields' => array(
-	                'field_0_title' => array(
-	                    'title' => 'Title',
-	                    'type' => 'text',
-	                    'meta_key' => 'field_0_title',
-	                    'slug' => 'field_0_title',
-	                    'value' => '',
-	                    'label' => '',
-	                    'max_length' => 255,
-	                    'placeholder' => '',
-	                    'multiselect' => false,
-	                    'taxonomy' => false,
-	                ),
-	            ),
-		        'params' => array(
-		                'init_num_forms' => 1,
-		                'max_num_forms' => 2,
-		        ),
-		        'meta_key' => 'field_0',
-		        'init' => true,
-		        'slug' => '_0',
-		        'title' => '',
-	        ),
+				'type' => 'formset',
+				'fields' => array(
+					'field_0_title' => array(
+						'title' => 'Title',
+						'type' => 'text',
+						'meta_key' => 'field_0_title',
+						'slug' => 'field_0_title',
+						'value' => '',
+						'label' => '',
+						'max_length' => 255,
+						'placeholder' => '',
+						'multiselect' => false,
+						'taxonomy' => false,
+					),
+				),
+				'params' => array(
+						'init_num_forms' => 1,
+						'max_num_forms' => 2,
+				),
+				'meta_key' => 'field_0',
+				'init' => true,
+				'slug' => 'field_0',
+				'title' => 'title 1',
+			),
 			'field_1' => array(
-	            'type' => 'formset',
-	            'fields' => array(
-	                'field_1_title' => array(
-	                    'title' => 'Title',
-	                    'type' => 'text',
-	                    'meta_key' => 'field_1_title',
-	                    'slug' => 'field_1_title',
-	                    'value' => '',
-	                    'label' => '',
-	                    'max_length' => 255,
-	                    'placeholder' => '',
-	                    'multiselect' => false,
-	                    'taxonomy' => false,
-	                ),
-	            ),
-		        'params' => array(
-		                'init_num_forms' => 1,
-		                'max_num_forms' => 2,
-	            ),
-		        'meta_key' => 'field_1',
-		        'slug' => '_1',
-		        'title' => '',
-	        ),
-	    );
+				'type' => 'formset',
+				'fields' => array(
+					'field_1_title' => array(
+						'title' => 'Title',
+						'type' => 'text',
+						'meta_key' => 'field_1_title',
+						'slug' => 'field_1_title',
+						'value' => '',
+						'label' => '',
+						'max_length' => 255,
+						'placeholder' => '',
+						'multiselect' => false,
+						'taxonomy' => false,
+					),
+				),
+				'params' => array(
+						'init_num_forms' => 1,
+						'max_num_forms' => 2,
+				),
+				'meta_key' => 'field_1',
+				'slug' => 'field_1',
+				'title' => 'title 2',
+			),
+		);
 		//act
 		$View->process_formset_defaults( $fields['field'], $actual );
 

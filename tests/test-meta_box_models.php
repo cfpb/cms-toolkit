@@ -19,6 +19,7 @@ class TestValidBox extends Models {
             'placeholder' => 'Enter text',
             'howto' => 'Type some text',
             'meta_key' => 'field_one',
+            'value' => '',
         ),
         'field_two' => array(
             'slug' => 'field_two',
@@ -28,6 +29,7 @@ class TestValidBox extends Models {
             'placeholder' => '0-100',
             'howto' => 'Type a number',
             'meta_key' => 'field_two',
+            'value' => '',
         ),
     );
 }
@@ -75,6 +77,8 @@ class TestValidTextAreaField extends Models {
             'label' => 'Text Label',
             'type' => 'text_area',
             'params' => array('max_length' => 255),
+            'rows' => 5,
+            'cols' => 5,
             'placeholder' => 'Type some text',
             'howto' => 'Up to 255 characters',
             'meta_key' => 'one',
@@ -185,6 +189,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
      */
     function testEmptyFieldsArrayExpectsError() {
         // arrange
+        global $post;
         $TestValidTextField = new TestValidTextField();
         $TestValidTextField->fields = array();
         $stub = $this->getMockBuilder( '\WP_Error' )
@@ -214,6 +219,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
      */
     function testFieldTypeIsNotSetExpectsError() {
         // arrange
+        global $post;
         $TestValidTextField = new TestValidTextField();
         $TestValidTextField->fields['one']['type'] = null;
         $stub = $this->getMockBuilder( '\WP_Error' )
@@ -243,6 +249,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
      */
     function testFieldMetakeySlugTaxonomyIsNotSetExpectsError() {
         // arrange
+        global $post;
         $TestValidTextField = new TestValidTextField();
         $TestValidTextField->fields['one']['meta_key'] = null;
         $TestValidTextField->fields['one']['slug'] = null;
@@ -274,6 +281,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
      */
     function testFieldTypeTaxonomyselectWhereTaxonomyIsNotSetExpectsError() {
         // arrange
+        global $post;
         $TestValidTextField = new TestValidTextField();
         $TestValidTextField->fields['one']['taxonomy'] = null;
         $TestValidTextField->fields['one']['type'] = 'taxonomyselect';
@@ -304,6 +312,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
      */
     function testFieldTypeDateWhereTaxonomyIsNotSetExpectsError() {
         // arrange
+        global $post;
         $TestValidTextField = new TestValidTextField();
         $TestValidTextField->fields['one']['taxonomy'] = null;
         $TestValidTextField->fields['one']['type'] = 'date';
@@ -334,6 +343,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
      */
     function testFieldTypeOfSelectsArrayWhereMetakeyIsNotSetExpectsError() {
         // arrange
+        global $post;
         $TestValidTextField = new TestValidTextField();
         $TestValidTextField->fields['one']['meta_key'] = null;
         $TestValidTextField->fields['one']['type'] = 'select';
@@ -363,6 +373,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
      */
     function testFieldTypeFormsetWhereParamsArrayIsNotSetExpectsError() {
         // arrange
+        global $post;
         $TestValidTextField = new TestValidFormsetField();
         $TestValidTextField->fields['field']['params'] = null;
         $stub = $this->getMockBuilder( '\WP_Error' )
@@ -391,6 +402,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
      */
     function testFieldTypeFormsetWhereMaxNumFormsInParamsArrayIsNotSetExpectsError() {
         // arrange
+        global $post;
         $TestValidTextField = new TestValidFormsetField();
         $TestValidTextField->fields['field']['params']['max_num_forms'] = null;
         $stub = $this->getMockBuilder( '\WP_Error' )
@@ -642,7 +654,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
         $TestValidTextAreaField->validate($post->ID, $TestValidTextAreaField->fields['one'], $actual);
 
         // assert
-        $this->assertTrue( is_null($actual['one']) );
+        $this->assertTrue( ! isset( $actual['one'] ) );
     }
 
     /**

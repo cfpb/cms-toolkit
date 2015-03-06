@@ -436,6 +436,9 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		$HTML = $this->getMock('HTML');
 		$View = new View();
 		$View->replace_HTML($HTML);
+		\WP_Mock::wpFunction(
+			'wp_get_object_terms',
+			array('times'=>1, 'return' => 'term'));
 
 		$cleaned = $View->process_defaults($fields);
 
@@ -689,11 +692,13 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		$fields = array(
 			'field' => array(
 	            'type' => 'formset',
+	            'title' => 'title',
 	            'fields' => array(
 	                array(
 	                    'title' => 'Title',
 	                    'type' => 'text',
 	                    'meta_key' => 'title',
+	                    'slug' => 'title',
 	                ),
 	            ),
 	            'params' => array(
@@ -701,6 +706,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	                'max_num_forms' => 2,
 	            ),
 	            'meta_key' => 'field',
+	            'slug' => 'field',
 	        ),
 		);
 		$stub = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
@@ -723,11 +729,13 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		$fields = array(
 			'field' => array(
 	            'type' => 'formset',
+	            'title' => 'title',
 	            'fields' => array(
 	                array(
 	                    'title' => 'Title',
 	                    'type' => 'text',
 	                    'meta_key' => 'title',
+	                    'slug' => 'title',
 	                ),
 	            ),
 	            'params' => array(
@@ -735,6 +743,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	                'max_num_forms' => 2,
 	            ),
 	            'meta_key' => 'field',
+	            'slug' => 'field',
 	        ),
 		);
 		$View = new View();
@@ -763,8 +772,8 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		        ),
 		        'meta_key' => 'field_0',
 		        'init' => true,
-		        'slug' => '_0',
-		        'title' => '',
+		        'slug' => 'field_0',
+		        'title' => 'title 1',
 	        ),
 			'field_1' => array(
 	            'type' => 'formset',
@@ -787,8 +796,8 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		                'max_num_forms' => 2,
 	            ),
 		        'meta_key' => 'field_1',
-		        'slug' => '_1',
-		        'title' => '',
+		        'slug' => 'field_1',
+		        'title' => 'title 2',
 	        ),
 	    );
 		//act

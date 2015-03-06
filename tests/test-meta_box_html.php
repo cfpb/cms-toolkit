@@ -1,4 +1,5 @@
 <?php
+use CFPB\Utils\MetaBox\Models;
 use \CFPB\Utils\MetaBox\HTML;
 use \Mockery as m;
 
@@ -45,13 +46,16 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testDrawWithFieldTypeFormsetCallsDrawFormset() {
 		//arrange
-		$field = array( 'type' => 'formset' );
+        $TestValidBox = new \TestValidBox;
+        $TestValidBox->fields['field_one']['type'] = 'formset';
+        $field = $TestValidBox->fields['field_one'];
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'draw_formset', ) )
 					 ->getMock();
 		$HTML->expects( $this->once() )
 			 ->method( 'draw_formset' )
 			 ->will( $this->returnValue( true ) );
+        \WP_Mock::wpFunction( 'esc_attr' );
 
 		//act
 		$HTML->draw( $field );
@@ -135,13 +139,16 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testDrawWithHiddenFieldCallsHidden() {
 		//arrange
-		$field = array( 'type' => 'hidden' );
+		$TestValidBox = new TestValidBox();
+        $TestValidBox->fields['field_one']['type'] = 'hidden';
+        $field = $TestValidBox->fields['field_one'];
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'hidden', ) )
 					 ->getMock();
 		$HTML->expects( $this->once() )
 			 ->method( 'hidden' )
 			 ->will( $this->returnValue( true ) );
+        \WP_Mock::wpFunction( 'esc_attr' );
 
 		//act
 		$HTML->draw( $field );
@@ -158,14 +165,15 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testDrawWithNonceFieldCallsWPNonceField() {
 		//arrange
-		$field = array(
-			'type' => 'nonce'
-		);
+		$TestValidBox = new TestValidBox();
+        $TestValidBox->fields['field_one']['type'] = 'nonce';
+        $field = $TestValidBox->fields['field_one'];
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( null )
 					 ->getMock();
 		\WP_Mock::wpPassthruFunction('wp_nonce_field', array( 'times' => 1, ) );
 		\WP_Mock::wpPassthruFunction('plugin_basename', array( 'times' => 1, ) );
+        \WP_Mock::wpFunction( 'esc_attr' );
 
 		//act
 		$HTML->draw( $field );
@@ -173,26 +181,48 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		//assert
 		// Passes when called for nonce type
 	}
-	/**
+    /**
+     * Tests that the draw_formset() method will call get_the_ID().
+     *
+     * @group stable
+     * @group wp_function
+     */
+    function testDrawFormsetShouldCallGetTheID() {
+        //arrange
+        $Formset = new TestValidFormsetField();
+        $HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
+                     ->setMethods( array( 'get_existing_data', 'get_formset_id', 'draw' ) )
+                     ->getMock();
+        \WP_Mock::wpFunction( 'get_the_ID', array( 'times' => 1 ) );
+        \WP_Mock::wpFunction( 'get_post_custom' );
+
+        //act
+        $HTML->draw_formset( $Formset->fields['field'] );
+
+        //assert
+        // Passes if get_the_ID() is called once.
+    }
+    /**
      * Tests that the draw_formset() method will call get_post_custom().
      *
      * @group stable
      * @group wp_function
      */
-	function testDrawFormsetShouldCallGetPostCustom() {
-		//arrange
-		$field['fields'] = array();
-		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( array( 'get_existing_data', 'get_formset_id' ) )
-					 ->getMock();
-		\WP_Mock::wpFunction( 'get_post_custom', array( 'times' => 1 ) );
-		
-		//act
-		$HTML->draw_formset( $field );
+    function testDrawFormsetShouldCallGetPostCustom() {
+        //arrange
+        $Formset = new TestValidFormsetField();
+        $HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
+                     ->setMethods( array( 'get_existing_data', 'get_formset_id', 'draw' ) )
+                     ->getMock();
+        \WP_Mock::wpFunction( 'get_the_ID' );
+        \WP_Mock::wpFunction( 'get_post_custom', array( 'times' => 1 ) );
+        
+        //act
+        $HTML->draw_formset( $Formset->fields['field'] );
 
-		//assert
-		// Passes if get_post_custom() is called once.
-	}
+        //assert
+        // Passes if get_post_custom() is called once.
+    }
 	/**
      * Tests that the draw_formset() method will call get_formset_id().
      *
@@ -210,6 +240,8 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		$HTML->expects( $this->once() )
 			 ->method( 'get_formset_id' )
 			 ->	will( $this->returnValue( true ) );
+        \WP_Mock::wpFunction( 'get_the_ID' );
+        \WP_Mock::wpFunction( 'get_post_custom' );
 
 		//act
 		$HTML->draw_formset( $field );
@@ -234,6 +266,8 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		$HTML->expects( $this->once() )
 			 ->method( 'get_existing_data' )
 			 ->	will( $this->returnValue( true ) );
+        \WP_Mock::wpFunction( 'get_the_ID' );
+        \WP_Mock::wpFunction( 'get_post_custom' );
 
 		//act
 		$HTML->draw_formset( $field );
@@ -276,7 +310,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		//arrange
 		$field = array(
 			'fields' => array(
-				array( 'meta_key' => 'field'),
+				array( 'type' => 'text', 'meta_key' => 'field'),
 			),
 		);
 		$existing = array();
@@ -302,9 +336,27 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 	function testPassSelectCallsSelectForSelectMultiselectAndTaxonomySelectTypes() {
 		//arrange
 		$selections = array(
-			array('type' => 'select'),
-			array('type' => 'multiselect'),
-			array('type' => 'taxonomyselect'),
+			array(
+                'type' => 'select',
+                'meta_key' => 'select',
+                'params' => array(),
+                'value' => '',
+                'placeholder' => '',
+            ),
+            array(
+                'type' => 'multiselect',
+                'meta_key' => 'multiselect',
+                'params' => array(),
+                'value' => '',
+                'placeholder' => '',
+            ),
+            array(
+                'type' => 'taxonomyselect',
+                'meta_key' => 'taxonomyselect',
+                'params' => array(),
+                'value' => '',
+                'placeholder' => '',
+            ),
 		);
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'select', ) )
@@ -330,7 +382,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testPassSelectCallsTaxonomyAsMetaForTaxAsMetaType() {		
 		//arrange
-		$field = array( 'type' => 'tax_as_meta' );
+		$field = array( 'type' => 'tax_as_meta', 'slug' => '', 'include' => '', 'value' => '', 'placeholder' => '' );
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'taxonomy_as_meta', ) )
 					 ->getMock();
@@ -354,8 +406,18 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 	function testPassSelectCallsSelectForPostSelectAndPostMultiselectTypes() {
 		//arrange
 		$selections = array(
-			array('type' => 'post_select'),
-			array('type' => 'post_multiselect'),
+			array(
+                'type' => 'post_select',
+                'params' => '',
+                'meta_key' => '',
+                'placeholder' => ''
+            ),
+            array(
+                'type' => 'post_multiselect',
+                'params' => '',
+                'meta_key' => '',
+                'placeholder' => ''
+            ),
 		);
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'post_select', ) )
@@ -383,7 +445,12 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testPassSelectCallsGetPosts() {
 		//arrange
-		$field = array('type' => 'post_select');
+		$field = array(
+            'type' => 'post_select',
+            'params' => '',
+            'meta_key' => '',
+            'placeholder' => ''            
+        );
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'post_select', ) )
 					 ->getMock();
@@ -405,7 +472,12 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testPassSelectCallsGetPostMeta() {
 		//arrange
-		$field = array('type' => 'post_select');
+        $field = array(
+            'type' => 'post_select',
+            'params' => '',
+            'meta_key' => '',
+            'placeholder' => ''            
+        );
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'post_select', ) )
 					 ->getMock();
@@ -427,7 +499,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testDrawInputCallsTextAreaForTextAreaType() {
 		//arrange
-		$field = array( 'type' => 'text_area' );
+		$TestValidTextAreaField = new TestValidTextAreaField();
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'text_area', ) )
 					 ->getMock();
@@ -436,7 +508,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 			 ->will( $this->returnValue( true ) );
 
 		//act
-		$HTML->draw_input( $field );
+		$HTML->draw_input( $TestValidTextAreaField->fields['one'] );
 
 		//assert
 		// Passes when text_area() is called once
@@ -450,12 +522,8 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testDrawInputCallsSingleInputForNumberTextEmailURLTypes() {
 		//arrange
-		$fields = array(
-			array( 'type' => 'number' ),
-			array( 'type' => 'text' ),
-			array( 'type' => 'email' ),
-			array( 'type' => 'url' ),
-		);
+        $field = new TestValidTextField();
+		$types = array( 'number', 'text', 'email', 'url');
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'single_input', ) )
 					 ->getMock();
@@ -464,8 +532,9 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 			 ->will( $this->returnValue( true ) );
 
 		//act
-		foreach ( $fields as $field ) {
-			$HTML->draw_input( $field );
+		foreach ( $types as $type ) {
+            $field->fields['one']['type'] = $type;
+			$HTML->draw_input( $field->fields['one'] );
 		}
 
 		//assert
@@ -479,7 +548,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testDrawInputCallsDateForDateType() {
 		//arrange
-		$field = array( 'type' => 'date' );
+		$field = new TestValidDateField();
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'date', ) )
 					 ->getMock();
@@ -488,7 +557,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 			 ->will( $this->returnValue( true ) );
 
 		//act
-		$HTML->draw_input( $field );
+		$HTML->draw_input( $field->fields['category'] );
 
 		//assert
 		// Passes when date() is called once
@@ -502,7 +571,8 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testDrawInputCallsSingleInputForRadioTypeTwice() {
 		//arrange
-		$field = array( 'type' => 'radio' );
+        $field = new TestValidTextField();
+        $field->fields['one']['type'] = 'radio';
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'single_input', ) )
 					 ->getMock();
@@ -511,7 +581,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 			 ->will( $this->returnValue( true ) );
 
 		//act
-		$HTML->draw_input( $field );
+		$HTML->draw_input( $field->fields['one'] );
 
 		//assert
 		// Passes when single_input() is called twice
@@ -525,7 +595,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testDrawInputCallsBooleanInputForBooleanType() {
 		//arrange
-		$field = array( 'type' => 'boolean' );
+		$field = array( 'type' => 'boolean', 'meta_key' => '' );
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'boolean_input', ) )
 					 ->getMock();
@@ -548,7 +618,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testDrawInputCallsURLInputForLinkType() {
 		//arrange
-		$field = array( 'type' => 'link' );
+		$field = array( 'type' => 'link', 'meta_key' => '' );
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'link_input', ) )
 					 ->getMock();
@@ -613,6 +683,8 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 	function testDateCallsGetMonth24Times() {
 		//arrange
 		global $wp_locale;
+        $term = new \StdClass;
+        $term->name = '';
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( null )
 					 ->getMock();
@@ -621,7 +693,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 				  ->will( $this->returnValue( 'month' ) );
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
 		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
-		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( 'term' ) ) );
+		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
 
 		//act
 		$HTML->date( 'tax', false ,false, '' );
@@ -760,18 +832,16 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testDrawFieldHasHowToGetsEchoed() {
 		//arrange
-		$field = array(
-			'howto' => 'Testing howto'
-		);
+		$TestValidTextField = new TestValidTextField();
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( null )
 					 ->getMock();
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
-		$needle = '<p class="howto">Testing howto</p>';
+		$needle = '<p class="howto">Up to 255 characters</p>';
 
 		//act
 		ob_start();
-		$HTML->draw( $field );
+		$HTML->draw( $TestValidTextField->fields['one'] );
 		$haystack = ob_get_flush();
 
 		//assert
@@ -808,16 +878,16 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
      */
 	function testDrawFieldWrapsWithCMSToolkitWrapperDiv() {
 		//arrange
-		$field = array( 'class' => 'test' );
+        $TestValidTextField = new TestValidTextField();
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( null )
 					 ->getMock();
 		\WP_Mock::wpPassthruFunction( 'esc_attr', array( 'return' => 'test') );
-		$needle = '<div class="cms-toolkit-wrapper test"></div>';
+		$needle = '<div class="cms-toolkit-wrapper">';
 
 		//act
 		ob_start();
-		$HTML->draw( $field );
+        $HTML->draw( $TestValidTextField->fields['one'] );
 		$haystack = ob_get_flush();
 
 		//assert
@@ -896,7 +966,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 			'meta_key' => 'test' 
 		);
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( array( 'get_existing_data', 'get_formset_id' ) )
+					 ->setMethods( array( 'get_existing_data', 'get_formset_id', 'draw' ) )
 					 ->getMock();
 		\WP_Mock::wpPassthruFunction( 'get_post_custom' );
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
@@ -929,7 +999,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 			'init' => true
 		);
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( array( 'get_existing_data', 'get_formset_id' ) )
+					 ->setMethods( array( 'get_existing_data', 'get_formset_id', 'draw' ) )
 					 ->getMock();
 		\WP_Mock::wpPassthruFunction( 'get_post_custom' );
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
@@ -956,13 +1026,14 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 			'title' => 'Test Title',
 			'fields' => array(
 				array(
+                    'type' => 'text',
 					'meta_key' => 'test_field',
 				),
 			),
 			'meta_key' => 'test' 
 		);
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( array( 'get_formset_id' ) )
+					 ->setMethods( array( 'get_formset_id', 'draw' ) )
 					 ->getMock();
 		\WP_Mock::wpFunction( 'get_post_custom', array( 'return' => array('test_field' => 'data' ) ) );
 		\WP_Mock::wpPassthruFunction( 'esc_attr', array( 'return' => 'test') );
@@ -999,7 +1070,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 			'meta_key' => 'test' 
 		);
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( array( 'get_existing_data', 'get_formset_id' ) )
+					 ->setMethods( array( 'get_existing_data', 'get_formset_id', 'draw' ) )
 					 ->getMock();
 		$HTML->method( 'get_formset_id' )
 			 ->will( $this->returnValue( 1 ) );
@@ -1478,6 +1549,8 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 	function testDatePrintSelectElementWithGenericOptionSelected() {
 		//arrange
 		global $wp_locale;
+        $term = new \StdClass;
+        $term->name = '';
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( null )
 					 ->getMock();
@@ -1486,7 +1559,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 				  ->will( $this->returnValue( 'month' ) );
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
 		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
-		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( 'term' ) ) );
+		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
 		$needle = '<select id="tax_month" name="tax_month" class="form-input_12">';
 		$needle .= '<option selected="selected" value="" >Month</option>';
 
@@ -1507,6 +1580,8 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 	function testDatePrintsAll12Months() {
 		//arrange
 		global $wp_locale;
+        $term = new \StdClass;
+        $term->name = '';
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( null )
 					 ->getMock();
@@ -1515,7 +1590,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 				  ->will( $this->returnValue( 'month' ) );
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
 		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
-		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( 'term' ) ) );
+		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
 		$needle = '<option value="month">month</option><option value="month">month</option>';
 		$needle .= '<option value="month">month</option><option value="month">month</option>';
 		$needle .= '<option value="month">month</option><option value="month">month</option>';
@@ -1540,12 +1615,14 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 	function testDatePrintsInputsForDayAndYear() {
 		//arrange
 		global $wp_locale;
+        $term = new \StdClass;
+        $term->name = '';
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( null )
 					 ->getMock();
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
 		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
-		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( 'term' ) ) );
+		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
 		$needle = '<input id="tax_day" type="text" name="tax_day" class="form-input_12" value="" size="2" maxlength="2" placeholder="DD"/>';
 		$needle .= '<input id="tax_year" type="text" name="tax_year" class="form-input_12" value="" size="4" maxlength="4" placeholder="YYYY"/>';
 
@@ -1566,43 +1643,19 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 	function testDatePrintsOutputMessageForSingleDate() {
 		//arrange
 		global $wp_locale;
+        $term = new \StdClass;
+        $term->name = '';
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( null )
 					 ->getMock();
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
 		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
-		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( 'term' ) ) );
+		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
 		$needle = '<p class="howto">If one is set already, selecting a new month, day and year will override it.</p>';
 
 		//act
 		ob_start();
 		$HTML->date( 'tax', false, false, '' );
-		$haystack = ob_get_flush();
-
-		//assert
-		$this->assertContains( $needle, $haystack );
-	}
-	/**
-     * Tests that the date() method will print unique message for a muli-date
-     * field.
-     *
-     * @group unstable
-     * @group date
-     */
-	function testDatePrintsMessageForMultipleDates() {
-		//arrange
-		global $wp_locale;
-		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( null )
-					 ->getMock();
-		\WP_Mock::wpPassthruFunction( 'esc_attr' );
-		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
-		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( 'term' ) ) );
-		$needle = '<p class="howto">Select a month, day and year to add another.</p>';
-
-		//act
-		ob_start();
-		$HTML->date( 'tax', true, false, '' );
 		$haystack = ob_get_flush();
 
 		//assert

@@ -155,7 +155,7 @@ class Models {
             if ( isset( $processed[$i]['meta_key'] ) ) {
                 $processed[$i]['meta_key'] .= '_' . $i;
             }
-            if ( isset( $processed[$i]['meta_key'] ) ) {
+            if ( isset( $processed[$i]['slug'] ) ) {
                 $processed[$i]['slug'] .= '_' . $i;
             }
             foreach ( $processed[$i]['fields'] as $f ) {

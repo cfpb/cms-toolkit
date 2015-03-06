@@ -43,8 +43,7 @@ class HTML {
 	}
 
 	public function draw_formset( $field ) {
-		global $post;
-		$post_id = $post->ID;	
+		$post_id = get_the_ID();	
 		$post_data = get_post_custom( $post_id );
 		$form_id = $this->get_formset_id( $field['meta_key'] );
 		$init = isset( $field['init'] ) ? true : false;
@@ -134,10 +133,10 @@ class HTML {
 				$form_id
 			);
 		} elseif ( $field['type'] == 'post_select' || $field['type'] == 'post_multiselect' ) {
-			global $post;
+			$post_id = get_the_ID();
 			$args = $field['params'];
 			$posts = get_posts($args);
-			$value = get_post_meta( $post->ID, $field['meta_key'], $single = false );
+			$value = get_post_meta( $post_id, $field['meta_key'], $single = false );
 			$multi = $field['type'] == 'post_multiselect' ? 'multiple' : null;
 			$this->post_select(
 				$field['meta_key'],
@@ -289,8 +288,7 @@ class HTML {
 	}
 
 	public function link_input( $meta_key, $value, $required, $label, $form_id = NULL ) {
-		global $post;
-		$post_id = $post->ID;
+		$post_id = get_the_ID();
 		$existing = get_post_meta( $post_id, $meta_key, false);
 		?><div class="link-field <?php echo "{$meta_key}" ?>"><?php
 		if ( ! isset( $existing[0] ) || ! isset( $existing[1] ) ) { 
@@ -432,8 +430,9 @@ class HTML {
 	 * @param bool $multiples     whether the term shoud append (true) or replace (false) existing terms
 	 **/
 	public function date( $taxonomy, $multiple, $required, $label, $form_id = NULL ) {
+		global $wp_locale;
+		$post_id = get_the_ID();
 		$tax_name = stripslashes( $taxonomy );
-		global $post, $wp_locale;
 		$month = NULL;
 		$day   = NULL;
 		$year  = NULL;
@@ -454,8 +453,8 @@ class HTML {
 			?><p class="howto">If one is set already, selecting a new month, day and year will override it.</p><?php
 		} 
 		?><div class="tagchecklist"><?php
-			if ( has_term( '', $taxonomy, $post->id ) ) {
-				$terms = get_the_terms( $post->id, $tax_name );
+			if ( has_term( '', $taxonomy, $post_id ) ) {
+				$terms = get_the_terms( $post_id, $tax_name );
 				$i     = 0;
 				foreach ( $terms as $term ) {
 					// Checks if the current set term is wholly numeric (in this case a timestamp)

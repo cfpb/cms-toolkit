@@ -172,10 +172,10 @@ class HTML {
 			$this->date( $field['taxonomy'], $field['multiple'], $required, $label, $form_id );
 			$this->displayTags( $field['taxonomy'], $field['type'] );
 		} elseif ( $field['type'] == 'time' ) {
-			$this->time( $field['slug'], $field['taxonomy'], $required, $label, $form_id );
+			$this->time( $field['taxonomy'], $required, $label, $form_id );
 			$this->displayTags( $field['taxonomy'], $field['type'] );
 		} elseif ( $field['type'] == 'datetime' ) {
-			$this->datetime( $field['slug'], $field['taxonomy'], $required, $label, $form_id );
+			$this->datetime( $field['taxonomy'], $required, $label, $form_id );
 			$this->displayTags( $field['taxonomy'], $field['type'] );
 		}
 
@@ -454,30 +454,30 @@ class HTML {
 		?></div><?php
 	}
 
-	public function time( $slug, $taxonomy, $required, $label = NULL, $form_id = NULL ) {
-		?><div id="<?php echo esc_attr( $slug) ?>" name="<?php echo esc_attr( $slug) ?>" class="cms-toolkit-time" ><?php
+	public function time( $taxonomy, $required, $label = NULL, $form_id = NULL ) {
+		?><div id="<?php echo esc_attr( $taxonomy) ?>" name="<?php echo esc_attr( $taxonomy) ?>" class="cms-toolkit-time" ><?php
 			if ( $label ) { 
-				?><label for="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-label block-label"><?php 
+				?><label for="<?php echo esc_attr( $taxonomy ) ?>" class="cms-toolkit-label block-label"><?php 
 					echo esc_attr( $label ); 
 				?></label><?php
 			}
-			$this->select( $slug . "_hour", array( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ), $taxonomy, null, null, $required, "Hour", null, $form_id );
+			$this->select( $taxonomy . "_hour", array( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ), null, null, null, $required, "Hour", null, $form_id );
 			?> : <?php
-			$this->select( $slug . "_minute", array( "00", "15", "30", "45" ), $taxonomy, null, null, $required, "Minute", null, $form_id );
-			$this->select( $slug . "_ampm", array( "am", "pm" ), $taxonomy, null, null, $required, "am/pm", null, $form_id );
+			$this->select( $taxonomy . "_minute", array( "00", "15", "30", "45" ), null, null, null, $required, "Minute", null, $form_id );
+			$this->select( $taxonomy . "_ampm", array( "am", "pm" ), null, null, null, $required, "am/pm", null, $form_id );
 		?></div><?php
 	}
 
-	public function datetime( $slug, $taxonomy, $required, $label = NULL, $form_id = NULL ) {
-		?><div id="<?php echo esc_attr( $slug) ?>" name="<?php echo esc_attr( $slug) ?>" class="cms-toolkit-datetime" ><?php
+	public function datetime( $taxonomy, $required, $label = NULL, $form_id = NULL ) {
+		?><div id="<?php echo esc_attr( $taxonomy) ?>" name="<?php echo esc_attr( $taxonomy) ?>" class="cms-toolkit-datetime" ><?php
 			if ( $label ) { 
-				?><label for="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-label block-label"><?php 
+				?><label for="<?php echo esc_attr( $taxonomy ) ?>" class="cms-toolkit-label block-label"><?php 
 					echo esc_attr( $label ); 
 				?></label><?php
 			}
 			$this->date( $taxonomy, null, false, $required, null, $form_id );
 			?> @ <?php
-			$this->time( $slug, $taxonomy, $required, null, $form_id );
+			$this->time( $taxonomy, $required, null, $form_id );
 		?></div><?php
 	}
 

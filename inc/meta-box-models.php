@@ -43,6 +43,29 @@ class Models {
 		'wysiwyg',
 	);
 	private $other   = array( 'nonce', 'hidden', 'separator', 'fieldset', 'formset' );
+	protected $supported_types = array(
+		'application/pdf',
+		'image/png',
+		'image/gif',
+		'image/jpeg',
+		'video/jpeg',
+		'text/csv',
+		'application/zip',
+		'application/msword',
+		'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+		'application/vnd.ms-excel',
+		'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		'application/vnd.ms-powerpoint',
+		'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+		'application/json',
+		'application/xml',
+		'video/mpeg',
+		'audio/mpeg',
+		'text/html',
+		'text/plain',
+		'video/vnd.sealedmedia.softseal-mov',
+		'text/tab-separated-values',
+	);
 
 	public function __construct() {
 		$this->Callbacks = new Callbacks();
@@ -337,10 +360,9 @@ class Models {
 		    }
 		}
 		if ( !empty( $_FILES[$field['meta_key']] ) and !empty( $_FILES[$field['meta_key']]['name'] ) ) {
-			$supported_types = array( 'application/pdf' );
 	        $arr_file_type = wp_check_filetype( basename( $_FILES[$field['meta_key']]['name'] ) );
 	        $uploaded_type = $arr_file_type['type'];
-	        if ( in_array( $uploaded_type, $supported_types ) ) {
+	        if ( in_array( $uploaded_type, $this->supported_types ) ) {
 				$upload = wp_upload_bits( $_FILES[$field['meta_key']]['name'], null, file_get_contents( $_FILES[$field['meta_key']]['tmp_name'] ) );
 	            if ( $upload['error'] ) {
 					wp_die( 'File upload error: ' . $upload['error'] );

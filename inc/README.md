@@ -213,9 +213,7 @@ the 'checkbox' type * `radio` two input fields with values 'true' and 'false'
 * `link` two inputs, one with the `url` type and another with `text`, validates 
 as an array like `array(0 => 'url', 1 => 'text')`; 
 * `date` generates a trio of fields: a dropdown for months and two
-input fields for day and year
-* `time` generates a similar trio of fields for hour, minute, and am/pm selection.
-* `datetime` calls both `date` and `time` to generate a datetime set of fields.
+input fields for day and year 
 * `select` generates a `<select>` field with options specified in the 'params' 
 array. For example `'param' => array( 'one', 'two', 'three',),` 
 * `multiselect` is identical to `select` except that it passes the 'multiple' attribute, generating a multiselect box styled with [multiselect.js](http://loudev.com) 
@@ -230,7 +228,8 @@ keys](http://codex.wordpress.org/Template_Tags/get_posts).
 * `fieldset` to make a set of fields that affect the same meta key ([see  below](#fieldsets))
 * `formset` create multiple sets of fields (not necessarily `fieldset`s)([see  below](#formsets))
 
-__Note:__ invalid 'type' values will generate nothing and cause validation errors and invalid values for `$post_type` or `$context` will generate `WP_Error`s. The `date`, `time`, and `datetime` fields also generate a tag field, similar to Wordpress tags, that show the data saved from that field and can be removed to delete that data.
+__Note:__ invalid 'type' values will generate nothing and cause validation errors 
+and invalid values for `$post_type` or `$context` will generate `WP_Error`s
 
 ### Fieldsets
 

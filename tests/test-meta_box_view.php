@@ -967,4 +967,35 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		// assert
 		$this->assertEquals( $field['params']['editor_class'], "class cms-toolkit-wysiwyg" );
 	}
+
+	function testAssignDefaultsDoesNotSetTaxonomyToFalseForGivenFields() {
+		// arrange
+		$View = new View();
+		$field = array( 'type' => '', 'taxonomy' => true );
+		$types = array( 'taxonomyselect', 'tax_as_meta', 'date', 'time', 'datetime' );
+
+		//act
+		foreach ( $types as $type ) {
+			$field['type'] = $type;		
+			$default = $View->assign_defaults( $field );
+			// assert
+			$this->assertEquals( $field['taxonomy'], true );
+		}
+	}
+
+	function testDefaultValueDoesNotSetValueForGivenFields() {
+		// arrange
+		global $post;
+		$View = new View();
+		$field = array( 'type' => '' );
+		$types = array( 'link', 'date', 'time', 'datetime' );
+
+		foreach ( $types as $type ) {
+			$field['type'] = $type;		
+			// act
+			$default = $View->default_value( $post->ID, $field );
+			// assert
+			$this->assertEquals( isset( $field['value'] ), false );
+		}
+	}
 }

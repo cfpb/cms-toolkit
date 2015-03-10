@@ -85,7 +85,7 @@ jQuery(document).ready(function($){
     });
 } );
 
-jQuery('.datedelbutton').click( function() {
+jQuery('.tagdelbutton').click( function() {
     var taxAndTagNum = jQuery(this).attr('id').split('-');
     var taxonomy = taxAndTagNum[0];
     var tagNum = taxAndTagNum[3];

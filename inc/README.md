@@ -214,7 +214,9 @@ the 'checkbox' type * `radio` two input fields with values 'true' and 'false'
 as an array like `array(0 => 'url', 1 => 'text')`; 
 * `file` generates a button to browse your local file directory and choose a file to upload. Here is a list of approved file types: PDF, PNG, GIF, JPG, CSV, ZIP, DOC(X), XLS(X), PPT(X), JSON, XML, MP(E)G, HTML, TXT, MP3, MOV, TSV
 * `date` generates a trio of fields: a dropdown for months and two
-input fields for day and year 
+input fields for day and year
+* `time` generates a similar trio of fields for hour, minute, and am/pm selection.
+* `datetime` calls both `date` and `time` to generate a datetime set of fields.
 * `select` generates a `<select>` field with options specified in the 'params' 
 array. For example `'param' => array( 'one', 'two', 'three',),` 
 * `multiselect` is identical to `select` except that it passes the 'multiple' attribute, generating a multiselect box styled with [multiselect.js](http://loudev.com) 
@@ -229,8 +231,7 @@ keys](http://codex.wordpress.org/Template_Tags/get_posts).
 * `fieldset` to make a set of fields that affect the same meta key ([see  below](#fieldsets))
 * `formset` create multiple sets of fields (not necessarily `fieldset`s)([see  below](#formsets))
 
-__Note:__ invalid 'type' values will generate nothing and cause validation errors 
-and invalid values for `$post_type` or `$context` will generate `WP_Error`s
+__Note:__ invalid 'type' values will generate nothing and cause validation errors and invalid values for `$post_type` or `$context` will generate `WP_Error`s. The `date`, `time`, and `datetime` fields also generate a tag field, similar to Wordpress tags, that show the data saved from that field and can be removed to delete that data.
 
 ### Fieldsets
 

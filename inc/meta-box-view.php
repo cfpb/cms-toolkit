@@ -160,7 +160,7 @@ class View {
 		} else {
 			$field['multiselect'] = false;
 		}
-		if ( ! in_array($field['type'], array( 'select', 'taxonomyselect', 'tax_as_meta', 'date' ) ) ) {
+		if ( ! in_array($field['type'], array( 'taxonomyselect', 'tax_as_meta', 'date', 'time', 'datetime' ) ) ) {
 			$field['taxonomy'] = false;
 		}
 		if ( $field['type'] == 'formset' ) {
@@ -177,10 +177,9 @@ class View {
 	}
 
 	public function default_value( $ID, $field, $index = 0 ) {
-		if ( $field['type'] == 'link' or 
-			 $field['type'] == 'fieldset' or 
-			 $field['type'] == 'formset' or 
-			 $field['type'] == 'date' ) {
+		if ( $field['type'] == 'formset' or $field['type'] == 'fieldset' or
+			 $field['type'] == 'link' or $field['type'] == 'time' or
+			 $field['type'] == 'datetime' or $field['type'] == 'date' ) {
 			$default = null;
 		} else {
 			$existing = get_post_meta( $ID, $field['meta_key'], false );

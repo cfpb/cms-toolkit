@@ -5,7 +5,7 @@ class HTML {
 
 	private $elements = array(
 		'selects' => array( 'select', 'multiselect', 'taxonomyselect', 'tax_as_meta', 'post_select', 'post_multiselect' ),
-		'inputs' => array( 'text_area', 'number', 'text', 'boolean', 'email', 'url', 'date', 'radio', 'link', 'wysiwyg', 'file' ),
+		'inputs' => array( 'text_area', 'number', 'text', 'boolean', 'email', 'url', 'date', 'time', 'datetime', 'radio', 'link', 'wysiwyg', 'file' ),
 		'hidden' => array( 'nonce', 'hidden', 'separator', 'fieldset' ),
 		);
 
@@ -170,6 +170,13 @@ class HTML {
 
 		if ( $field['type'] == 'date' ) {
 			$this->date( $field['taxonomy'], $field['multiple'], $required, $label, $form_id );
+			$this->displayTags( $field['taxonomy'], $field['type'] );
+		} elseif ( $field['type'] == 'time' ) {
+			$this->time( $field['slug'], $field['taxonomy'], $required, $label, $form_id );
+			$this->displayTags( $field['taxonomy'], $field['type'] );
+		} elseif ( $field['type'] == 'datetime' ) {
+			$this->datetime( $field['slug'], $field['taxonomy'], $required, $label, $form_id );
+			$this->displayTags( $field['taxonomy'], $field['type'] );
 		}
 
 		if ( $field['type'] == 'radio' ) {
@@ -454,40 +461,81 @@ class HTML {
 	 **/
 	public function date( $taxonomy, $multiple, $required, $label, $form_id = NULL ) {
 		global $wp_locale;
-		$post_id = get_the_ID();
 		$tax_name = stripslashes( $taxonomy );
-		$month = NULL;
-		$day   = NULL;
-		$year  = NULL;
+		global $wp_locale;
+		?><div id="<?php echo esc_attr( $taxonomy ) ?>" name="<?php echo esc_attr( $taxonomy ) ?>" class="cms-toolkit-date" ><?php
+			if ( $label ) {
+				?><label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $taxonomy ) ?>"><?php echo esc_attr( $label ); ?></label><?php
+			}
+			?><select id="<?php echo esc_attr( $tax_name ) ?>_month" name="<?php echo esc_attr( $tax_name ) ?>_month" class="<?php echo "form-input_{$form_id}"; ?>"><option selected="selected" value="" <?php if ( $required ): echo 'required'; endif; ?>>Month</option><?php
+			for ( $i = 1; $i < 13; $i++ ) {
+				?><option value="<?php echo esc_attr( $wp_locale->get_month( $i ) ) ?>"><?php echo esc_attr( $wp_locale->get_month( $i ) )  ?></option><?php 
+			} 
+			?></select><?php
+			?><input id="<?php echo esc_attr( $tax_name ) ?>_day" type="text" name="<?php echo esc_attr( $tax_name ) ?>_day" class="<?php echo "form-input_{$form_id}"; ?>" value="" size="2" maxlength="2" placeholder="DD"/><?php
+			?><input id="<?php echo esc_attr( $tax_name ) ?>_year" type="text" name="<?php echo esc_attr( $tax_name ) ?>_year" class="<?php echo "form-input_{$form_id}"; ?>" value="" size="4" maxlength="4" placeholder="YYYY"/><?php
+		?></div><?php
+	}
 
-		if ( $label ) {
-			?><label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $taxonomy ) ?>"><?php echo esc_attr( $label ); ?></label><?php
-		}
-		?><select id="<?php echo esc_attr( $tax_name ) ?>_month" name="<?php echo esc_attr( $tax_name ) ?>_month" class="<?php echo "form-input_{$form_id}"; ?>"><option selected="selected" value="<?php echo esc_attr( $month ) ?>" <?php if ( $required ): echo 'required'; endif; ?>>Month</option><?php
-		for ( $i = 1; $i < 13; $i++ ) {
-			?><option value="<?php echo esc_attr( $wp_locale->get_month( $i ) ) ?>"><?php echo esc_attr( $wp_locale->get_month( $i ) )  ?></option><?php 
-		} 
-		?></select><?php
-		?><input id="<?php echo esc_attr( $tax_name ) ?>_day" type="text" name="<?php echo esc_attr( $tax_name ) ?>_day" class="<?php echo "form-input_{$form_id}"; ?>" value="<?php echo esc_attr( $day ) ?>" size="2" maxlength="2" placeholder="DD"/><?php
-		?><input id="<?php echo esc_attr( $tax_name ) ?>_year" type="text" name="<?php echo esc_attr( $tax_name ) ?>_year" class="<?php echo "form-input_{$form_id}"; ?>" value="<?php echo esc_attr( $year ) ?>" size="4" maxlength="4" placeholder="YYYY"/><?php
-		if ( $multiple ) {
-			?><p class="howto">Select a month, day and year to add another.</p><?php 
-		} else {
-			?><p class="howto">If one is set already, selecting a new month, day and year will override it.</p><?php
-		} 
-		?><div class="tagchecklist"><?php
+	public function time( $slug, $taxonomy, $required, $label = NULL, $form_id = NULL ) {
+		?><div id="<?php echo esc_attr( $slug) ?>" name="<?php echo esc_attr( $slug) ?>" class="cms-toolkit-time" ><?php
+			if ( $label ) { 
+				?><label for="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-label block-label"><?php 
+					echo esc_attr( $label ); 
+				?></label><?php
+			}
+			$this->select( $slug . "_hour", array( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ), $taxonomy, null, null, $required, "Hour", null, $form_id );
+			?> : <?php
+			$this->select( $slug . "_minute", array( "00", "15", "30", "45" ), $taxonomy, null, null, $required, "Minute", null, $form_id );
+			$this->select( $slug . "_ampm", array( "am", "pm" ), $taxonomy, null, null, $required, "am/pm", null, $form_id );
+		?></div><?php
+	}
+
+	public function datetime( $slug, $taxonomy, $required, $label = NULL, $form_id = NULL ) {
+		?><div id="<?php echo esc_attr( $slug) ?>" name="<?php echo esc_attr( $slug) ?>" class="cms-toolkit-datetime" ><?php
+			if ( $label ) { 
+				?><label for="<?php echo esc_attr( $slug ) ?>" class="cms-toolkit-label block-label"><?php 
+					echo esc_attr( $label ); 
+				?></label><?php
+			}
+			$this->date( $taxonomy, null, false, $required, null, $form_id );
+			?> @ <?php
+			$this->time( $slug, $taxonomy, $required, null, $form_id );
+		?></div><?php
+	}
+
+	public function displayTags( $taxonomy, $type ) {
+		$post_id = get_the_ID();
+		?><div class='tagchecklist'><?php
 			if ( has_term( '', $taxonomy, $post_id ) ) {
-				$terms = get_the_terms( $post_id, $tax_name );
-				$i     = 0;
+				$terms = get_the_terms( $post_id, $taxonomy );
+				$i = 0;
 				foreach ( $terms as $term ) {
 					// Checks if the current set term is wholly numeric (in this case a timestamp)
 					if ( is_numeric( $term->name ) ) {
-						$natdate = date( 'j F, Y', intval( $term->name ) );
-						?><span><a id="<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>" class="datedelbutton <?php echo esc_attr( $term->name ) ?>"><?php echo esc_attr( $term->name ) ?></a>&nbsp;<?php echo $natdate ?></span><?php
+						if ( $type == 'date' ) {
+							$natdate = date( 'j F, Y', intval( $term->name ) );
+						} elseif ( $type == 'time' ) {							
+							$natdate = date( 'h:ia', intval( $term->name ) );
+						} elseif ( $type == 'datetime' ) {
+							$natdate = date( 'h:ia F j, Y', intval( $term->name ) );
+						}
+						?><span><a id="<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>"
+								  class="tagdelbutton <?php echo esc_attr( $term->name ) ?>"><?php
+									echo esc_attr( $term->name );
+								?></a><?php
+							?>&nbsp;<?php echo esc_attr( $natdate );
+						?></span><?php
 					} else {
-						?><span><a id="<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>" class="datedelbutton <?php echo esc_attr( $term->name ) ?>"><?php echo esc_attr( $term->name ) ?></a>&nbsp;<?php echo esc_attr( $term->name ) ?></span><?php
+						$date = strtotime( $term->name );
+						?><span><a id="<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>"
+								  class="tagdelbutton <?php echo esc_attr( $date ) ?>"><?php
+									echo esc_attr( $term->name );
+								?></a><?php
+							?>&nbsp;<?php echo esc_attr( $term->name );
+						?></span><?php
 					}
-					$this->hidden( 'rm_' . $tax_name . '_' . $i, null, null );
+					$this->hidden( 'rm_' . $taxonomy . '_' . $i, null, null );
 					$i++;
 				}
 			}

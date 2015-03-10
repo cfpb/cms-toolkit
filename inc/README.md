@@ -212,6 +212,7 @@ the 'checkbox' type * `radio` two input fields with values 'true' and 'false'
 * `url` an input with the 'url' type 
 * `link` two inputs, one with the `url` type and another with `text`, validates 
 as an array like `array(0 => 'url', 1 => 'text')`; 
+* `file` generates a button to browse your local file directory and choose a file to upload. Here is a list of approved file types: PDF, PNG, GIF, JPG, CSV, ZIP, DOC(X), XLS(X), PPT(X), JSON, XML, MP(E)G, HTML, TXT, MP3, MOV, TSV
 * `date` generates a trio of fields: a dropdown for months and two
 input fields for day and year 
 * `select` generates a `<select>` field with options specified in the 'params' 

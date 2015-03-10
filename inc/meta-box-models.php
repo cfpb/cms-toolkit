@@ -354,27 +354,27 @@ class Models {
 		if ( isset( $_POST['rm_' . $field['meta_key']] ) and !empty( $_POST['rm_' . $field['meta_key']] ) ) {
 			$file = get_post_meta( $post_ID, $_POST['rm_' . $field['meta_key']], true );
 			if ( unlink( $file['file'] ) ) {
-		        delete_post_meta( $post_ID, $field['meta_key'] );
-		    } else {
-		        wp_die('There was an error trying to delete your file.');
-		    }
+				delete_post_meta( $post_ID, $field['meta_key'] );
+			} else {
+				wp_die('There was an error trying to delete your file.');
+			}
 		}
 		if ( !empty( $_FILES[$field['meta_key']] ) and !empty( $_FILES[$field['meta_key']]['name'] ) ) {
-	        $arr_file_type = wp_check_filetype( basename( $_FILES[$field['meta_key']]['name'] ) );
-	        $uploaded_type = $arr_file_type['type'];
-	        if ( in_array( $uploaded_type, $this->supported_types ) ) {
+			$arr_file_type = wp_check_filetype( basename( $_FILES[$field['meta_key']]['name'] ) );
+			$uploaded_type = $arr_file_type['type'];
+			if ( in_array( $uploaded_type, $this->supported_types ) ) {
 				$upload = wp_upload_bits( $_FILES[$field['meta_key']]['name'], null, file_get_contents( $_FILES[$field['meta_key']]['tmp_name'] ) );
-	            if ( $upload['error'] ) {
+				if ( $upload['error'] ) {
 					wp_die( 'File upload error: ' . $upload['error'] );
-	            } else {
+				} else {
 					$upload['name'] = $_FILES[$field['meta_key']]['name'];
-	                update_post_meta( $post_ID, $field['meta_key'], $upload );
-	            }
-	        }
-	        else {
+					update_post_meta( $post_ID, $field['meta_key'], $upload );
+				}
+			}
+			else {
 				wp_die( 'File upload error: Unsupported type ' . $uploaded_type );
-	        }
-	    }
+			}
+		}
 	}
 
 	/**

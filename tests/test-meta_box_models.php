@@ -856,7 +856,6 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		// Test will fail if validate_formset isn't executed once and only once
 	}
 
-
 /***************
  * Save method *
  ***************/
@@ -1039,9 +1038,6 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			 ->method( 'date' )
 			 ->with( $this->anything(), $this->anything(), $this->anything() );
 
-		// $stub->expects( $this->once() )
-		//  ->method( 'method' );
-
 		$form = new TestValidDateField();
 		$form->set_callbacks($stub);
 		$term = \WP_Mock::wpFunction( 'wp_get_post_terms' );
@@ -1052,8 +1048,187 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_day' => '01');
 
 		// act
-		$form->validate_date( $form->fields['category'], $_POST['post_ID']);
-		// $stub->method();
+		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+	}
+	/**
+	 * Tests whether the validate_datetime method when called on an invalid field
+	 * does not call the callback method.
+	 *
+	 * @group stable
+	 * @group date
+	 * @group isolated
+	 * @group user_input
+	 */
+	function testInvalidDateFieldExpectsCallbackNotCalled() {
+		// arrange
+		$stub = $this->getMockBuilder('Callbacks')
+					->setMethods(array('date'))
+					->getMock();
+
+		$stub->expects( $this->exactly( 0 ) )
+			 ->method( 'date' )
+			 ->with( $this->anything(), $this->anything(), $this->anything() );
+
+		// $stub->expects( $this->once() )
+		// 	->method( 'method' );
+
+		$form = new TestValidDateField();
+		$form->set_callbacks($stub);
+		$term = \WP_Mock::wpFunction( 'wp_get_post_terms' ); 
+		$_POST = array(
+			'post_ID' => 1,
+			'category_year' => '' ,
+			'category_month' => 'January',
+			'category_day' => '01');
+
+		// act
+		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+	}
+	/**
+	 * Tests whether the validate_datetime method when called on a time field calls the
+	 * date method from the Callbacks class.
+	 *
+	 * @group stable
+	 * @group date
+	 * @group isolated
+	 * @group user_input
+	 */
+	function testValidTimeFieldExpectsCallbackCalledOnce() {
+		// arrange
+		$stub = $this->getMockBuilder('Callbacks')
+					->setMethods(array('date'))
+					->getMock();
+
+		$stub->expects( $this->once() )
+			 ->method( 'date' )
+			 ->with( $this->anything(), $this->anything(), $this->anything() );
+
+		// $stub->expects( $this->once() )
+		// 	->method( 'method' );
+
+		$form = new TestValidDateField();
+		$form->fields['category']['type'] = 'time';
+		$form->set_callbacks($stub);
+		$term = \WP_Mock::wpFunction( 'wp_get_post_terms' ); 
+		$_POST = array(
+			'post_ID' => 1,
+			'category_hour' => array('9') ,
+			'category_minute' => array('30'),
+			'category_ampm' => array('am'));
+
+		// act
+		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+	}
+	/**
+	 * Tests whether the validate_datetime method when called on an invalid time 
+	 * does not call the date callback method.
+	 *
+	 * @group stable
+	 * @group date
+	 * @group isolated
+	 * @group user_input
+	 */
+	function testInvalidTimeFieldExpectsCallbackNotCalled() {
+		// arrange
+		$stub = $this->getMockBuilder('Callbacks')
+					->setMethods(array('date'))
+					->getMock();
+
+		$stub->expects( $this->exactly( 0 ) )
+			 ->method( 'date' )
+			 ->with( $this->anything(), $this->anything(), $this->anything() );
+
+		// $stub->expects( $this->once() )
+		// 	->method( 'method' );
+
+		$form = new TestValidDateField();
+		$form->fields['category']['type'] = 'time';
+		$form->set_callbacks($stub);
+		$term = \WP_Mock::wpFunction( 'wp_get_post_terms' ); 
+		$_POST = array(
+			'post_ID' => 1,
+			'category_hour' => array('9') ,
+			'category_minute' => array('30'),
+			'category_ampm' => array(''));
+
+		// act
+		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+	}
+	/**
+	 * Tests whether the validate_datetime method when called on a datetime field calls the
+	 * date method from the Callbacks class.
+	 *
+	 * @group stable
+	 * @group date
+	 * @group isolated
+	 * @group user_input
+	 */
+	function testValidDatetimeFieldExpectsCallbackCalledOnce() {
+		// arrange
+		$stub = $this->getMockBuilder('Callbacks')
+					->setMethods(array('date'))
+					->getMock();
+
+		$stub->expects( $this->once() )
+			 ->method( 'date' )
+			 ->with( $this->anything(), $this->anything(), $this->anything() );
+
+		// $stub->expects( $this->once() )
+		// 	->method( 'method' );
+
+		$form = new TestValidDateField();
+		$form->fields['category']['type'] = 'datetime';
+		$form->set_callbacks($stub);
+		$term = \WP_Mock::wpFunction( 'wp_get_post_terms' ); 
+		$_POST = array(
+			'post_ID' => 1,
+			'category_hour' => array('9') ,
+			'category_minute' => array('30'),
+			'category_ampm' => array('am'),
+			'category_year' => '2014' ,
+			'category_month' => 'January',
+			'category_day' => '01');
+
+		// act
+		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+	}
+	/**
+	 * Tests whether the validate_datetime method when called on an invalid datetime 
+	 * does not call the date callback method.
+	 *
+	 * @group stable
+	 * @group date
+	 * @group isolated
+	 * @group user_input
+	 */
+	function testInvalidDatetimeFieldExpectsCallbackNotCalled() {
+		// arrange
+		$stub = $this->getMockBuilder('Callbacks')
+					->setMethods(array('date'))
+					->getMock();
+
+		$stub->expects( $this->exactly( 0 ) )
+			 ->method( 'date' )
+			 ->with( $this->anything(), $this->anything(), $this->anything() );
+
+		// $stub->expects( $this->once() )
+		// 	->method( 'method' );
+
+		$form = new TestValidDateField();
+		$form->fields['category']['type'] = 'datetime';
+		$form->set_callbacks($stub);
+		$term = \WP_Mock::wpFunction( 'wp_get_post_terms' ); 
+		$_POST = array(
+			'post_ID' => 1,
+			'category_hour' => array('9') ,
+			'category_minute' => array('30'),
+			'category_ampm' => array(''),
+			'category_year' => '' ,
+			'category_month' => 'January',
+			'category_day' => '01');
+
+		// act
+		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
 	}
 
 	/**
@@ -1271,7 +1446,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$existing->name = 'Sluggo';
 		\WP_Mock::wpFunction('sanitize_text_field', array('times' => 1));
 		\WP_Mock::wpFunction(
-			'get_term_by',
+			'get_term_by', 
 			array('times' => 1, 'return' => $existing));
 		\WP_Mock::wpFunction('wp_set_object_terms', array( 'times' => 1 ) );
 
@@ -1308,10 +1483,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * Tests whether if no existing metadata, add_post_meta will be called twice by
+	 * Tests whether if no existing metadata, add_post_meta will be called twice by 
 	 * validate_select if multiple values are in $_POST
 	 *
-	 * A multi select field will pass an array of values to the $_POST array, we
+	 * A multi select field will pass an array of values to the $_POST array, we 
 	 * expect cms-toolkit to iterate over that array adding new post data for each
 	 * entry.
 	 *
@@ -1342,14 +1517,14 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 * not in the $_POST array, delete_post_meta will be called on each
 	 * existing value.
 	 *
-	 * When a select field is submitted it will may contian values that
+	 * When a select field is submitted it will may contian values that 
 	 * exist already for this post in addition to new ones the user wants
-	 * to add. If a term is in both arrays ($existing and $_POST), we
+	 * to add. If a term is in both arrays ($existing and $_POST), we 
 	 * should keep it. If the term is in $existing but not $_POST, then a
-	 * user has removed it or chosen a different value and we should
+	 * user has removed it or chosen a different value and we should 
 	 * delete the previously stored metadata. This test verifies the latter
 	 * condition specifically where there is no _POST data set at all (a user
-	 * has set the <select> to a null value indicating they wish to delete
+	 * has set the <select> to a null value indicating they wish to delete 
 	 * the value and not replace it.
 	 *
 	 * @group stable
@@ -1427,7 +1602,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 
 	}
 	/**
-	* Tests a fieldset to make sure that validate is called for each of the
+	* Tests a fieldset to make sure that validate is called for each of the 
 	* fieldset's fields.
 	*
 	 * @group stable
@@ -1454,7 +1629,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		// Test will fail if only each of the fields in the fieldset are validated
 	}
 	/**
-	* Tests a fieldset to make sure that validate adds validated values to the
+	* Tests a fieldset to make sure that validate adds validated values to the 
 	* array that was passed in by reference.
 	*
 	 * @group stable
@@ -1504,7 +1679,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		//assert
 	}
 	/**
-	* Tests a formset to make sure that validate adds validated values to the
+	* Tests a formset to make sure that validate adds validated values to the 
 	* array that was passed in by reference.
 	*
 	 * @group stable

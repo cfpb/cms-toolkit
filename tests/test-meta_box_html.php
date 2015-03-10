@@ -540,28 +540,74 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		//assert
 		// Passes when single_input() is called 4 times
 	}
-	/**
-	 * Tests that the draw_input() method will call date() for field type 'date'.
-	 *
-	 * @group stable
-	 * @group draw_input
-	 */
-	function testDrawInputCallsDateForDateType() {
-		//arrange
+    /**
+     * Tests that the draw_input() method will call date() for field type 'date'.
+     *
+     * @group stable
+     * @group draw_input
+     */
+    function testDrawInputCallsDateForDateType() {
+        //arrange
 		$field = new TestValidDateField();
-		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( array( 'date', ) )
-					 ->getMock();
-		$HTML->expects( $this->once() )
-			 ->method( 'date' )
-			 ->will( $this->returnValue( true ) );
+        $HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
+                     ->setMethods( array( 'date', 'displayTags' ) )
+                     ->getMock();
+        $HTML->expects( $this->once() )
+             ->method( 'date' )
+             ->will( $this->returnValue( true ) );
 
-		//act
+        //act
 		$HTML->draw_input( $field->fields['category'] );
 
-		//assert
-		// Passes when date() is called once
-	}
+        //assert
+        // Passes when date() is called once
+    }
+    /**
+     * Tests that the draw_input() method will call time() for field type 'time'.
+     *
+     * @group stable
+     * @group draw_input
+     */
+    function testDrawInputCallsTimeForTimeType() {
+        //arrange
+		$field = new TestValidDateField();
+		$field->fields['category']['type'] = 'time';
+        $HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
+                     ->setMethods( array( 'time', 'displayTags' ) )
+                     ->getMock();
+        $HTML->expects( $this->once() )
+             ->method( 'time' )
+             ->will( $this->returnValue( true ) );
+
+        //act
+        $HTML->draw_input( $field->fields['category'] );
+
+        //assert
+        // Passes when time() is called once
+    }
+    /**
+     * Tests that the draw_input() method will call datetime() for field type 'datetime'.
+     *
+     * @group stable
+     * @group draw_input
+     */
+    function testDrawInputCallsDatetimeForDatetimeType() {
+        //arrange
+		$field = new TestValidDateField();
+		$field->fields['category']['type'] = 'datetime';
+        $HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
+                     ->setMethods( array( 'datetime', 'displayTags' ) )
+                     ->getMock();
+        $HTML->expects( $this->once() )
+             ->method( 'datetime' )
+             ->will( $this->returnValue( true ) );
+
+        //act
+        $HTML->draw_input( $field->fields['category'] );
+
+        //assert
+        // Passes when datetime() is called once
+    }
 	/**
 	 * Tests that the draw_input() method will call single_input() twice if
 	 * field of type 'radio'.
@@ -700,33 +746,6 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 
 		//assert
 		// passes when get month is called 24 times
-	}
-	/**
-	 * Tests that the date() method will call hidden() once.
-	 *
-	 * @group stable
-	 * @group date
-	 */
-	function testDateCallsHiddenOnce() {
-		//arrange
-		global $wp_locale;
-		$term = new \StdClass;
-		$term->name = '1 April, 1992';
-		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( array( 'hidden' ) )
-					 ->getMock();
-		$HTML->expects( $this->once() )
-			 ->method( 'hidden' )
-			 ->will( $this->returnValue( true ) );
-		\WP_Mock::wpPassthruFunction( 'esc_attr' );
-		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
-		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
-
-		//act
-		$HTML->date( 'tax', false, false, '' );
-
-		//assert
-		// Fails if date doesn't call hidden() once
 	}
 	/**
 	 * Tests that the wysiwyg() method will call wp_editor() once.
@@ -1634,85 +1653,68 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		//assert
 		$this->assertContains( $needle, $haystack );
 	}
-	/**
-	 * Tests that the date() method will print unique message for single date
-	 *
-	 * @group unstable
-	 * @group date
-	 */
-	function testDatePrintsOutputMessageForSingleDate() {
+	function testTimeCallsSelect3Times() {
 		//arrange
-		global $wp_locale;
-		$term = new \StdClass;
-		$term->name = '';
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( null )
+					 ->setMethods( array( 'select' ) )
 					 ->getMock();
-		\WP_Mock::wpPassthruFunction( 'esc_attr' );
-		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
-		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
-		$needle = '<p class="howto">If one is set already, selecting a new month, day and year will override it.</p>';
+		$HTML->expects( $this->exactly( 3 ) )
+			 ->method( 'select' );
 
 		//act
-		ob_start();
-		$HTML->date( 'tax', false, false, '' );
-		$haystack = ob_get_flush();
-
-		//assert
-		$this->assertContains( $needle, $haystack );
+		$HTML->time( 'slug', 'taxonomy', false, 'label', 1 );
 	}
-	/**
-	 * Tests that the date() method will draw date tag when stored as numeric.
-	 *
-	 * @group unstable
-	 * @group date
-	 */
-	function testDatePrintsDateWhenStoredAsNumeric() {
+
+	function testDatetimeCallsDateAndTime() {
 		//arrange
-		global $wp_locale;
-		$term = new \StdClass;
-		$term->name = '1420748634';
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( null )
+					 ->setMethods( array( 'time', 'date' ) )
 					 ->getMock();
-		\WP_Mock::wpPassthruFunction( 'esc_attr' );
-		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
-		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
-		$needle = '<span><a id="tax-check-num-0" class="datedelbutton 1420748634">1420748634</a>&nbsp;8 January, 2015</span>';
+		$HTML->expects( $this->once() )
+			 ->method( 'date' );
+		$HTML->expects( $this->once() )
+			 ->method( 'time' );
 
 		//act
-		ob_start();
-		$HTML->date( 'tax', true, false, '' );
-		$haystack = ob_get_flush();
-
-		//assert
-		$this->assertContains( $needle, $haystack );
+		$HTML->datetime( 'slug', 'taxonomy', false, 'label', 1 );
 	}
-	/**
-	 * Tests that the date() method will draw date tag when stored as a string.
-	 *
-	 * @group unstable
-	 * @group date
-	 */
-	function testDatePrintsDateWhenStoredAsString() {
+
+	function testDisplayTagsCallsHasTermToSeeIfTagsExistToBeShown() {
 		//arrange
-		global $wp_locale;
-		$term = new \StdClass;
-		$term->name = '1 April, 1992';
-		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( null )
-					 ->getMock();
-		\WP_Mock::wpPassthruFunction( 'esc_attr' );
-		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
-		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
-		$needle = '<span><a id="tax-check-num-0" class="datedelbutton 1 April, 1992">1 April, 1992</a>&nbsp;1 April, 1992</span>';
+		$HTML = new HTML();
+		\WP_Mock::wpFunction( 'has_term', array( 'times' => 1, 'return' => false ) );
 
 		//act
-		ob_start();
-		$HTML->date( 'tax', true, false, '' );
-		$haystack = ob_get_flush();
+		$HTML->displayTags( 'tax', 'type' );
+	}
 
-		//assert
-		$this->assertContains( $needle, $haystack );
+	function testDisplayTagsCallsGetTheTerms() {
+		//arrange
+		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
+					 ->setMethods( array( 'hidden' ) )
+					 ->getMock();
+		$term = new \StdClass;
+		$term->name = strtotime( 'now' );
+		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
+		\WP_Mock::wpFunction( 'get_the_terms', array( 'times' => 1, 'return' => array( $term ) ) );
+
+		//act
+		$HTML->displayTags( 'tax', 'time' );
+	}
+
+	function testDisplayTagsCallsHiddenForEachTag() {
+		//arrange
+		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
+					 ->setMethods( array( 'hidden' ) )
+					 ->getMock();
+		$HTML->expects( $this->once() )
+			 ->method( 'hidden' );
+		$term = new \StdClass;
+		$term->name = strtotime( 'now' );
+		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
+		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
+
+		//act
+		$HTML->displayTags( 'tax', 'time' );
 	}
 }

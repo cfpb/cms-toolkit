@@ -5,7 +5,7 @@ class HTML {
 
 	private $elements = array(
 		'selects' => array( 'select', 'multiselect', 'taxonomyselect', 'tax_as_meta', 'post_select', 'post_multiselect' ),
-		'inputs' => array( 'text_area', 'number', 'text', 'boolean', 'email', 'url', 'date', 'time', 'datetime', 'radio', 'link', 'wysiwyg' ),
+		'inputs' => array( 'text_area', 'number', 'text', 'boolean', 'email', 'url', 'date', 'time', 'datetime', 'radio', 'link', 'wysiwyg', 'file' ),
 		'hidden' => array( 'nonce', 'hidden', 'separator', 'fieldset' ),
 		);
 
@@ -191,6 +191,10 @@ class HTML {
 		if ( $field['type'] == 'link' ) {
 			$this->link_input($field['meta_key'], $value, $required, $label, $form_id );
 		}
+
+		if ( $field['type'] == 'file' ) {
+			$this->file_input( $field['meta_key'], $value, $label, $required, $form_id );
+		}
 	}
 
 /**
@@ -306,6 +310,25 @@ class HTML {
 				$this->single_input( $meta_key . "_url", $existing[0], 'url', $required, NULL, 'URL', NULL, $form_id );
 		}
 		?></div><?php
+	}
+
+	public function file_input( $meta_key, $value = NULL, $label = NULL, $required = NULL, $form_id = NULL ) {
+		if ( $label ) {
+			?><label class="cms-toolkit-file block-label form-input_<?php echo esc_attr( $form_id ) ?>"><?php
+				echo esc_attr( $label );
+			?></label><?php
+		}
+		if ( $value ) {
+			?><div class="tagchecklist">
+				<span><a id="<?php echo esc_attr( $meta_key ) ?>" class="filedelbutton <?php echo esc_attr( $meta_key ) ?>"><?php echo esc_attr( $value['name'] ) ?></a>&nbsp;<?php echo $value['name'] ?></span><?php
+				$this->hidden( 'rm_' . $meta_key, null, null );
+			?></div><?php
+		}
+		?><input id="<?php echo esc_attr( $meta_key ) 
+			   ?>" name="<?php echo esc_attr( $meta_key ) 
+			   ?>" class="cms-toolkit-input <?php echo "form-input_{$form_id}"; 
+			   ?>" type="file" value="<?php echo esc_attr( $value['url'] ) ?>"<?php
+			   if ( $required ): echo ' required '; endif; ?>/><?php
 	}
 
 	/**

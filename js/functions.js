@@ -94,3 +94,8 @@ jQuery('.tagdelbutton').click( function() {
 
     jQuery(this).parent().html('');
 });
+jQuery('.filedelbutton').click( function() {
+    var file_id = jQuery(this).attr('id');
+    jQuery('input[id=rm_' + file_id + ']').val(file_id);
+    jQuery(this).parent().html('');
+});

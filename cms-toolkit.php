@@ -31,6 +31,7 @@ function cfpb_build_plugin() {
 	require_once( CFPB_INC . 'taxonomies.php');
 	define( 'DEPENDENCIES_READY', true);
 	add_action('admin_enqueue_scripts', 'cfpb_cms_toolkit_scripts');
+	add_action( 'post_edit_form_tag' , 'post_edit_form_tag' );
 }
 $general_error = new \WP_Error(
 	'_general_toolkit_error',
@@ -41,6 +42,9 @@ function cfpb_cms_toolkit_scripts() {
 	wp_enqueue_script( 'multi-select_js', plugins_url( '/js/jquery.multi-select.js', __FILE__ ), 'jquery', '1.0', $in_footer = true );
 	wp_register_style( 'cms_toolkit_styles',  plugins_url( '/css/styles.css', __FILE__ ), null, '1.0');
 	wp_enqueue_style( 'cms_toolkit_styles' );
+}
+function post_edit_form_tag( ) {
+   echo ' enctype="multipart/form-data"';
 }
 
 if (PHP_VERSION_ID >= 50300) {

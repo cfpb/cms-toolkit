@@ -572,6 +572,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
         //arrange
 		$field = new TestValidDateField();
 		$field->fields['category']['type'] = 'time';
+		$field->fields['category']['timezone'] = 'America/New_York';
         $HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
                      ->setMethods( array( 'time', 'displayTags' ) )
                      ->getMock();
@@ -595,6 +596,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
         //arrange
 		$field = new TestValidDateField();
 		$field->fields['category']['type'] = 'datetime';
+		$field->fields['category']['timezone'] = 'America/New_York';
         $HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
                      ->setMethods( array( 'datetime', 'displayTags' ) )
                      ->getMock();
@@ -1653,12 +1655,12 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		//assert
 		$this->assertContains( $needle, $haystack );
 	}
-	function testTimeCallsSelect3Times() {
+	function testTimeCallsSelect4Times() {
 		//arrange
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( array( 'select' ) )
 					 ->getMock();
-		$HTML->expects( $this->exactly( 3 ) )
+		$HTML->expects( $this->exactly( 4 ) )
 			 ->method( 'select' );
 
 		//act

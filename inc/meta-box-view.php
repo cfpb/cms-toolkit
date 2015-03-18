@@ -173,6 +173,10 @@ class View {
 				$field['params']['editor_class'] .= " cms-toolkit-wysiwyg";
 			}
 		}
+		if ( $field['type'] == 'time' or $field['type'] == 'datetime' ) {
+			$timezone = get_post_meta( get_the_ID(), $field['taxonomy'] . '_timezone', true );
+			$field['timezone'] = empty( $timezone ) ? null : $timezone[0];
+		}
 		return $field;
 	}
 

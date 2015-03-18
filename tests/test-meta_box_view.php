@@ -983,6 +983,22 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		}
 	}
 
+	function testAssignDefaultsGetsTimezoneForTimeOrDatetimeFieldIfOneIsSaved() {
+		// arrange
+		$View = new View();
+		$field = array( 'taxonomy' => 'tax' );
+		$types = array( 'time', 'datetime' );
+		\WP_Mock::wpFunction( 'get_post_meta', array( 'times' => 2, 'return' => 'something' ) );
+
+		//act
+		foreach ( $types as $type ) {
+			$field['type'] = $type;
+			$default = $View->assign_defaults( $field );
+			// assert
+			$this->assertEquals( isset( $default['timezone'] ), true );
+		}
+	}
+
 	function testDefaultValueDoesNotSetValueForGivenFields() {
 		// arrange
 		global $post;

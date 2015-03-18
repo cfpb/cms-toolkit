@@ -1,5 +1,7 @@
 <?php
 namespace CFPB\Utils\MetaBox;
+use \DateTime;
+use \DateTimeZone;
 use \WP_Error;
 class HTML {
 
@@ -173,10 +175,10 @@ class HTML {
 			$this->displayTags( $field['taxonomy'], $field['type'] );
 		} elseif ( $field['type'] == 'time' ) {
 			$this->time( $field['taxonomy'], $required, $label, $form_id );
-			$this->displayTags( $field['taxonomy'], $field['type'] );
+			$this->displayTags( $field['taxonomy'], $field['type'], $field['timezone'] );
 		} elseif ( $field['type'] == 'datetime' ) {
 			$this->datetime( $field['taxonomy'], $required, $label, $form_id );
-			$this->displayTags( $field['taxonomy'], $field['type'] );
+			$this->displayTags( $field['taxonomy'], $field['type'], $field['timezone'] );
 		}
 
 		if ( $field['type'] == 'radio' ) {
@@ -478,6 +480,9 @@ class HTML {
 	}
 
 	public function time( $taxonomy, $required, $label = NULL, $form_id = NULL ) {
+		foreach ( DateTimeZone::listIdentifiers(DateTimeZone::PER_COUNTRY, 'US' ) as $key => $country ) {
+			$countries[] = $country;
+		}
 		?><div id="<?php echo esc_attr( $taxonomy) ?>" name="<?php echo esc_attr( $taxonomy) ?>" class="cms-toolkit-time" ><?php
 			if ( $label ) { 
 				?><label for="<?php echo esc_attr( $taxonomy ) ?>" class="cms-toolkit-label block-label"><?php 
@@ -488,6 +493,7 @@ class HTML {
 			?> : <?php
 			$this->select( $taxonomy . "_minute", array( "00", "15", "30", "45" ), null, null, null, $required, "Minute", null, $form_id );
 			$this->select( $taxonomy . "_ampm", array( "am", "pm" ), null, null, null, $required, "am/pm", null, $form_id );
+			$this->select( $taxonomy . "_timezone", $countries, null, null, null, $required, "Timezone", null, $form_id );
 		?></div><?php
 	}
 
@@ -504,9 +510,10 @@ class HTML {
 		?></div><?php
 	}
 
-	public function displayTags( $taxonomy, $type ) {
+	public function displayTags( $taxonomy, $type, $timezone = NULL ) {
 		$post_id = get_the_ID();
 		?><div class='tagchecklist'><?php
+			if ( $timezone ) date_default_timezone_set( $timezone );
 			if ( has_term( '', $taxonomy, $post_id ) ) {
 				$terms = get_the_terms( $post_id, $taxonomy );
 				$i = 0;
@@ -515,10 +522,10 @@ class HTML {
 					if ( is_numeric( $term->name ) ) {
 						if ( $type == 'date' ) {
 							$natdate = date( 'j F, Y', intval( $term->name ) );
-						} elseif ( $type == 'time' ) {							
-							$natdate = date( 'h:ia', intval( $term->name ) );
+						} elseif ( $type == 'time' ) {
+							$natdate = date( 'h:ia T', intval( $term->name ) );
 						} elseif ( $type == 'datetime' ) {
-							$natdate = date( 'h:ia F j, Y', intval( $term->name ) );
+							$natdate = date( 'F j, Y @ h:ia T', intval( $term->name ) );
 						}
 						?><span><a id="<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>"
 								  class="tagdelbutton <?php echo esc_attr( $term->name ) ?>"><?php

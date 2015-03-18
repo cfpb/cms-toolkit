@@ -47,6 +47,7 @@ class Callbacks {
 		}
 		
 		if ( isset($data[$taxonomy] ) ) {
+			date_default_timezone_set('America/Chicago');
 			$time = strval( strtotime( $data[$taxonomy] ) );
 		} else {
 			$time = strtotime('now');

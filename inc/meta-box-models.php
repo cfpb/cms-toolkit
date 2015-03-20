@@ -367,10 +367,12 @@ class Models {
 			}
 		}
 		if ( $field['type'] == 'time' ) {
+			date_default_timezone_set( $_POST[$taxonomy . '_timezone'] );
 			$date = DateTime::createFromFormat('h:ia T', $data[$field['taxonomy']]);
 		} elseif ( $field['type'] == 'date' ) {
 			$date = DateTime::createFromFormat('F j Y', $data[$field['taxonomy']]);
 		} elseif ( $field['type'] == 'datetime' ) {
+			date_default_timezone_set( $_POST[$taxonomy . '_timezone'] );
 			$date = DateTime::createFromFormat('h:ia T F j Y', $data[$field['taxonomy']]);
 		}
 		if ( $field['type'] != 'date') {

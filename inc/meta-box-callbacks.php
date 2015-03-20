@@ -47,6 +47,7 @@ class Callbacks {
 		}
 		
 		if ( isset($data[$taxonomy] ) ) {
+			date_default_timezone_set( $_POST[$taxonomy . '_timezone'] );
 			$time = strval( strtotime( $data[$taxonomy] ) );
 		} else {
 			$time = strtotime('now');

@@ -335,6 +335,7 @@ class Models {
 			$hour = $field['taxonomy'] . '_hour';
 			$minute = $field['taxonomy'] . '_minute';
 			$ampm = $field['taxonomy'] . '_ampm';
+			$timezone = $field['taxonomy'] . '_timezone';
 			if ( isset($_POST[$hour]) ) {
 				$data[$field['taxonomy']] .= $_POST[$hour][0];
 			}
@@ -343,6 +344,9 @@ class Models {
 			}
 			if ( isset( $_POST[$ampm] ) ) {
 				$data[$field['taxonomy']] .= $_POST[$ampm][0];
+			}
+			if ( isset( $_POST[$timezone] ) ) {
+				$data[$field['taxonomy']] .= ' ' . $_POST[$timezone][0];
 			}
 		}
 		if ( $field['type'] == 'datetime' ) {
@@ -363,11 +367,14 @@ class Models {
 			}
 		}
 		if ( $field['type'] == 'time' ) {
-			$date = DateTime::createFromFormat('h:ia', $data[$field['taxonomy']]);
+			$date = DateTime::createFromFormat('h:ia T', $data[$field['taxonomy']]);
 		} elseif ( $field['type'] == 'date' ) {
 			$date = DateTime::createFromFormat('F j Y', $data[$field['taxonomy']]);
 		} elseif ( $field['type'] == 'datetime' ) {
-			$date = DateTime::createFromFormat('h:ia F j Y', $data[$field['taxonomy']]);
+			$date = DateTime::createFromFormat('h:ia T F j Y', $data[$field['taxonomy']]);
+		}
+		if ( $field['type'] != 'date') {
+			$this->save( $post_ID, array( $field['taxonomy'] . '_timezone' => $_POST[$field['taxonomy'] . '_timezone'] ) );
 		}
 		if ( $date ) {
 			$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], $data, null );

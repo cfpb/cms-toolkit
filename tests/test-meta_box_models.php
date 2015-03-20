@@ -1114,7 +1114,9 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'post_ID' => 1,
 			'category_hour' => array('9') ,
 			'category_minute' => array('30'),
-			'category_ampm' => array('am'));
+			'category_ampm' => array('am'),
+			'category_timezone' => array('America/New_York'),
+			);
 
 		// act
 		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
@@ -1149,7 +1151,9 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'post_ID' => 1,
 			'category_hour' => array('9') ,
 			'category_minute' => array('30'),
-			'category_ampm' => array(''));
+			'category_ampm' => array(''),
+			'category_timezone' => array('America/New_York'),
+		);
 
 		// act
 		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
@@ -1185,6 +1189,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_hour' => array('9') ,
 			'category_minute' => array('30'),
 			'category_ampm' => array('am'),
+			'category_timezone' => array('America/New_York'),
 			'category_year' => '2014' ,
 			'category_month' => 'January',
 			'category_day' => '01');
@@ -1223,6 +1228,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_hour' => array('9') ,
 			'category_minute' => array('30'),
 			'category_ampm' => array(''),
+			'category_timezone' => array('America/New_York'),
 			'category_year' => '' ,
 			'category_month' => 'January',
 			'category_day' => '01');

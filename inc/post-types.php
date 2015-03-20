@@ -64,6 +64,10 @@ class PostType {
 		$args = wp_parse_args( $args, $defaults );
 		register_post_type( $prefix . $slug, $args );
 	}
+
+	// function set_posttype_parent_type() {
+	// 	remove_meta_box( 'pageparentdiv', , );
+	// }
 	
 	function maybe_flush_rewrite_rules( $target ) {
 		global $wp_rewrite;

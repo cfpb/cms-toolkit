@@ -30,6 +30,9 @@ class MetaBoxCallbacksTest extends \PHPUnit_Framework_TestCase {
 	 */
 	function testDateExpectsWPSetObjectTermsFromAPI() {
 		// Arrange
+		\WP_Mock::wpFunction( 'get_post_meta' );
+		\WP_Mock::wpFunction( 'remove_post_meta' );
+		\WP_Mock::wpFunction( 'update_post_meta' );
 		\WP_Mock::wpFunction('wp_set_object_terms', array('times' => 1));
 		$post_id = 0;
 		$taxonomy = 'category';
@@ -52,8 +55,11 @@ class MetaBoxCallbacksTest extends \PHPUnit_Framework_TestCase {
 	 */
 	function testDateCallsGetTermByWhenAttemptingToDeleteATerm() {
 		// Arrange
+		\WP_Mock::wpFunction( 'get_post_meta' );
+		\WP_Mock::wpFunction( 'remove_post_meta' );
+		\WP_Mock::wpFunction( 'update_post_meta' );
 		$c = new Callbacks();
-		$_POST = array( 'rm_tax_0' => '' );
+		$_POST = array( 'rm_tax_0' => 'term' );
 		\WP_Mock::wpFunction('get_term_by', array('times' => 1, 'return' => false ) );
 		// Act
 		$c->date( 0, 'tax', false, array(), 0 );
@@ -72,6 +78,9 @@ class MetaBoxCallbacksTest extends \PHPUnit_Framework_TestCase {
 	 */
 	function testDateCallsRemovePostTermWhenAttemptingToDeleteATerm() {
 		// Arrange
+		\WP_Mock::wpFunction( 'get_post_meta' );
+		\WP_Mock::wpFunction( 'remove_post_meta' );
+		\WP_Mock::wpFunction( 'update_post_meta' );
 		$_POST = array( 'rm_tax_0' => 'term' );
 		$term = new \StdClass;
 		$term->term_id = 1;
@@ -89,30 +98,6 @@ class MetaBoxCallbacksTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * Tests whether the current time will be assigned if non is given.
-	 *
-	 * @group stable
-	 * @group isolated
-	 * @group date
-	 * @group taxonomy_save
-	 * 
-	 */
-	function testDateExpectsCurrentTime() {
-		// Arrange
-		$post_id = 0;
-		$taxonomy = 'category';
-		// replace fix time at 12:00 today just in case the test takes longer than 1 second to run (it shouldn't)
-		self::$now = strtotime('12:00');
-		$expected = strtotime('now');
-		// Act
-		$c = new Callbacks();
-		$actual = $c->date($post_id, $taxonomy );
-
-		// Assert
-		$this->assertEquals($expected, $actual, 'Time should be equal to the current time, but was not.');
-	}
-
-	/**
 	 * Test whether a post term will be removed if a rm_{taxonomy} key is passed
 	 *
 	 * @group stable
@@ -122,6 +107,9 @@ class MetaBoxCallbacksTest extends \PHPUnit_Framework_TestCase {
 	 */
 	function testRmTermKeyDateExpectsRemovePostTermCalled() {
 		// Arrange
+		\WP_Mock::wpFunction( 'get_post_meta' );
+		\WP_Mock::wpFunction( 'remove_post_meta' );
+		\WP_Mock::wpFunction( 'update_post_meta' );
 		$post_id = 0;
 		$_POST['rm_category_1'] = 'term';
 		$taxonomy = 'category';

@@ -528,16 +528,16 @@ class HTML {
 							$natdate = date( 'F j, Y @ h:ia T', intval( $term->name ) );
 						}
 						?><span><a id="<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>"
-								  class="tagdelbutton <?php echo esc_attr( $term->name ) ?>"><?php
+								  class="tagdelbutton -<?php echo esc_attr( $term->name ) ?>"><?php
 									echo esc_attr( $term->name );
 								?></a><?php
-							?>&nbsp;<?php echo esc_attr( $natdate );
+							?>&nbsp;<?php echo esc_attr( $term->name );
 						?></span><?php
 					} else {
 						$date = strtotime( $term->name );
 						?><span><a id="<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>"
-								  class="tagdelbutton <?php echo esc_attr( $date ) ?>"><?php
-									echo esc_attr( $term->name );
+								  class="tagdelbutton -<?php echo esc_attr( $term->name ) ?>"><?php
+									echo esc_attr( $date );
 								?></a><?php
 							?>&nbsp;<?php echo esc_attr( $term->name );
 						?></span><?php

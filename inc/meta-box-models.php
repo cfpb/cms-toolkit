@@ -331,6 +331,23 @@ class Models {
 			$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], null, $t );
 		}
 		$data = array($field['taxonomy'] => '');
+		if ( $field['type'] != 'time') {
+			$month = $field['taxonomy'] . '_month';
+			$day = $field['taxonomy'] . '_day';
+			$year = $field['taxonomy'] . '_year';
+			if ( isset($_POST[$month]) ) {
+				$data[$field['taxonomy']] .= $_POST[$month];
+			}
+			if ( isset( $_POST[$day] ) ) {
+				$data[$field['taxonomy']] .= ' ' . $_POST[$day];
+			}
+			if ( isset( $_POST[$year] ) ) {
+				$data[$field['taxonomy']] .= ' ' . $_POST[$year];
+			}
+		}
+		if ( $field['type'] == 'datetime' ) {
+			$data[$field['taxonomy']] .= ' ';
+		}
 		if ( $field['type'] != 'date') {
 			$hour = $field['taxonomy'] . '_hour';
 			$minute = $field['taxonomy'] . '_minute';
@@ -349,34 +366,16 @@ class Models {
 				$data[$field['taxonomy']] .= ' ' . $_POST[$timezone][0];
 			}
 		}
-		if ( $field['type'] == 'datetime' ) {
-			$data[$field['taxonomy']] .= ' ';
-		}
-		if ( $field['type'] != 'time') {
-			$month = $field['taxonomy'] . '_month';
-			$day = $field['taxonomy'] . '_day';
-			$year = $field['taxonomy'] . '_year';
-			if ( isset($_POST[$month]) ) {
-				$data[$field['taxonomy']] .= $_POST[$month];
-			}
-			if ( isset( $_POST[$day] ) ) {
-				$data[$field['taxonomy']] .= ' ' . $_POST[$day];
-			}
-			if ( isset( $_POST[$year] ) ) {
-				$data[$field['taxonomy']] .= ' ' . $_POST[$year];
-			}
-		}
-		if ( $field['type'] == 'time' ) {
-			date_default_timezone_set( $_POST[$field['taxonomy'] . '_timezone'][0] );
-			$date = DateTime::createFromFormat('h:ia T', $data[$field['taxonomy']]);
-		} elseif ( $field['type'] == 'date' ) {
+		if ( $field['type'] == 'date' ) {
 			$date = DateTime::createFromFormat('F j Y', $data[$field['taxonomy']]);
+		} elseif ( $field['type'] == 'time' ) {
+			if ( isset( $_POST[$field['taxonomy'] . '_timezone'] ) )
+				date_default_timezone_set( $_POST[$field['taxonomy'] . '_timezone'][0] );
+			$date = DateTime::createFromFormat('h:ia T', $data[$field['taxonomy']]);
 		} elseif ( $field['type'] == 'datetime' ) {
-			date_default_timezone_set( $_POST[$field['taxonomy'] . '_timezone'][0] );
-			$date = DateTime::createFromFormat('h:ia T F j Y', $data[$field['taxonomy']]);
-		}
-		if ( $field['type'] != 'date') {
-			$this->save( $post_ID, array( $field['taxonomy'] . '_timezone' => $_POST[$field['taxonomy'] . '_timezone'] ) );
+			if ( isset( $_POST[$field['taxonomy'] . '_timezone'] ) )
+				date_default_timezone_set( $_POST[$field['taxonomy'] . '_timezone'][0] );
+			$date = DateTime::createFromFormat('F j Y h:ia T', $data[$field['taxonomy']]);
 		}
 		if ( $date ) {
 			$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], $data, null );

@@ -521,11 +521,11 @@ class HTML {
 					// Checks if the current set term is wholly numeric (in this case a timestamp)
 					if ( is_numeric( $term->name ) ) {
 						if ( $type == 'date' ) {
-							$natdate = date( 'j F, Y', intval( $term->name ) );
+							$natdate = date( 'j F Y', intval( $term->name ) );
 						} elseif ( $type == 'time' ) {
 							$natdate = date( 'h:ia T', intval( $term->name ) );
 						} elseif ( $type == 'datetime' ) {
-							$natdate = date( 'F j, Y @ h:ia T', intval( $term->name ) );
+							$natdate = date( 'F j Y h:ia T', intval( $term->name ) );
 						}
 						?><span><a id="<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>"
 								  class="tagdelbutton -<?php echo esc_attr( $term->name ) ?>"><?php

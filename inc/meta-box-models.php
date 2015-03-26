@@ -368,18 +368,17 @@ class Models {
 		}
 		if ( $field['type'] == 'date' ) {
 			$date = DateTime::createFromFormat('F j Y', $data[$field['taxonomy']]);
-		} elseif ( $field['type'] == 'time' ) {
+		} else {
 			if ( isset( $_POST[$field['taxonomy'] . '_timezone'] ) )
 				date_default_timezone_set( $_POST[$field['taxonomy'] . '_timezone'][0] );
-			$date = DateTime::createFromFormat('h:ia T', $data[$field['taxonomy']]);
-		} elseif ( $field['type'] == 'datetime' ) {
-			if ( isset( $_POST[$field['taxonomy'] . '_timezone'] ) )
-				date_default_timezone_set( $_POST[$field['taxonomy'] . '_timezone'][0] );
-			$date = DateTime::createFromFormat('F j Y h:ia T', $data[$field['taxonomy']]);
+			if ( $field['type'] == 'time' ) {
+				$date = DateTime::createFromFormat('h:ia T', $data[$field['taxonomy']]);
+			} elseif ( $field['type'] == 'datetime' ) {
+				$date = DateTime::createFromFormat('F j Y h:ia T', $data[$field['taxonomy']]);
+			}
 		}
-		if ( $date ) {
+		if ( $date )
 			$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], $data, null );
-		}
 	}
 
 	public function validate_file( $field, $post_ID ) {

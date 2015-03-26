@@ -89,9 +89,8 @@ jQuery('.tagdelbutton').click( function() {
     var taxAndTagNum = jQuery(this).attr('id').split('-');
     var taxonomy = taxAndTagNum[0];
     var tagNum = taxAndTagNum[3];
-    var term = jQuery(this).attr('class').split(' ')[1];
+    var term = jQuery(this).attr('class').split('-')[1];
     jQuery('input[id=rm_' + taxonomy + '_' + tagNum + ']').val(term);
-
     jQuery(this).parent().html('');
 });
 jQuery('.filedelbutton').click( function() {

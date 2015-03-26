@@ -1,6 +1,8 @@
 <?php
 namespace CFPB\Utils\MetaBox;
 use \CFPB\Utils\Taxonomy;
+use \CFPB\Utils\MetaBox\Models;
+use \DateTime;
 
 class Callbacks {
 	public $taxonomy;
@@ -39,21 +41,17 @@ class Callbacks {
 		global $post;
 		
 		$rmTerm     = 'rm_' . $taxonomy . '_' . $term_num;
-		if ( isset( $_POST[$rmTerm] ) ) {
+		if ( isset( $_POST[$rmTerm] ) and !empty( $_POST[$rmTerm] ) ) {
 			$tounset = get_term_by( 'name', $_POST[$rmTerm], $taxonomy );
 			if ( $tounset ) {
 				$this->Taxonomy->remove_post_term( $post_id, $tounset->term_id, $taxonomy );
 			}
-		}
-		
-		if ( isset($data[$taxonomy] ) ) {
-			$time = strval( strtotime( $data[$taxonomy] ) );
-		} else {
-			$time = strtotime('now');
-			return $time;
-		}
-		if ( $time != strtotime('now') ) {
-			wp_set_object_terms( $post_id, $time, $taxonomy, $append = $multiples );
+			if ( isset( $data[$taxonomy] ) ) {
+				Models::save( $post_id, array( $taxonomy => strval( strtotime( $data[$taxonomy] ) ) ) );
+			}
+		} elseif ( isset( $data[$taxonomy] ) and !empty( $data[$taxonomy] ) ) {
+			wp_set_object_terms( $post_id, $data[$taxonomy], $taxonomy, $append = $multiples );
+			Models::save( $post_id, array( $taxonomy => date( Datetime::ISO8601, strval( strtotime( $data[$taxonomy] ) ) ) ) );
 		}
 	}
 }

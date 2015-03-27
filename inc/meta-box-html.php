@@ -38,7 +38,7 @@ class HTML {
 		} elseif ( $field['type'] == 'nonce' ) {
 			wp_nonce_field( plugin_basename( __FILE__ ), $field['meta_key'] );
 		}
-		if ( isset( $field['howto'] ) ) { 
+		if ( isset( $field['howto'] ) and $field['type'] != 'formset' ) { 
 			?><p class="howto"><?php echo esc_attr( $field['howto'] ) ?></p><?php
 		}
 		?></div><?php
@@ -61,6 +61,9 @@ class HTML {
 					if ( empty( $existing ) and ! $init ) { echo " hidden"; } 
 					?>" href="#remove-formset_<?php echo $form_id; ?>">Remove</a><?php
 			?></h4><?php
+				if ( isset( $field['howto'] ) ) { 
+					?><p class="howto"><?php echo esc_attr( $field['howto'] ) ?></p><?php
+				}
 			foreach ($field['fields'] as $f) {
 				$this->draw( $f, $form_id );
 			}
@@ -305,11 +308,11 @@ class HTML {
 		$existing = get_post_meta( $post_id, $meta_key, false);
 		?><div class="link-field <?php echo "{$meta_key}" ?>"><?php
 		if ( ! isset( $existing[0] ) || ! isset( $existing[1] ) ) { 
-				$this->single_input( $meta_key . "_text", $value, 'text', $required, NULL, 'Text', 'Url text here', $form_id );
-				$this->single_input( $meta_key . "_url", $value, 'url', $required, NULL, 'URL', 'Url here', $form_id );
+				$this->single_input( $meta_key . "_text", $value, 'text', $required, NULL, 'Link Text', 'Url text here', $form_id );
+				$this->single_input( $meta_key . "_url", $value, 'url', $required, NULL, 'Link URL', 'Url here', $form_id );
 		} else { 
-				$this->single_input( $meta_key . "_text", $existing[1], 'text', $required, NULL, 'Text', NULL, $form_id );
-				$this->single_input( $meta_key . "_url", $existing[0], 'url', $required, NULL, 'URL', NULL, $form_id );
+				$this->single_input( $meta_key . "_text", $existing[1], 'text', $required, NULL, 'Link Text', NULL, $form_id );
+				$this->single_input( $meta_key . "_url", $existing[0], 'url', $required, NULL, 'Link URL', NULL, $form_id );
 		}
 		?></div><?php
 	}

@@ -14,12 +14,15 @@ class View {
 	);
 	private $inputs  = array(
 		'text_area',
+		'wysiwyg',
 		'number',
 		'text',
 		'boolean',
 		'email',
 		'url',
 		'date',
+		'time',
+		'datetime',
 		'radio',
 		'link',
 	);

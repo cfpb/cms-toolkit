@@ -377,8 +377,9 @@ class Models {
 				$date = DateTime::createFromFormat('F j Y h:ia T', $data[$field['taxonomy']]);
 			}
 		}
-		if ( $date )
+		if ( $date ) {
 			$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], $data, null );
+		}
 	}
 
 	public function validate_file( $field, $post_ID ) {

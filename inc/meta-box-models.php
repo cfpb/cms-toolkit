@@ -383,6 +383,18 @@ class Models {
 	}
 
 	public function validate_file( $field, $post_ID ) {
+		if ( isset( $field['allowed_file_types'] ) and 
+			( is_array( $field['allowed_file_types'] ) and !empty( $field['allowed_file_types'] ) ) ) {
+			foreach ( $field['allowed_file_types'] as $type ) {
+				if ( in_array( $type, $this->supported_types ) ) {
+					$supported_types[] = $type;
+				} else {
+					wp_die( $type . ' is not a supported type.' );
+				}
+			}
+		} else {
+			$supported_types = $this->supported_types;
+		}
 		if ( isset( $_POST['rm_' . $field['meta_key']] ) and !empty( $_POST['rm_' . $field['meta_key']] ) ) {
 			$file = get_post_meta( $post_ID, $_POST['rm_' . $field['meta_key']], true );
 			if ( unlink( $file['file'] ) ) {
@@ -394,7 +406,7 @@ class Models {
 		if ( !empty( $_FILES[$field['meta_key']] ) and !empty( $_FILES[$field['meta_key']]['name'] ) ) {
 			$arr_file_type = wp_check_filetype( basename( $_FILES[$field['meta_key']]['name'] ) );
 			$uploaded_type = $arr_file_type['type'];
-			if ( in_array( $uploaded_type, $this->supported_types ) ) {
+			if ( in_array( $uploaded_type, $supported_types ) ) {
 				$upload = wp_upload_bits( $_FILES[$field['meta_key']]['name'], null, file_get_contents( $_FILES[$field['meta_key']]['tmp_name'] ) );
 				if ( $upload['error'] ) {
 					wp_die( 'File upload error: ' . $upload['error'] );

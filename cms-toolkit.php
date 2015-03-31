@@ -13,7 +13,7 @@ think of it as a library. A collection of methods which, when installed, are
 available throughout the application and make building complex functionality 
 in WordPress a little easier.
 
-Version: 1.5.2
+Version: 1.5.3
 Author: Greg Boone, Aman Kaur, Matthew Duran, Scott Cranfill, Kurt Wall
 Author URI: https://github.com/cfpb/
 License: Public Domain work of the Federal Government
@@ -44,7 +44,7 @@ function cfpb_cms_toolkit_scripts() {
 	wp_enqueue_style( 'cms_toolkit_styles' );
 }
 function post_edit_form_tag( ) {
-   echo ' enctype="multipart/form-data"';
+   echo ' enctype="multipart/form-data" novalidate';
 }
 
 if (PHP_VERSION_ID >= 50300) {

@@ -44,7 +44,7 @@ function cfpb_cms_toolkit_scripts() {
 	wp_enqueue_style( 'cms_toolkit_styles' );
 }
 function post_edit_form_tag( ) {
-   echo ' enctype="multipart/form-data" novalidate';
+   echo ' enctype="multipart/form-data"';
 }
 
 if (PHP_VERSION_ID >= 50300) {

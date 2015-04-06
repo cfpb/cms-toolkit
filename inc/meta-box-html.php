@@ -305,14 +305,14 @@ class HTML {
 
 	public function link_input( $meta_key, $value, $required, $label, $form_id = NULL ) {
 		$post_id = get_the_ID();
-		$existing = get_post_meta( $post_id, $meta_key, false);
+		$existing = get_post_meta( $post_id, $meta_key, true);
 		?><div class="link-field <?php echo "{$meta_key}" ?>"><?php
-		if ( ! isset( $existing[0] ) || ! isset( $existing[1] ) ) { 
+		if ( ! isset( $existing['url'] ) || ! isset( $existing['text'] ) ) {
 				$this->single_input( $meta_key . "_text", $value, 'text', $required, NULL, 'Link Text', 'Url text here', $form_id );
 				$this->single_input( $meta_key . "_url", $value, 'text', $required, NULL, 'Link URL', 'Url here', $form_id );
 		} else { 
-				$this->single_input( $meta_key . "_text", $existing[1], 'text', $required, NULL, 'Link Text', NULL, $form_id );
-				$this->single_input( $meta_key . "_url", $existing[0], 'text', $required, NULL, 'Link URL', NULL, $form_id );
+				$this->single_input( $meta_key . "_text", $existing['text'], 'text', $required, NULL, 'Link Text', NULL, $form_id );
+				$this->single_input( $meta_key . "_url", $existing['url'], 'text', $required, NULL, 'Link URL', NULL, $form_id );
 		}
 		?></div><?php
 	}

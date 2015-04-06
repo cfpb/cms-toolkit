@@ -1301,7 +1301,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$form->fields = $field;
 		\WP_Mock::wpFunction(
 			'add_post_meta',
-			array( 'times' => 2, 'return' => true )
+			array( 'times' => 1, 'return' => true )
 		);
 		$post = new \StdClass;
 		\WP_Mock::wpFunction('get_post_meta', array( 'times' => 1, 'return' => false) );
@@ -1334,7 +1334,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$form->fields = $field;
 		\WP_Mock::wpFunction(
 			'add_post_meta',
-			array( 'times' => 2, 'return' => true )
+			array( 'times' => 1, 'return' => true )
 		);
 		$post = new \StdClass;
 		\WP_Mock::wpFunction('get_post_meta', array( 'times' => 1, 'return' => false) );
@@ -1375,7 +1375,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		// );
 		\WP_Mock::wpFunction(
 			'update_post_meta',
-			array( 'times' => 2, 'return' => true)
+			array( 'times' => 1, 'return' => true)
 		);
 		\WP_Mock::wpFunction(
 			'get_post_meta',
@@ -1411,7 +1411,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'meta_key' => 'link',
 			'howto' => "Some howto text",
 		);
-		$existing = array( 'http://example.com', 'example.com');
+		$existing = array( 'url' => 'http://example.com', 'text' => 'example.com');
 		$form = new TestNumberField();
 		$post_id = 1;
 		$form->fields = $field;

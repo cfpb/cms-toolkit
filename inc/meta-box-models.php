@@ -232,18 +232,16 @@ class Models {
 		 and isset( $_POST["{$field['meta_key']}_text"] ) ) {
 			$url = $_POST["{$field['meta_key']}_url"];
 			$text = $_POST["{$field['meta_key']}_text"];
-			$full_link = array( 0 => $url, 1 => $text );
-			$existing = get_post_meta( $post_ID, $field['meta_key'], $single = false );
+			$full_link = array( 'url' => $url, 'text' => $text );
+			$existing = get_post_meta( $post_ID, $field['meta_key'], $single = true );
 
 			if ( empty( $_POST["{$field['meta_key']}_url"] )
 			  or empty( $_POST["{$field['meta_key']}_text"] ) ) {
 				delete_post_meta( $post_ID, $field['meta_key']);
 			} elseif ( empty($existing) ) {
-				add_post_meta( $post_ID, $field['meta_key'], $url, false );
-				add_post_meta( $post_ID, $field['meta_key'], $text, false );
+				add_post_meta( $post_ID, $field['meta_key'], $full_link, false );
 			} elseif ( $existing != $full_link ) {
-				update_post_meta( $post_ID, $field['meta_key'], $url, $existing[0] );
-				update_post_meta( $post_ID, $field['meta_key'], $text, $existing[1] );
+				update_post_meta( $post_ID, $field['meta_key'], $full_link, $existing );
 			}
 		}
 	}

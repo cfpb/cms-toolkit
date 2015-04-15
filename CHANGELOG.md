@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 We follow the [Semantic Versioning 2.0.0](http://semver.org/) format.
 
 
+## 1.5.4 - 2015-04-15
+
+### Changed
+- Names of our custom post types in the sidebar to be plural, matching the
+  standard for default WordPress post types.
+
+
 ## 1.5.3 - 2015-04-01
 
 ### Changed

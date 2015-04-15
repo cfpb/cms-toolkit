@@ -308,8 +308,8 @@ class HTML {
 		$existing = get_post_meta( $post_id, $meta_key, false);
 		?><div class="link-field <?php echo "{$meta_key}" ?>"><?php
 		if ( ! isset( $existing[0] ) || ! isset( $existing[1] ) ) { 
-				$this->single_input( $meta_key . "_text", $value, 'text', $required, NULL, 'Link Text', 'Url text here', $form_id );
-				$this->single_input( $meta_key . "_url", $value, 'text', $required, NULL, 'Link URL', 'Url here', $form_id );
+				$this->single_input( $meta_key . "_text", $value, 'text', $required, NULL, 'Link Text', 'Link text here', $form_id );
+				$this->single_input( $meta_key . "_url", $value, 'text', $required, NULL, 'Link URL', 'URL here', $form_id );
 		} else { 
 				$this->single_input( $meta_key . "_text", $existing[1], 'text', $required, NULL, 'Link Text', NULL, $form_id );
 				$this->single_input( $meta_key . "_url", $existing[0], 'text', $required, NULL, 'Link URL', NULL, $form_id );

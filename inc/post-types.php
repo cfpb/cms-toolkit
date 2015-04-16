@@ -43,7 +43,7 @@ class PostType {
 			'not_found' => 'No ' . $plural . ' found.',
 			'not_found_in_trash' => 'No ' . $plural . ' found.',
 			'parent_item_colon' => 'Parent ' . $name . ':',
-			'menu_name' => $name,
+			'menu_name' => $plural,
 		);
 		$defaults = array(
 			'labels'              => $labels,

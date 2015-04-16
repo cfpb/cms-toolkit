@@ -14,7 +14,7 @@ We follow the [Semantic Versioning 2.0.0](http://semver.org/) format.
 ## 1.5.3 - 2015-04-01
 
 ### Changed
-- `url` field output (in the meta box) from `tpe="url"` to `type="text"`,
+- `url` field output (in the meta box) from `type="url"` to `type="text"`,
   so that relative URLs will not fail native browser validation.
 
 

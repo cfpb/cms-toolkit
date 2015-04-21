@@ -516,7 +516,16 @@ class Models {
 				save
 			*/
 			if ( ! isset( $_POST[$key] ) ) {
-				return;
+				/*
+					Unchecked checkboxes that were previously checked
+					need the meta_key/slug to be manually added to the
+					$_POST global to be properly saved.
+				*/
+				if ( $field['type'] == 'boolean' ) {
+					$_POST[$key] = null;
+				} else {
+					return;
+				}
 			}
 			$value = $_POST[$key];
 			if ( $field['type'] == 'number' ) {

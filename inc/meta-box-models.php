@@ -516,7 +516,11 @@ class Models {
 				save
 			*/
 			if ( ! isset( $_POST[$key] ) ) {
-				return;
+				if ( $field['type'] == 'boolean' ) {
+					$_POST[$key] = null;
+				} else {
+					return;
+				}
 			}
 			$value = $_POST[$key];
 			if ( $field['type'] == 'number' ) {

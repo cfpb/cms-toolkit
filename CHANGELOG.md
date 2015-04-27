@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 We follow the [Semantic Versioning 2.0.0](http://semver.org/) format.
 
 
+## 1.5.5 - 2015-04-21
+
+### Changed
+- Added a checkbox to Post to turn featured image on/off within a the blog post.
+
+
 ## 1.5.4 - 2015-04-15
 
 ### Changed

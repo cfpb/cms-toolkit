@@ -13,15 +13,27 @@ a {
 
 .cms-toolkit-wrapper {
     margin-bottom: 0.5em;
+    margin-left: 1em;
 }
-.cms-toolkit-wrapper {
-    margin-left: .5em;
+div.form {
+    padding: .5em;
 }
-div[id*="formset"] {
-    background: #F1F2F2;
-    padding: .5em 0 .5em .5em;
+div.set {
+    border-left: 2px solid #F0F2F2;
+    /*padding: .5em;*/
 }
-.cms-toolkit-wrapper > div > .formset-header {
+h2.form-header {
+    border-bottom: 1px solid #F0F2F2;
+    padding: 0 !important;
+    margin: 0 0 2px 0 !important;
+}
+p.howto {
+    margin-bottom: 3px;
+}
+h3.set-header, label.set-header {
+    margin: 0 0 2px 1em !important;
+}
+.cms-toolkit-wrapper > div > .set-header {
     margin: 0;
     font-size: 1.2em;
 }
@@ -35,7 +47,7 @@ div[id*="formset"] {
 }
 .cms-toolkit-input,
 .cms-toolkit-textarea,
-.cms-toolkit-checkbox,
+.cms-toolkit-checkbox
 {
     margin-top: 0.5em;
     margin-left: 0.5em;

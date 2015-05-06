@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 We follow the [Semantic Versioning 2.0.0](http://semver.org/) format.
 
 
+## 1.5.6 - 2015-05-06
+
+### Changed
+- Fix menu position parameter for custom post types
+
 ## 1.5.5 - 2015-04-21
 
 ### Changed

@@ -1,21 +1,12 @@
 function delete_form_data(slug, form_id) {
-    var selectorBase = "*[id='" + slug + "_formset'] *[class*='form-input_" + form_id + "']";
-
+    var selectorBase = '#' + slug + '-set .set-input_' + form_id;
     // Clear text fields
     jQuery(selectorBase).each( function(index) {
         jQuery(this).val("");
-        var iframe = "iframe[id=" + this.id + "_ifr";
+        var iframe = '#' + this.id + '_ifr';
         var contents = jQuery(iframe).contents();
         var wysiwyg = contents.find("body");
         wysiwyg.html("");
-        // var wysiwyg = 
-
-        // console.log(wysiwyg);
-        // Clear WYSIWYG
-        // jQuery(wysiwyg).each( function(index) {
-        //     console.log(this);
-            // jQuery(this).html("");
-        // });
     });
     // Clear checkboxes & radio buttons
     jQuery(selectorBase + ':checked').each( function(index) {
@@ -27,19 +18,19 @@ function delete_form_data(slug, form_id) {
     });
 }
 
-function toggle_fieldset_of_formset(element) {
+function toggle_repeated_field(element) {
     var classes = jQuery(element).attr('class').split(/\s+/);
     var form_id = classes[3];
     var action = classes[2];
     var slug = classes[1];
-    var header = jQuery('#' + slug + '_header');
-    var targeted_input = jQuery('#' + slug + '_formset');
+    var header = jQuery('#' + slug + '-header');
+    var targeted_input = jQuery('#' + slug + '-set');
     if ( action == 'add') {
         // Enable and show the fieldset
         jQuery(targeted_input).toggleClass('new');
         jQuery(targeted_input).toggleClass('expanded');
+        jQuery(targeted_input).toggleClass('hidden');
         jQuery(targeted_input).attr('disabled', false);
-        jQuery(targeted_input).toggle();
 
         // Hide the add link
         jQuery(element).toggleClass('hidden');
@@ -52,13 +43,13 @@ function toggle_fieldset_of_formset(element) {
 
         // Show the header
         jQuery(header).removeClass('hidden');
+
     } else if ( action == 'remove' ) {
         // Delete form data, and hide the fieldset
         delete_form_data(slug, form_id);
         jQuery(targeted_input).toggleClass('expanded');
         jQuery(targeted_input).toggleClass('new');
-        jQuery(targeted_input).css(' display: none; ');
-        jQuery(targeted_input).toggle();
+        jQuery(targeted_input).toggleClass('hidden');
 
         // Hide the remove link
         jQuery(element).toggleClass('hidden');
@@ -69,13 +60,11 @@ function toggle_fieldset_of_formset(element) {
         jQuery(add_link).toggleClass('hidden');
         jQuery(add_link).attr('disabled', false);
 
-        // Hide the header
-        jQuery(header).addClass('hidden');
     }
 }
 
-jQuery('a.toggle_form_manager').click( function() {
-    toggle_fieldset_of_formset(this);
+jQuery('a.toggle-repeated-field').click( function() {
+    toggle_repeated_field(this);
 });
 
 jQuery(document).ready(function($){

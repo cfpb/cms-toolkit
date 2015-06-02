@@ -1,6 +1,7 @@
 <?php
 namespace CFPB\Utils\MetaBox;
 use \CFPB\Utils\MetaBox\HTML;
+use \CFPB\Utils\MetaBox\Models;
 use \WP_Error;
 
 class View {
@@ -27,7 +28,7 @@ class View {
 		'link',
 	);
 	private $hidden  = array( 'nonce', 'hidden' );
-	private $other   = array( 'separator', 'fieldset', 'formset' );
+	private $other   = array( 'separator', 'fieldset', 'file' );
 	public $elements;
 	private $HTML;
 	private $error;
@@ -51,197 +52,142 @@ class View {
 		$this->error = $Class;
 	}
 
-	public function process_defaults( $fields ) {
-		$ready = array();
-		foreach ( $fields as $field ) {
-			// check if this post has post meta or a taxonomy term already, if it does, set that as the value
-			if ( ! in_array( $field['type'], $this->elements ) ) {
-				return new WP_Error( 'invalid_type', "Invalid type {$field['type']} given for {$field['slug']} in this model. Acceptable elements: {$this->elements}");
-			}
-			$ID = get_the_ID();
-			if ( isset($field['meta_key'] ) ) {
-				if ( ! isset( $field['slug'] ) ) {
-					$field['slug'] = $field['meta_key'];
-				}
-				$field['value'] = $this->default_value($ID, $field);
-			} elseif ( isset( $field['taxonomy'] ) ) {
-				$field['value'] = wp_get_object_terms(
-					$ID,
-					$taxonomy = $field['taxonomy'],
-					array( 'fields' => 'names' )
-				);
-			} else {
-				return new WP_Error( 'no_slug', "No meta_key/slug/taxonomy is set.");
-			}
-			if ( isset( $field['slug'] ) ) {
-				if ( ! isset( $field['meta_key'] ) ) {
-					$field['meta_key'] = $field['slug'];
-				}
-			}
-			if ( isset( $field['meta_key'] ) ) {
-				if ( $field['type'] == 'formset' ) {
-					$field = $this->assign_defaults($field);
-					$this->process_formset_defaults( $field, $ready );
-				} elseif ( $field['type'] == 'fieldset' ) {
-					$ready[$field['meta_key']] = $this->process_fieldset( $field );
-				} else {
-					$ready[$field['meta_key']] = $this->assign_defaults($field);
-				}
-			} else {
-				return new WP_Error( 'no_metakey-slug', "'meta_key' and 'slug' are not set for this field." );
-			}
+	public function process_defaults( $ID, &$field, $saved ) {
+		// check if this post has post meta or a taxonomy term already, if it does, set that as the value
+		if ( ! in_array( $field['type'], $this->elements ) ) {
+			wp_die("Invalid type {$field['type']} given for {$field['key']} in this model.");
 		}
-		return $ready;
+		if ( isset( $field['taxonomy'] ) ) {
+			$field['value'] = wp_get_object_terms(
+				$ID,
+				$taxonomy = $field['taxonomy'],
+				array( 'fields' => 'names' )
+			);
+		}
+		if ( isset( $field['params'] ) and isset( $field['params']['repeated'] ) ) {
+			$this->process_repeated_fields( $ID, $field, $saved );
+		} elseif ( $field['type'] == 'fieldset' ) {
+			$this->process_fieldset( $ID, $field, $saved );
+		} else {
+			$this->assign_defaults( $ID, $field, $saved );
+		}
 	}
 
-	public function process_formset_defaults( $field, &$ready ) {
-		$ID = get_the_ID();
+	public function process_repeated_fields( $ID, &$field, $saved ) {
+		$this->process_repeated_field_params( $field );
+		$repeated = $field['params']['repeated'];
+		unset( $field['params']['repeated'] );
+		if ( isset( $field['howto'] ) ) {
+			$howto = $field['howto'];
+			unset( $field['howto'] );
+		}
 		$processed = array();
-		$key = $field['meta_key'];
-		for ( $i = 0; $i < $field['params']['max_num_forms']; $i++ ) {
+		for ( $i = 0; $i < $repeated['max']; $i++ ) {
 			$processed[$i] = $field;
-			if ( ( $i + 1 ) <= $field['params']['init_num_forms'] ) {
-				$processed[$i]['init'] = true;
-			}
-			$processed[$i]['meta_key'] .= '_' . $i;
-			$processed[$i]['slug'] .= '_' . $i;
-			$processed[$i]['title'] .= isset( $processed[$i]['title'] ) ? ' ' . ( $i + 1 ) : "";
-			for ( $j = 0; $j < count( $field['fields'] ); $j++ ) {
-				if ( isset( $processed[$i]['fields'][$j]['meta_key'] ) ) {
-					$processed[$i]['fields'][$j]['meta_key'] = "{$processed[$i]['meta_key']}_{$processed[$i]['fields'][$j]['meta_key']}";
-				}
-				if ( isset( $processed[$i]['fields'][$j]['slug'] ) ) {
-					$processed[$i]['fields'][$j]['slug'] = "{$processed[$i]['slug']}_{$processed[$i]['fields'][$j]['slug']}";
-				}
-			}
-			$processed[$i]['fields'] = $this->process_defaults( $processed[$i]['fields'] );
+			$processed[$i]['init'] = ( ( $i + 1 ) <= $repeated['min'] );
+			$processed[$i]['key'] .= '_' . $i;
+			// $processed[$i]['title'] .= isset( $processed[$i]['title'] ) ? ' ' . ( $i + 1 ) : "";
+			// $processed[$i]['label'] .= isset( $processed[$i]['label'] ) ? ' ' . ( $i + 1 ) : "";
+			$saved_field = ( $saved and isset( $saved[$i] ) ) ? $saved[$i] : null;
+			$this->process_defaults( $ID, $processed[$i], $saved_field );
 		}
-		foreach ( $processed as $f ) {
-			if ( isset( $f['meta_key'] ) ) {
-				$ready[$f['meta_key']] = $f;
-			} elseif ( isset( $f['slug'] ) ) {
-				$ready[$f['slug']] = $f;
+		$field['fields'] = $processed;
+		$field['params']['repeated'] = $repeated;
+		$field['howto'] = ( isset( $howto ) ) ? $howto: "";
+	}
+
+	public function process_repeated_field_params( $field ) {
+		if ( is_array( $field['params']['repeated'] ) and !empty( $field['params']['repeated'] ) ) {
+			foreach ( array( 'min', 'max' ) as $limit ) {
+				if ( ! isset( $field['params']['repeated'][$limit] ) or ! is_numeric( $field['params']['repeated'][$limit] ) ) {
+					wp_die("{$field['key']} must have repeated param {$limit} set as a number.");
+				}
 			}
+			if ( intval( $field['params']['repeated']['min'] ) > intval( $field['params']['repeated']['max'] ) ) {
+				wp_die("{$field['key']} repeated param min must not be more than the repeated max param.");
+			}
+		} else {
+			wp_die("{$field['key']} must have repeated param be array and set min and max params.");
 		}
 	}
 
-	public function process_fieldset( $field ){
-		$ID = get_the_ID();
-		for ($i = 0; $i < count( $field['fields'] ); $i++ ) {
-			if ( isset( $field['fields'][$i]['meta_key'] ) ) {
-				$field['fields'][$i]['meta_key'] = "{$field['meta_key']}_{$field['fields'][$i]['meta_key']}";
-			}
-			if ( isset( $field['fields'][$i]['slug'] ) ) {
-				$field['fields'][$i]['slug'] = "{$field['slug']}_{$field['fields'][$i]['slug']}";
-			}
-			if ( $field['fields'][$i]['type'] == 'fieldset' ) {
-				$field['fields'][$i] = $this->process_fieldset( $field['fields'][$i] );
-			} else {
-				$field['fields'][$i] = $this->assign_defaults( $field['fields'][$i] );
-				$field['fields'][$i]['value'] = $this->default_value( $ID, $field['fields'][$i] );
-			}
+	public function process_fieldset( $ID, &$field, $saved ) {
+		if ( ! isset( $field['fields'] ) or ! is_array( $field['fields'] ) ) {
+			wp_die("{$field['old_key']} must have a fields array.");
 		}
-		return $field;
+		foreach ( array_keys( $field['fields'] ) as $key ) {
+			$field['fields'][$key]['old_key'] = Models::validate_keys( $field['fields'][$key] );
+			$field['fields'][$key]['key'] = "{$field['key']}_{$field['fields'][$key]['old_key']}";
+			$saved_field = ( $saved and isset( $saved[$field['fields'][$key]['old_key']] ) ) ? $saved[$field['fields'][$key]['old_key']] : null;
+			$this->process_defaults( $ID, $field['fields'][$key], $saved_field );
+		}
 	}
 
-	public function assign_defaults( $field ) {
-		$field['label'] = $this->default_label($field);
-		if ( ! in_array( $field['type'], $this->hidden ) ) {
-			$field['max_length'] = $this->default_max_length($field);
-			$field['placeholder'] = $this->default_placeholder($field);
+	public function assign_defaults( $ID, &$field, $saved ) {
+		$field['label'] = isset( $field['label'] ) ? $field['label'] : null;
+		if ( $field['type'] == 'text' or $field['type'] == 'text_area' ) {
+			$field['max_length'] = isset( $field['max_length'] ) ? $field['max_length'] : 255;
+			$field['placeholder'] = isset( $field['placeholder'] ) ? $field['placeholder'] : "";
 		}
 		if ( $field['type'] == 'text_area') {
-			$field['rows'] = $this->default_rows($field);
-			$field['cols'] = $this->default_cols($field);
+			$field['rows'] = isset( $field['params']['rows'] ) ? intval( $field['params']['rows'] ) : 2;
+			$field['cols'] = isset( $field['params']['cols'] ) ? intval( $field['params']['cols'] ) : 27;
 		}
 		if ( $field['type'] == 'tax_as_meta') {
-			$field['include'] = $this->default_options( $field );
+			$field['include'] = isset( $field['params']['include'] ) ? $field['params']['include'] : array();
 			unset($field['params']);
 		}
-		if ( $field['type'] == 'multiselect' ) {
-			$field['multiselect'] = true;
-		} else {
-			$field['multiselect'] = false;
+		if ( in_array($field['type'], $this->selects ) ) {
+			$field['multiselect'] = ( $field['type'] == 'multiselect' ) ? true : false;
 		}
 		if ( ! in_array($field['type'], array( 'taxonomyselect', 'tax_as_meta', 'date', 'time', 'datetime' ) ) ) {
 			$field['taxonomy'] = false;
 		}
-		if ( $field['type'] == 'formset' ) {
-			$field = $this->default_formset_params( $field );
-		}
 		if ( $field['type'] == 'wysiwyg' ) {
-			if ( ! isset( $field['params'] ) or empty( $field['params'] ) ) {
-				$field['params'] = array( 'textarea_rows' => 5, 'editor_class' => "cms-toolkit-wysiwyg" );
+			if ( ! isset( $field['settings'] ) or empty( $field['settings'] ) ) {
+				$field['settings'] = array(
+					'textarea_rows' => 8,
+					'editor_class' => "cms-toolkit-wysiwyg",
+					'wpautop' => false
+				);
 			} else {
-				$field['params']['editor_class'] .= " cms-toolkit-wysiwyg";
+				if ( ! isset( $field['settings']['textarea_rows'] ) ) {
+					$field['settings']['textarea_rows'] = 8;
+				}
+				if ( ! isset( $field['settings']['editor_class'] ) ) {
+					$field['settings']['editor_class'] = "cms-toolkit-wysiwyg";
+				} else {
+					$field['settings']['editor_class'] .= " cms-toolkit-wysiwyg";
+				}
+				if ( ! isset( $field['settings']['wpautop'] ) ){
+					$field['settings']['wpautop'] = false;
+				}
 			}
 		}
-		if ( $field['type'] == 'time' or $field['type'] == 'datetime' ) {
-			$timezone = get_post_meta( get_the_ID(), $field['taxonomy'] . '_timezone', true );
-			$field['timezone'] = empty( $timezone ) ? null : $timezone[0];
-		}
-		return $field;
-	}
-
-	public function default_value( $ID, $field, $index = 0 ) {
-		if ( $field['type'] == 'formset' or $field['type'] == 'fieldset' or
-			 $field['type'] == 'link' or $field['type'] == 'time' or
-			 $field['type'] == 'datetime' or $field['type'] == 'date' ) {
-			$default = null;
+		// the else is added for backwards compatibility and is to be phased out
+		if ( $saved or $saved === "" ) {
+			$field['value'] = $saved;
 		} else {
-			$existing = get_post_meta( $ID, $field['meta_key'], false );
-			$value = isset( $field['value'] ) ? $field['value'] : '';
-			$default = array_key_exists( $index, $existing ) ? $existing[$index] : $value;
+			$existing = get_post_meta( $ID, $field['key'], false );
+			$field['value'] = isset( $existing[0] ) ? $existing[0] : null;
 		}
-		return $default;
-	}
-
-	public function default_label( $field ) {
-		$default = empty( $field['label'] ) ? '' : $field['label'];
-		return $default;
-	}
-
-	public function default_max_length( $field ) {
-		$default  = empty( $field['max_length'] ) ? 255 : $field['max_length'];
-		return $default;
-	}
-
-	public function default_placeholder( $field ) {
-		$default = empty( $field['placeholder'] ) ? '' : $field['placeholder'];
-		return $default;
-	}
-
-	public function default_rows( $field ) {
-		$default = ! isset( $field['params']['rows'] ) ? 2 : intval( $field['params']['rows'] );
-		return $default;
-	}
-
-	public function default_cols( $field ) {
-		$default = ! isset( $field['params']['cols'] ) ? 27 : intval( $field['params']['cols'] );
-		return $default;
-	}
-	public function default_options( $field ) {
-		$default = ! isset( $field['params']['include'] ) ? array() : $field['params']['include'];
-		return $default;
-	}
-	public function default_formset_params( $field ) {
-		if ( isset( $field['params'] ) ) {
-			if ( ! isset( $field['params']['init_num_forms'] ) ) {
-				$field['params']['init_num_forms'] = 1;
-			}
-			if ( ! isset( $field['params']['max_num_forms'] ) ) {
-				$field['params']['max_num_forms'] = 1;
-			}
-		} else {
-			$field['params'] = array( 'init_num_forms' => 1, 'max_num_forms' => 1 );
-		}
-		return $field;
 	}
 
 	public function ready_and_print_html( $post, $fields ) {
+		$ID = get_the_ID();
 		$fields = $fields['args'];
-		$ready  = $this->process_defaults( $fields );
-		foreach ( $ready as $field ) {
+		$saved = array();
+		foreach ( $fields as $field ) {
+			$field['old_key'] = Models::validate_keys( $field );
+			$field['key'] = $field['old_key'];
+			$saved[$field['old_key']] = get_post_meta( $ID, $field['old_key'], $single = true );
+			if ( in_array( $field['type'], array( 'link', 'multiselect', 'post_multiselect' ) ) ) {
+				$existing = get_post_meta( $ID, $field['key'], false );
+				if ( $existing and ! is_array( $existing[0] ) ) {
+					$saved[$field['old_key']] = $existing;
+				}
+			}
+			$this->process_defaults( $ID, $field, $saved[$field['old_key']] );
 			$this->HTML->draw( $field );
 		}
 	}

@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 We follow the [Semantic Versioning 2.0.0](http://semver.org/) format.
 
 
+## 2.0.0 - 2015-05-04
+
+### Changed
+- Serialize all custom meta box meta data
+- Remove `formset` type
+- Added `'repeated'` parameter for repeating a field of any type
+- Fixed some in-code documentation and README
+- Added backwards compatibility that helps phase out old data (temporary)
+- Changed most ineffective WP_Error's to call wp_die() instead
+
 ## 1.5.6 - 2015-05-06
 
 ### Changed

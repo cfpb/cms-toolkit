@@ -42,7 +42,7 @@ class Models {
 		'link',
 		'wysiwyg',
 	);
-	private $other   = array( 'nonce', 'hidden', 'separator', 'fieldset', 'formset' );
+	private $other   = array( 'nonce', 'hidden', 'separator', 'fieldset' );
 	protected $supported_types = array(
 		'application/pdf',
 		'image/png',
@@ -161,136 +161,103 @@ class Models {
 	}
 
 	/**
-	* validate_formset validates a formset
+	* validate_repeated_field validates a field that repeats
 	*
-	* @param  arr  $field     The formset to validate.
-	* @param  arr  $validate  The array that holds all the data to save in an
-	*                         associative array that is passed by reference.
-	* @param  arr  $post_ID   The post's ID
+	* @param  arr  $post_ID    The post's ID
+	* @param  arr  $field      The repeated field to validate.
+	* @param  arr  $validated  The array that holds all the data to save in an
+	*                           associative array that is passed by reference.
+	* @param  mixed  $saved    The data that is associated with the fields
 	*
-	* @return  void           No return value. The validate array is passed by reference
-	*                         so data is saved through that array.
+	* @return  void            No return value. The validate array is passed by
+								reference so data is saved through that array.
 	*/
 
-	public function validate_formset( $field, &$validate, $post_ID ) {
-		for ( $i = 0; $i < $field['params']['max_num_forms']; $i++ ) {
+	public function validate_repeated_field( $post_ID, &$field, &$validated, $saved ) {
+		$validated = array();
+		$params = $field['params']['repeated'];
+		unset( $field['params']['repeated'] );
+		for ( $i = 0; $i < $params['max']; $i++ ) {
 			$processed[$i] = $field;
-			if ( isset( $processed[$i]['meta_key'] ) ) {
-				$processed[$i]['meta_key'] .= '_' . $i;
-			}
-			if ( isset( $processed[$i]['slug'] ) ) {
-				$processed[$i]['slug'] .= '_' . $i;
-			}
-			foreach ( $processed[$i]['fields'] as $f ) {
-				if ( isset( $processed[$i]['meta_key'] ) and isset( $f['meta_key'] ) ) {
-					$f['meta_key'] = "{$processed[$i]['meta_key']}_{$f['meta_key']}";
-				}
-				if ( isset( $processed[$i]['slug'] ) and isset( $f['slug'] ) ) {
-					$f['slug'] = "{$processed[$i]['slug']}_{$f['slug']}";
-				}
-				$this->validate( $post_ID, $f, $validate );
+			$processed[$i]['key'] .= '_' . $i;
+			$validated[$i] = null;
+			$saved_field = ( $saved and isset( $saved[$i] ) ) ? $saved[$i] : null;
+			$this->validate( $post_ID, $processed[$i], $validated[$i], $saved_field );
+			if ( empty( $validated[$i] ) ) {
+				unset( $validated[$i] );
 			}
 		}
+		if ( empty( $validated ) ) {
+			unset( $validated );
+		}
+		$field['fields'] = $processed;
 	}
 
 	/**
 	* validate_fieldset validates a fieldset
 	*
-	* @param  arr  $field     The formset to validate.
-	* @param  arr  $validate  The array that holds all the data to save in an
-	*                         associative array that is passed by reference.
-	* @param  arr  $post_ID   The post's ID
+	* @param  arr  $post_ID    The post's ID
+	* @param  arr  $field      The fieldset to validate.
+	* @param  arr  $validated  The array that holds all the data to save in an
+	*                              associative array that is passed by reference.
+	* @param  mixed  $saved    The data that is associated with the fields
 	*
-	* @return  void           No return value. The validate array is passed by reference
-	*                         so data is saved through that array.
+	* @return  void            No return value. The validate array is passed by reference
+	*                              so data is saved through that array.
 	*/
 
-	public function validate_fieldset( $field, &$validate, $post_ID ) {
-		foreach ( $field['fields'] as $f ) {
-			if ( isset( $field['meta_key'] ) and isset( $f['meta_key'] ) ) {
-				$f['meta_key'] = "{$field['meta_key']}_{$f['meta_key']}";
+	public function validate_fieldset( $post_ID, &$field, &$validated, $saved ) {
+		$validated = array();
+		foreach ( array_keys( $field['fields'] ) as $key ) {
+			$field_key = Models::validate_keys( $field['fields'][$key] );
+			$field['fields'][$key]['old_key'] = $field_key;
+			$field['fields'][$key]['key'] = "{$field['key']}_{$field_key}";
+			$validated[$field_key] = null;
+			$saved_field = ( $saved and isset( $saved[$field_key] ) ) ? $saved[$field_key] : null;
+			$this->validate( $post_ID, $field['fields'][$key], $validated[$field_key], $saved_field );
+			if ( ! $validated[$field_key] ) {
+				unset( $validated[$field_key] );
 			}
-			if ( isset( $field['slug'] ) and isset( $f['slug'] ) ) {
-				$f['slug'] = "{$field['slug']}_{$f['slug']}";
-			}
-			$this->validate( $post_ID, $f, $validate );
+		}
+		if ( empty( $validated ) ) {
+			unset( $validated );
 		}
 	}
 
 	/**
 	 * validate_link validates a field with type = 'link'
 	 *
-	 * @param  arr $field   The field to validate, normally passed by looping through
-	 *                      $this->fields
-	 * @param  int $post_ID The post ID to have post values saved to
-	 * @return void         No return value, updates or adds post meta if successful. New
-	 *                      metadata are saved to the post as an array of the form
-	 *                      array(0 => 'url', 1 => 'text')
+	 * @param string $key         The key of the $_POST array
+	 * @param array  $validated   The array to hold the data to be saved
 	 */
-	public function validate_link( $field, $post_ID ) {
-		if ( isset( $_POST["{$field['meta_key']}_url"] )
-		 and isset( $_POST["{$field['meta_key']}_text"] ) ) {
-			$url = $_POST["{$field['meta_key']}_url"];
-			$text = $_POST["{$field['meta_key']}_text"];
-			$full_link = array( 0 => $url, 1 => $text );
-			$existing = get_post_meta( $post_ID, $field['meta_key'], $single = false );
+	public function validate_link( $key, &$validated ) {
+		if ( isset( $_POST["{$key}_label"] )
+		 and isset( $_POST["{$key}_url"] ) ) {
+			$label = $_POST["{$key}_label"];
+			$url = $_POST["{$key}_url"];
+			$full_link = array( 'label' => $label, 'url' => $url );
 
-			if ( empty( $_POST["{$field['meta_key']}_url"] )
-			  or empty( $_POST["{$field['meta_key']}_text"] ) ) {
-				delete_post_meta( $post_ID, $field['meta_key']);
-			} elseif ( empty($existing) ) {
-				add_post_meta( $post_ID, $field['meta_key'], $url, false );
-				add_post_meta( $post_ID, $field['meta_key'], $text, false );
-			} elseif ( $existing != $full_link ) {
-				update_post_meta( $post_ID, $field['meta_key'], $url, $existing[0] );
-				update_post_meta( $post_ID, $field['meta_key'], $text, $existing[1] );
-			}
+			$validated = ( empty( $label ) or empty( $url ) ) ? null : $full_link;
 		}
 	}
 
 	/**
 	 * validate_select validates a <select> field
 	 *
-	 * @param  arr $field   The field to validate, normally passed by looping through
-	 *                      $this->fields
-	 * @param  int $post_ID The post ID to have post values saved to
-	 * @return void         No return value, adds or deletes post meta if successful. New
-	 *                      data are saved to the post as new values in an array or
-	 *                      deleted.
+	 * @param string $key       The key of the $_POST array
+	 * @param array $validated  The array to hold the data to be saved
 	 */
 
-	public function validate_select( $field, $post_ID ) {
-		if ( !isset( $_POST[$field['meta_key']] ) ) {
-			delete_post_meta( $post_ID, $field['meta_key']);
-			return;
-		}
-		if ( array_key_exists($field['meta_key'], $_POST) ) {
-			$existing = get_post_meta( $post_ID, $field['meta_key'], false );
-			$data = $_POST[$field['meta_key']];
-			foreach ( (array)$data as $d ) {
-				// Adding or updating terms
-				$term = sanitize_text_field( $d );
-				$e_key = array_search($term, $existing);
-				if ( ! in_array($d, (array)$existing) ) {
-					// if the term is not in $existing, it's a new term, add it
-					// we use add_post_meta instead of update so we can have more
-					// than one value on the array
-					add_post_meta( $post_ID, $field['meta_key'], $term );
-				}
-			}
-			// delete terms if they're not in the $_POST data
-			foreach ( (array)$existing as $e ) {
-				if ( ! in_array($e, (array)$data) ) {
-					delete_post_meta( $post_ID, $field['meta_key'], $meta_value = $e );
-				}
-			}
+	public function validate_select( $key, &$validated ) {
+		if ( isset( $_POST[$key] ) ) {
+			$validated = $_POST[$key];
 		}
 	}
 
-	public function validate_taxonomyselect($field, $post_ID) {
+	public function validate_taxonomyselect( $post_ID, $field, $key ) {
 		$field['multiple'] = isset( $field['multiple'] ) ? $field['multiple'] : false;
-		if ( isset($_POST[$field['slug']] )) {
-			$term = sanitize_text_field( $_POST[$field['slug']] );
+		if ( isset($_POST[$key] )) {
+			$term = sanitize_text_field( $_POST[$key] );
 			$term_exists = get_term_by('id', $term, $field['taxonomy']);
 			if ( $term_exists ){
 				wp_set_object_terms(
@@ -314,12 +281,13 @@ class Models {
 	 * Validates a date, time, or datetime field by converting $_POST keys into date strings before passing
 	 * to a date method in $this->Callbacks->date()
 	 * 
-	 * @param  array $field    The field to be processed
-	 * @param  [type] $post_ID The ID of the object to be manipulated
+	 * @param int   $post_ID   The ID of the object to be manipulated
+	 * @param array $field     The field to be processed
+	 * @param array $validated The array to hold the data to be saved
 	 * @return void
 	 */
 
-	public function validate_datetime($field, $post_ID) {
+	public function validate_datetime( $post_ID, $field, &$validated ) {
 		$terms = wp_get_post_terms( $post_ID, $field['taxonomy'], array( 'fields' => 'ids' ) );
 		$terms_to_remove = array();
 		for ( $i = 0; $i < count( $terms ); $i++ ) {
@@ -366,11 +334,16 @@ class Models {
 				$data[$field['taxonomy']] .= ' ' . $_POST[$timezone][0];
 			}
 		}
+		$timezone = null;
 		if ( $field['type'] == 'date' ) {
 			$date = DateTime::createFromFormat('F j Y', $data[$field['taxonomy']]);
 		} else {
-			if ( isset( $_POST[$field['taxonomy'] . '_timezone'] ) )
+			if ( isset( $_POST[$field['taxonomy'] . '_timezone'] ) and
+				 is_array( $_POST[$field['taxonomy'] . '_timezone'] ) and
+				 !empty( $_POST[$field['taxonomy'] . '_timezone'][0] ) ) {
+				
 				date_default_timezone_set( $_POST[$field['taxonomy'] . '_timezone'][0] );
+			}
 			if ( $field['type'] == 'time' ) {
 				$date = DateTime::createFromFormat('h:ia T', $data[$field['taxonomy']]);
 			} elseif ( $field['type'] == 'datetime' ) {
@@ -379,10 +352,23 @@ class Models {
 		}
 		if ( $date ) {
 			$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], $data, null );
+			if ( $field['type'] == 'date' ) {
+				$validated = array( 'date' => date( Datetime::ISO8601, strval( strtotime( $data[$field['taxonomy']] ) ) ) );
+			} elseif ( $field['type'] == 'datetime' ) {
+				$validated = array(
+					'datetime' => date( Datetime::ISO8601, strval( strtotime( $data[$field['taxonomy']] ) ) ),
+					'timezone' => $_POST[$field['taxonomy'] . '_timezone'][0]
+				);
+			} else {
+				$validated = array(
+					'time' => date( Datetime::ISO8601, strval( strtotime( $data[$field['taxonomy']] ) ) ),
+					'timezone' => $_POST[$field['taxonomy'] . '_timezone'][0]
+				);
+			}
 		}
 	}
 
-	public function validate_file( $field, $post_ID ) {
+	public function validate_file( $post_ID, $field, &$validated, $saved ) {
 		if ( isset( $field['allowed_file_types'] ) and 
 			( is_array( $field['allowed_file_types'] ) and !empty( $field['allowed_file_types'] ) ) ) {
 			foreach ( $field['allowed_file_types'] as $type ) {
@@ -395,24 +381,23 @@ class Models {
 		} else {
 			$supported_types = $this->supported_types;
 		}
-		if ( isset( $_POST['rm_' . $field['meta_key']] ) and !empty( $_POST['rm_' . $field['meta_key']] ) ) {
-			$file = get_post_meta( $post_ID, $_POST['rm_' . $field['meta_key']], true );
-			if ( unlink( $file['file'] ) ) {
-				delete_post_meta( $post_ID, $field['meta_key'] );
-			} else {
+		if ( isset( $_POST['rm_' . $field['key']] ) and !empty( $_POST['rm_' . $field['key']] ) ) {
+			if ( ! unlink( $saved['file'] ) ) {
 				wp_die('There was an error trying to delete your file.');
 			}
 		}
-		if ( !empty( $_FILES[$field['meta_key']] ) and !empty( $_FILES[$field['meta_key']]['name'] ) ) {
-			$arr_file_type = wp_check_filetype( basename( $_FILES[$field['meta_key']]['name'] ) );
+		if ( !empty( $_FILES[$field['key']] ) and !empty( $_FILES[$field['key']]['name'] ) ) {
+			$arr_file_type = wp_check_filetype( basename( $_FILES[$field['key']]['name'] ) );
 			$uploaded_type = $arr_file_type['type'];
 			if ( in_array( $uploaded_type, $supported_types ) ) {
-				$upload = wp_upload_bits( $_FILES[$field['meta_key']]['name'], null, file_get_contents( $_FILES[$field['meta_key']]['tmp_name'] ) );
+				$upload = wp_upload_bits( $_FILES[$field['key']]['name'], null, file_get_contents( $_FILES[$field['key']]['tmp_name'] ) );
 				if ( $upload['error'] ) {
 					wp_die( 'File upload error: ' . $upload['error'] );
 				} else {
-					$upload['name'] = $_FILES[$field['meta_key']]['name'];
-					update_post_meta( $post_ID, $field['meta_key'], $upload );
+					$upload['name'] = $_FILES[$field['key']]['name'];
+					$relative_url = parse_url( $upload['url'] );
+					$upload['url'] = $relative_url['path'];
+					$validated = $upload;
 				}
 			}
 			else {
@@ -425,109 +410,73 @@ class Models {
 	 * Checks that data is coming through in the types we expect or ferries out form 
 	 * data to the appropriate validator. Run before save to ensure you're saving
 	 * correct data. Essentially this takes in $_POST and pushes all the good stuff from
-	 * $_POST into a separate, cleaned array and returns the cleaned data.
+	 * $_POST into a separate, cleaned array.
 	 *
-	 * @param int $post_ID The post targeted for custom data
+	 * @param int $post_ID   The post targeted for custom data
+	 * @param int $field     The field to be validated
+	 * @param int $validated The array that holds the data to save
+	 * @param int $saved     The data that is already associated with the field
 	 * 
-	 * @return array A version of $_POST with cleaned data ready to be sent to a save method
-	 *               like $this->save()
 	 */
-	public function validate( $post_ID, $field, &$validate ) {
+	public function validate( $post_ID, &$field, &$validated, $saved = NULL ) {
 		if ( isset( $field['do_not_validate'] ) ) {
 			return;
 		} elseif ( ! isset( $field['type'] ) ) {
-			$error = new $this->error( 'no_type', __( 'No field type set.' ) );
-			echo $error->get_error_message('no_type');
-			return;
+			wp_die("No field type set.");
 		}
-		if ( isset( $field['meta_key'] ) ) {
-			$key = $field['meta_key'];
-		} elseif ( isset( $field['slug'] ) ) {
-			$key = $field['slug'];
-		} elseif ( isset( $field['taxonomy'] ) ) {
-			$key = $field['taxonomy'];
-		} else {
-			$error = new $this->error( 'no_slug', __( 'No meta_key/slug/taxonomy is set.' ) );
-			echo $error->get_error_message('no_slug');
-			return;
-		}
-		/* if this field is a formset, fieldset, taxonomy select, date, link or 
-		   select field, we send it out to another validator
-		*/
-		if ( $field['type'] == 'formset' ) {
-		   if ( isset( $field['params'] ) ) {
-				if ( isset( $field['params']['max_num_forms'] ) ) {
-					if ( ! is_numeric( $field['params']['max_num_forms'] ) ) {
-						$error = new $this->error( 'formset_params_max_num',
-									__( "The 'max_num_forms' in params array for the"
-										. "formset field needs to be an integer." ) );
-						return $error->get_error_message('formset_params_max_num');
-					}
-				} else {
-					$field['params']['max_num_forms'] = 1;
-				}            
-			} else {
-				$error = new $this->error( 'formset_params',
-									__( "There must be a params array set in the field"
-										 . "for a formset." ) );
-				return $error->get_error_message('formset_params');
-			}
-			$this->validate_formset( $field, $validate, $post_ID );
-			return;
+
+		// Special fields require external validators
+	   if ( isset( $field['params'] ) and isset( $field['params']['repeated'] ) ) {
+	   		$this->View->process_repeated_field_params( $field );
+			$this->validate_repeated_field( $post_ID, $field, $validated, $saved );
+
 		} elseif ( $field['type'] == 'fieldset' ) {
-			$this->validate_fieldset( $field, $validate, $post_ID );
-			return;
+			$this->validate_fieldset( $post_ID, $field, $validated, $saved );
+
 		} elseif ( $field['type'] == 'taxonomyselect') {
 			if ( ! isset( $field['taxonomy'] ) ) {
-				$error = new $this->error( 'no_taxonomy', __( 'No taxonomy set'
-										   . ' for field that requires it.' ) );
-				echo $error->get_error_message('no_taxonomy');
-				return;
+				wp_die( "No taxonomy set for field that requires it.");
 			}
-			$this->validate_taxonomyselect( $field, $post_ID );
-			return;
+			$this->validate_taxonomyselect( $post_ID, $field, $field['key'] );
+
 		} elseif ( in_array( $field['type'], $this->selects ) ) {
-			if ( ! isset( $field['meta_key'] ) ) {
-				$error = new $this->error( 'no_meta_key', __( 'No meta_key is set.' ) );
-				echo $error->get_error_message('no_meta_key');
-				return;
-			}
-			$this->validate_select( $field, $post_ID );
-			return;
+			$this->validate_select( $field['key'], $validated );
+
 		} elseif ( $field['type'] == 'date' or $field['type'] == 'time' or $field['type'] == 'datetime' ) {
 			if ( ! isset( $field['taxonomy'] ) ) {
-				$error = new $this->error( 'no_taxonomy', __( 'No taxonomy set'
-										   . ' for field that requires it.' ) );
-				echo $error->get_error_message('no_taxonomy');
-				return;
+				wp_die( "No taxonomy set for field that requires it.");
 			}
-			$this->validate_datetime( $field, $post_ID );
-			return;
+			$this->validate_datetime( $post_ID, $field, $validated );
+
 		} elseif ( $field['type'] == 'link' ) {
-			$this->validate_link($field, $post_ID);
-			return;
+			$this->validate_link( $field['key'], $validated );
+
 		} elseif ( $field['type'] == 'file' ) {
-			$this->validate_file( $field, $post_ID );
-			return;
+			$this->validate_file( $post_ID, $field, $validated, $saved );
+
 		} else {
 			/* 
 				For most field types we just need to make sure we have the data
 				we expect from the form and sanitize them before sending them to
 				save
 			*/
-			if ( ! isset( $_POST[$key] ) ) {
+			if ( ! isset( $_POST[$field['key']] ) ) {
 				/*
 					Unchecked checkboxes that were previously checked
-					need the meta_key/slug to be manually added to the
+					need the key/slug to be manually added to the
 					$_POST global to be properly saved.
 				*/
 				if ( $field['type'] == 'boolean' ) {
-					$_POST[$key] = null;
+					if ( $field['key'] == $field['old_key'] ) {
+						$_POST[$field['key']] = "";
+					} else {
+						$_POST[$field['key']] = null;
+					}
 				} else {
 					return;
 				}
 			}
-			$value = $_POST[$key];
+			$value = $_POST[$field['key']];
 			if ( $field['type'] == 'number' ) {
 				if ( is_numeric( $value ) ) {
 					// if we're expecting a number, make sure we get a number
@@ -545,9 +494,38 @@ class Models {
 				// make sure whatever we get for anything else is a string
 				$value = (string)$value;
 			}
+			$validated = $value;
 		}
-		$validate[$key] = $value;
 	}
+
+	public static function validate_keys( $field ) {
+		$field_key = null;
+		if ( isset( $field['key'] ) ) {
+			$field_key = $field['key'];
+		} elseif ( isset( $field['meta_key'] ) ) {
+			$field_key = $field['meta_key'];
+		} elseif ( isset( $field['slug'] ) ) {
+			$field_key = $field['slug'];
+		} elseif ( isset( $field['taxonomy'] ) ) {
+			$field_key = $field['taxonomy'];
+		} else {
+			wp_die( 'No meta_key/slug/taxonomy is set.' );
+		}
+		return $field_key;
+	}
+
+// added to delete old-formatted data for phasing out backwards compatibility
+public function delete_old_data( $post_ID, $fields ) {
+	foreach ( $fields as $field ) {
+		if ( ! isset( $field['fields'] ) ) {
+			delete_post_meta( $post_ID, $field['key'] );
+		} else {
+			foreach ( array_keys($field['fields']) as $key ) {
+				$this->delete_old_data( $post_ID, array( $field['fields'][$key] ) );
+			}
+		}
+	}
+}
 
 	/**
 	 * Takes cleaned $_POST data and save it as custom post meta
@@ -557,7 +535,7 @@ class Models {
 	 *                           data to be saved
 	 * @return nothing           Either deletes or updates post meta or returns empty
 	 */
-	public function save( $post_ID, $postvalues ) {
+	public static function save( $post_ID, $postvalues ) {
 		// Do nothing if we're auto saving
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 		return;
@@ -566,14 +544,11 @@ class Models {
 			// if we're passed an empty array, don't do anything
 			return;
 		}
-
 		// save post data for any fields that sent them
 		foreach ( $postvalues as $key => $value ) {
 			$existing = get_post_meta( $post_ID, $key, $single = true );
-			if ( $value == null && isset( $existing ) ) {
-				delete_post_meta( $post_ID, $key );
-			} elseif ( isset( $value ) ) {
-				update_post_meta( $post_ID, $meta_key = $key, $meta_value = $value );
+			if ( isset( $value ) ) {
+				update_post_meta( $post_ID, $key = $key, $meta_value = $value );
 			} else {
 				return;
 			}
@@ -586,15 +561,34 @@ class Models {
 	 * @return void
 	 */
 	public function validate_and_save( $post_ID ) {
-		$validate = array();
 		if ( empty( $this->fields ) ) {
-			$error = new $this->error( 'empty_fields', __( 'Empty fields array' ) );
-			echo $error->get_error_message('empty_fields');
-			return;
+			wp_die("Empty fields array");
 		}
-		foreach ( $this->fields as $field ) {
-			$this->validate( $post_ID, $field, $validate );
+
+		// create an array that will be saved
+		$validated = array();
+
+		// duplicate metabox's fields to modify to match with $_POST array's keys
+		$saved = array();
+
+		foreach ( array_keys( $this->fields ) as $key ) {
+			
+			//verify meta_key/slug/taxonomy and assign keys
+			$this->fields[$key]['old_key'] = Models::validate_keys( $this->fields[$key] );
+			$this->fields[$key]['key'] = $this->fields[$key]['old_key'];
+			
+			//create keys in array that are to be saved
+			$validated[$this->fields[$key]['old_key']] = null;
+
+			// retrieve saved data
+			$saved[$this->fields[$key]['old_key']] = get_post_meta( $post_ID, $this->fields[$key]['old_key'], $single = true );
+
+			//start validation
+			$this->validate( $post_ID, $this->fields[$key], $validated[$this->fields[$key]['old_key']], $saved[$this->fields[$key]['old_key']] );
 		}
-		$this->save( $post_ID, $validate );
+		// delete old formatted data for phasing out backwards compatibility
+		$this->delete_old_data( $post_ID, $this->fields );
+
+		Models::save( $post_ID, $validated );
 	}
 }

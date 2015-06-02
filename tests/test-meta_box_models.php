@@ -11,24 +11,23 @@ class TestValidBox extends Models {
 	public $fields = array(
 		'field_one' => array(
 			'title' => 'This is a field',
-			'slug' => 'field_one',
+			'key' => 'field_one',
 			'type' => 'text_area',
 			'params' => array(
 				'cols' => 27,
 			),
 			'placeholder' => 'Enter text',
 			'howto' => 'Type some text',
-			'meta_key' => 'field_one',
 			'value' => '',
 		),
 		'field_two' => array(
-			'slug' => 'field_two',
+			'key' => 'field_two',
 			'title' => 'This is another field',
 			'type' => 'number',
 			'params' => array(),
 			'placeholder' => '0-100',
 			'howto' => 'Type a number',
-			'meta_key' => 'field_two',
+			'key' => 'field_two',
 			'value' => '',
 		),
 	);
@@ -41,13 +40,12 @@ class TestNumberField extends Models {
 	public $context = 'side';
 	public $fields = array(
 		'field_one' => array(
-			'slug' => 'field_one',
+			'key' => 'field_one',
 			'title' => 'This is another field',
 			'type' => 'number',
 			'params' => array(),
 			'placeholder' => '0-100',
 			'howto' => 'Type a number',
-			'meta_key' => 'field_one',
 		),
 	);
 }
@@ -55,15 +53,14 @@ class TestNumberField extends Models {
 class TestValidTextField extends Models {
 	public $post_type = 'post';
 	public $fields = array(
-		'one' => array(
+		'field' => array(
 			'title' => 'Text Field',
-			'slug' => 'one',
+			'key' => 'field',
 			'label' => 'Text Label',
 			'type' => 'text',
 			'params' => array('max_length' => 255),
 			'placeholder' => 'Type some text',
 			'howto' => 'Up to 255 characters',
-			'meta_key' => 'one',
 		),
 	);
 }
@@ -71,9 +68,9 @@ class TestValidTextField extends Models {
 class TestValidTextAreaField extends Models {
 	public $post_type = 'post';
 	public $fields = array(
-		'one' => array(
+		'field' => array(
 			'title' => 'Text Area Field',
-			'slug' => 'one',
+			'key' => 'field',
 			'label' => 'Text Label',
 			'type' => 'text_area',
 			'params' => array('max_length' => 255),
@@ -81,7 +78,6 @@ class TestValidTextAreaField extends Models {
 			'cols' => 5,
 			'placeholder' => 'Type some text',
 			'howto' => 'Up to 255 characters',
-			'meta_key' => 'one',
 		),
 	);
 }
@@ -89,15 +85,14 @@ class TestValidTextAreaField extends Models {
 class TestValidEmailField extends Models {
 	public $post_type = 'post';
 	public $fields = array(
-		'one' => array(
+		'field' => array(
 			'title' => 'Email Field',
-			'slug' => 'one',
+			'key' => 'field',
 			'label' => 'Email Label',
 			'type' => 'email',
 			'params' => array(),
 			'placeholder' => 'Type some text',
 			'howto' => 'Up to 255 characters',
-			'meta_key' => 'one',
 		),
 	);
 }
@@ -107,7 +102,7 @@ class TestValidDateField extends Models {
 	public $fields = array(
 		'category' => array(
 			'title' => 'Issued date:',
-			'slug' => 'category',
+			'key' => 'category',
 			'label' => '',
 			'type' => 'date',
 			'params' => array(),
@@ -127,36 +122,36 @@ class TestValidFieldsetField extends Models {
 			'fields' => array(
 				array(
 					'type' => 'text',
-					'meta_key' => 'num',
+					'key' => 'num',
+					'key' => 'num',
 				),
 				array(
 					'type' => 'text',
-					'meta_key' => 'desc',
+					'key' => 'desc',
+					'key' => 'desc',
 				),
 			),
 			'params' => array(),
-			'meta_key' => 'field',
+			'key' => 'field',
+			'key' => 'field',
 		),
 	);
 }
 
-class TestValidFormsetField extends Models {
+class TestRepeatedFields extends Models {
 	public $post_type = 'post';
 	public $fields = array(
-		'field' => array(
-			'type' => 'formset',
-			'fields' => array(
-				array(
-					'title' => 'Title',
-					'type' => 'text',
-					'meta_key' => 'title',
+		'fields' => array(
+			'type' => 'text',
+			'key' => 'field',
+			'key' => 'field',
+			'label' => 'Text',
+			'params' => array(
+				'repeated' => array(
+					'min' => 1,
+					'max' => 2,
 				),
 			),
-			'params' => array(
-				'init_num_forms' => 1,
-				'max_num_forms' => 2,
-			),
-			'meta_key' => 'field',
 		),
 	);
 }
@@ -190,16 +185,11 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	function testEmptyFieldsArrayExpectsError() {
 		// arrange
 		global $post;
-		$TestValidTextField = new TestValidTextField();
-		$TestValidTextField->fields = array();
-		$stub = $this->getMockBuilder( '\WP_Error' )
-					 ->setMethods( array('get_error_message') )
+		$TestValidTextField = $this->getMockBuilder( 'TestValidTextField' )
+					 ->setMethods( array('delete_old_data') )
 					 ->getMock();
-		$TestValidTextField->error_handler($stub);
-		$TestValidTextField->error = new $TestValidTextField->error( 'TEST' );
-		$TestValidTextField->error->expects( $this->once() )
-			 ->method( 'get_error_message' )
-			 ->will( $this->returnValue( true ) );
+		$TestValidTextField->fields = array();
+		\WP_Mock::wpFunction( 'wp_die', array( 'times' => 1 ) );
 
 		// act
 		$TestValidTextField->validate_and_save( $post->ID );
@@ -221,25 +211,20 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		// arrange
 		global $post;
 		$TestValidTextField = new TestValidTextField();
-		$TestValidTextField->fields['one']['type'] = null;
-		$stub = $this->getMockBuilder( '\WP_Error' )
-					 ->setMethods( array('get_error_message') )
-					 ->getMock();
-		$TestValidTextField->error_handler($stub);
-		$TestValidTextField->error = new $TestValidTextField->error( 'TEST' );
-		$TestValidTextField->error->expects( $this->once() )
-			 ->method( 'get_error_message' )
-			 ->will( $this->returnValue( true ) );
+		$TestValidTextField->fields['field']['type'] = null;
+		\WP_Mock::wpFunction( 'wp_die', array( 'times' => 1 ) );
+		$validated = array();
+		$saved = array();
 
 		// act
-		$TestValidTextField->validate( $post->ID, array_pop( $TestValidTextField->fields['one'] ), $actual );
+		$TestValidTextField->validate( $post->ID, $TestValidTextField->fields['field'], $validated, $saved );
 
 		// assert
 		// Passes when error is called
 	}
 	/**
-	 * Tests if the validate method will throw an error if the field does not have
-	 * the meta_key, slug, or taxonomy set.
+	 * Tests if the validate_keys method will throw an error if the field does not have
+	 * the key, key, or taxonomy set.
 	 *
 	 *
 	 * @group stable
@@ -251,20 +236,13 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		// arrange
 		global $post;
 		$TestValidTextField = new TestValidTextField();
-		$TestValidTextField->fields['one']['meta_key'] = null;
-		$TestValidTextField->fields['one']['slug'] = null;
-		$TestValidTextField->fields['one']['taxonomy'] = null;
-		$stub = $this->getMockBuilder( '\WP_Error' )
-					 ->setMethods( array('get_error_message') )
-					 ->getMock();
-		$TestValidTextField->error_handler($stub);
-		$TestValidTextField->error = new $TestValidTextField->error( 'TEST' );
-		$TestValidTextField->error->expects( $this->once() )
-			 ->method( 'get_error_message' )
-			 ->will( $this->returnValue( true ) );
+		$TestValidTextField->fields['field']['key'] = null;
+		$TestValidTextField->fields['field']['key'] = null;
+		$TestValidTextField->fields['field']['taxonomy'] = null;
+		\WP_Mock::wpFunction( 'wp_die', array( 'times' => 1 ) );
 
 		// act
-		$TestValidTextField->validate( $post->ID, array_pop( $TestValidTextField->fields['one'] ), $actual );
+		$TestValidTextField->validate_keys( $TestValidTextField->fields['field'] );
 
 		// assert
 		// Passes when error is called
@@ -283,19 +261,14 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		// arrange
 		global $post;
 		$TestValidTextField = new TestValidTextField();
-		$TestValidTextField->fields['one']['taxonomy'] = null;
-		$TestValidTextField->fields['one']['type'] = 'taxonomyselect';
-		$stub = $this->getMockBuilder( '\WP_Error' )
-					 ->setMethods( array('get_error_message') )
-					 ->getMock();
-		$TestValidTextField->error_handler($stub);
-		$TestValidTextField->error = new $TestValidTextField->error( 'TEST' );
-		$TestValidTextField->error->expects( $this->once() )
-			 ->method( 'get_error_message' )
-			 ->will( $this->returnValue( true ) );
+		$TestValidTextField->fields['field']['taxonomy'] = null;
+		$TestValidTextField->fields['field']['type'] = 'taxonomyselect';
+		\WP_Mock::wpFunction( 'wp_die', array( 'times' => 1 ) );
+		$validated = array();
+		$saved = array();
 
 		// act
-		$TestValidTextField->validate( $post->ID, array_pop( $TestValidTextField->fields['one'] ), $actual );
+		$TestValidTextField->validate( $post->ID, $TestValidTextField->fields['field'], $validated, $saved );
 
 		// assert
 		// Passes when error is called
@@ -313,109 +286,17 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	function testFieldTypeDateWhereTaxonomyIsNotSetExpectsError() {
 		// arrange
 		global $post;
-		$TestValidTextField = new TestValidTextField();
-		$TestValidTextField->fields['one']['taxonomy'] = null;
-		$TestValidTextField->fields['one']['type'] = 'date';
-		$stub = $this->getMockBuilder( '\WP_Error' )
-					 ->setMethods( array('get_error_message') )
+		$TestValidTextField = $this->getMockBuilder( 'TestValidTextField' )
+					 ->setMethods( array('validate_datetime') )
 					 ->getMock();
-		$TestValidTextField->error_handler($stub);
-		$TestValidTextField->error = new $TestValidTextField->error( 'TEST' );
-		$TestValidTextField->error->expects( $this->once() )
-			 ->method( 'get_error_message' )
-			 ->will( $this->returnValue( true ) );
+		$TestValidTextField->fields['field']['taxonomy'] = null;
+		$TestValidTextField->fields['field']['type'] = 'date';
+		\WP_Mock::wpFunction( 'wp_die', array( 'times' => 1 ) );
+		$validated = array();
+		$saved = array();
 
 		// act
-		$TestValidTextField->validate( $post->ID, array_pop( $TestValidTextField->fields['one'] ), $actual );
-
-		// assert
-		// Passes when error is called
-	}
-	/**
-	 * Tests if the validate method will throw an error if the field does not have
-	 * the meta_key set when required for select field(s). This will only test
-	 * one of the fields of the selects array.
-	 *
-	 * @group stable
-	 * @group empty_data
-	 * @group isolated
-	 * @group validation
-	 */
-	function testFieldTypeOfSelectsArrayWhereMetakeyIsNotSetExpectsError() {
-		// arrange
-		global $post;
-		$TestValidTextField = new TestValidTextField();
-		$TestValidTextField->fields['one']['meta_key'] = null;
-		$TestValidTextField->fields['one']['type'] = 'select';
-		$stub = $this->getMockBuilder( '\WP_Error' )
-					 ->setMethods( array('get_error_message') )
-					 ->getMock();
-		$TestValidTextField->error_handler($stub);
-		$TestValidTextField->error = new $TestValidTextField->error( 'TEST' );
-		$TestValidTextField->error->expects( $this->once() )
-			 ->method( 'get_error_message' )
-			 ->will( $this->returnValue( true ) );
-
-		// act
-		$TestValidTextField->validate( $post->ID, array_pop( $TestValidTextField->fields['one'] ), $actual );
-
-		// assert
-		// Passes when error is called
-	}
-	/**
-	 * Tests if the validate method will throw an error if the field of formset
-	 * type does not have a params array set.
-	 *
-	 * @group stable
-	 * @group empty_data
-	 * @group isolated
-	 * @group validation
-	 */
-	function testFieldTypeFormsetWhereParamsArrayIsNotSetExpectsError() {
-		// arrange
-		global $post;
-		$TestValidTextField = new TestValidFormsetField();
-		$TestValidTextField->fields['field']['params'] = null;
-		$stub = $this->getMockBuilder( '\WP_Error' )
-					 ->setMethods( array('get_error_message') )
-					 ->getMock();
-		$TestValidTextField->error_handler($stub);
-		$TestValidTextField->error = new $TestValidTextField->error( 'TEST' );
-		$TestValidTextField->error->expects( $this->once() )
-			 ->method( 'get_error_message' )
-			 ->will( $this->returnValue( true ) );
-
-		// act
-		$TestValidTextField->validate( $post->ID, array_pop( $TestValidTextField->fields['field'] ), $actual );
-
-		// assert
-		// Passes when error is called
-	}
-	/**
-	 * Tests if the validate method will throw an error if the field of formset
-	 * type does not have a max_num_forms set in the params array.
-	 *
-	 * @group stable
-	 * @group empty_data
-	 * @group isolated
-	 * @group validation
-	 */
-	function testFieldTypeFormsetWhereMaxNumFormsInParamsArrayIsNotSetExpectsError() {
-		// arrange
-		global $post;
-		$TestValidTextField = new TestValidFormsetField();
-		$TestValidTextField->fields['field']['params']['max_num_forms'] = null;
-		$stub = $this->getMockBuilder( '\WP_Error' )
-					 ->setMethods( array('get_error_message') )
-					 ->getMock();
-		$TestValidTextField->error_handler($stub);
-		$TestValidTextField->error = new $TestValidTextField->error( 'TEST' );
-		$TestValidTextField->error->expects( $this->once() )
-			 ->method( 'get_error_message' )
-			 ->will( $this->returnValue( true ) );
-
-		// act
-		$TestValidTextField->validate( $post->ID, array_pop( $TestValidTextField->fields['field'] ), $actual );
+		$TestValidTextField->validate( $post->ID, $TestValidTextField->fields['field'], $validated, $saved );
 
 		// assert
 		// Passes when error is called
@@ -443,11 +324,14 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$_POST = array();
 		global $post;
 		$TestValidTextField = new TestValidTextField();
-		$actual = array();
+		$validated = array();
+		$saved = array();
+
 		// act
-		$TestValidTextField->validate( $post->ID, array_pop( $TestValidTextField->fields ), $actual );
+		$TestValidTextField->validate( $post->ID, $TestValidTextField->fields['field'], $validated, $saved );
+
 		// assert
-		$this->assertTrue( empty( $actual ) );
+		$this->assertTrue( empty( $validated ) );
 	}
 	/**
 	 * Tests whether the validate method when called on an email field calls
@@ -465,11 +349,11 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		\WP_Mock::wpPassthruFunction('sanitize_email', array('times' => 1));
 		$TestValidEmailField = new TestValidEmailField();
 		$_POST = array(
-			'one' => 'foo@bar.baz',
+			'field' => 'foo@bar.baz',
 		);
 		$actual = array();
 		// act
-		$TestValidEmailField->validate($post->ID, $TestValidEmailField->fields['one'], $actual);
+		$TestValidEmailField->validate($post->ID, $TestValidEmailField->fields['field'], $actual);
 	}
 
 	/**
@@ -487,16 +371,16 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'post_ID' => 1,
 			'field_one' => 2,
 		);
-		$actual = array();
+		$validated = array();
 
 		// act
-		$TestNumberField->validate($_POST['post_ID'], $TestNumberField->fields['field_one'], $actual);
+		$TestNumberField->validate($_POST['post_ID'], $TestNumberField->fields['field_one'], $validated['field_one'], array());
 
 		// assert
 		$expected = 2;
 		$this->assertEquals(
 			$expected,
-			$actual['field_one'],
+			$validated['field_one'],
 			'Numeric strings should be accepted and converted to a number.');
 	}
 
@@ -518,15 +402,15 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'post_ID' => 1,
 			'field_one' => 'Two',
 		);
-		$actual = array();
+		$validated = array();
 
 		// act
-		$TestNumberField->validate($_POST['post_ID'], $TestNumberField->fields['field_one'], $actual);
+		$TestNumberField->validate($_POST['post_ID'], $TestNumberField->fields['field_one'], $validated['field_one'], array());
 		// assert
 		$expected = null;
 		$this->assertEquals(
 			$expected,
-			$actual['field_one'],
+			$validated['field_one'],
 			'Non-numeric strings should not be accepted for a number input type.'
 		);
 	}
@@ -544,20 +428,20 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 
 		// arrange
 		$TestValidTextField = new TestValidTextField();
-		$TestValidTextField->fields['one']['type'] = 'text';
+		$TestValidTextField->fields['field']['type'] = 'text';
 		$_POST = array(
 			'post_ID' => 1,
-			'one' => 'Text field expects a string',
+			'field' => 'Text field expects a string',
 		);
-		$actual = array();
+		$validated = array();
 
 		// act
-		$TestValidTextField->validate($_POST['post_ID'], $TestValidTextField->fields['one'], $actual);
+		$TestValidTextField->validate($_POST['post_ID'], $TestValidTextField->fields['field'], $validated['field'], array());
 
 		// assert
 		$this->assertEquals(
 			'Text field expects a string',
-			$actual['one']
+			$validated['field']
 		);
 	}
 
@@ -575,18 +459,18 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		// arrange
 		global $post;
 		$TestValidTextField = new TestValidTextField();
-		$TestValidTextField->fields['one']['type'] = 'text';
+		$TestValidTextField->fields['field']['type'] = 'text';
 		$_POST = array(
 			'post_ID' => 1,
-			'one' => 1,
+			'field' => 1,
 		);
-		$actual = array();
+		$validated = array();
 
 		// act
-		$TestValidTextField->validate($_POST['post_ID'], $TestValidTextField->fields['one'], $actual);
+		$TestValidTextField->validate($_POST['post_ID'], $TestValidTextField->fields['field'], $validated['field'], array());
 
 		// assert
-		$this->assertEquals('1', $actual['one']);
+		$this->assertEquals('1', $validated['field']);
 	}
 
 	/**
@@ -605,21 +489,17 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$post->ID = 1;
 		$post->post_type = 'post';
 		$TestValidTextAreaField = new TestValidTextAreaField();
-		// \WP_Mock::wpFunction(
-		//  'get_post',
-		//  array('times' => 1, 'returns' => $post)
-		// );
 		$_POST = array(
 			'post_ID' => 1,
-			'one' => 'Foo',
+			'field' => 'Foo',
 		);
-		$actual = array();
+		$validated = array();
 
 		// act
-		$TestValidTextAreaField->validate($post->ID, $TestValidTextAreaField->fields['one'], $actual);
+		$TestValidTextAreaField->validate($_POST['post_ID'], $TestValidTextAreaField->fields['field'], $validated['field'], array());
 
 		//assert
-		$this->assertEquals('Foo', $actual['one']);
+		$this->assertEquals('Foo', $validated['field']);
 	}
 
 	/**
@@ -634,26 +514,18 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	function testTextAreaFieldNonStringExpectsNullReturned() {
 		// arrange
 		global $post;
-		// $post = new StdClass;
-		// $post->post_type = 'post';
-		// $post->ID = 1;
-		$stub = $this->getMock('\WP_Error', array('get_error_message'));
-		// \WP_Mock::wpFunction(
-		//  'get_post',
-		//  array('times' => 1, 'return' => $post));
 		$TestValidTextAreaField = new TestValidTextAreaField();
-		$TestValidTextAreaField->error_handler($stub);
 		$_POST = array(
 			'post_ID' => 1,
-			'one' => null,
+			'field' => null,
 		);
-		$actual = array();
+		$validated = array();
 
 		// act
-		$TestValidTextAreaField->validate($post->ID, $TestValidTextAreaField->fields['one'], $actual);
+		$TestValidTextAreaField->validate($_POST['post_ID'], $TestValidTextAreaField->fields['field'], $validated['field'], array());
 
 		// assert
-		$this->assertTrue( ! isset( $actual['one'] ) );
+		$this->assertTrue( ! isset( $validated['field'] ) );
 	}
 
 	/**
@@ -672,22 +544,18 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'esc_url_raw',
 			array('times' => 1, 'return' => 'http://google.com')
 		);
-		// \WP_Mock::wpFunction(
-		//  'get_post',
-		//  array('times' => 1,'return' => $post,)
-		// );
 		$TestValidEmailField = new TestValidEmailField();
-		$TestValidEmailField->fields['one']['type'] = 'url';
+		$TestValidEmailField->fields['field']['type'] = 'url';
 		$_POST = array(
-			'one' => 'http://google.com',
+			'field' => 'http://google.com',
 		);
-		$actual = array();
+		$validated = array();
 
 		// act
-		$TestValidEmailField->validate($post->ID, $TestValidEmailField->fields['one'], $actual );
+		$TestValidEmailField->validate(1, $TestValidEmailField->fields['field'], $validated['field'], array());
 
 		// assert
-		$this->assertEquals($actual['one'], 'http://google.com');
+		$this->assertEquals($validated['field'], 'http://google.com');
 	}
 
 	/**
@@ -830,32 +698,38 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		// Test will fail if validate_fieldset isn't executed once and only once
 	}
 	/**
-	 * Tests whether the validate_formset method is called when validating a
-	 * field of type 'formset'
+	 * Tests whether the validate_repeated_field method is called when validating a
+	 * field that has a 'repeated' parameter set
 	 *
 	 * @group stable
-	 * @group formset
+	 * @group fieldset
 	 * @group isolated
-	 * @group validate_formset
+	 * @group validate_fieldset
 	 */
-	function testValidFormsetExpectsValidateToBeCalled() {
+	function testValidRepeatedFieldToCallFunctions() {
 		// arrange
 		global $post;
-		$factory = $this->getMockBuilder('TestValidFormsetField')
-						->setMethods( array( 'validate_formset', ) )
+		$factory = $this->getMockBuilder('TestRepeatedFields')
+						->setMethods( array( 'validate_repeated_field', ) )
 						->getMock();
 		$factory->expects($this->once())
-				->method('validate_formset')
+				->method('validate_repeated_field')
 				->will($this->returnValue(true));
+		$View = $this->getMockBuilder('\CFPB\Utils\MetaBox\View')
+						->setMethods( array( 'process_repeated_field_params', ) )
+						->getMock();
+		$View->expects($this->once())
+				->method('process_repeated_field_params')
+				->will($this->returnValue(true));
+		$factory->set_view($View);
 		$validate = array();
 
 		// act
-		$factory->validate( $post->ID, $factory->fields['field'], $validate );
+		$factory->validate( $post->ID, $factory->fields['fields'], $validate );
 
 		// assert
-		// Test will fail if validate_formset isn't executed once and only once
+		// Test will fail if validate_fieldset isn't executed once and only once
 	}
-
 /***************
  * Save method *
  ***************/
@@ -872,7 +746,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		// arrange
 		$post_id = 100;
 		$postvalues = array(
-			'one' => 'Some text',
+			'field' => 'Some text',
 		);
 		\WP_Mock::wpFunction( 'get_post_meta', array(
 			'times' => 1,
@@ -884,7 +758,7 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'return' => true,
 			'with' => array(
 				$post_id,
-				'one',
+				'field',
 				'Some text',
 			),
 			)
@@ -936,15 +810,12 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 
 		// arrange
 		$post_id = 100;
-		$postvalues = array('one' => null);
+		$postvalues = array('field' => null);
 		\WP_Mock::wpFunction( 'get_post_meta', array(
 			'times' => 1,
 			'return' => false,
-			'with' => array( $post_id, 'one')
+			'with' => array( $post_id, 'field')
 			)
-		);
-		\WP_Mock::wpFunction( 'delete_post_meta', array(
-			'times' => 1)
 		);
 		\WP_Mock::wpFunction( 'update_post_meta', array(
 			'times' => 0,)
@@ -965,21 +836,13 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	function testEmptyKeyValueExpectsDeletePostMeta() {
 		// arrange
 		$post_id = 1;
-		$postvalues = array('one' => null);
+		$postvalues = array('field' => null);
 		$existing = 'exists';
 		\WP_Mock::wpFunction(
 			'get_post_meta',
 			array(
 				'times' => 1,
 				'return' => $existing,
-			)
-		);
-		\WP_Mock::wpFunction(
-			'delete_post_meta',
-			array(
-				'times' => 1,
-				'return' => true,
-				'with' => array('post_ID' => 1, 'meta_key' => 'one'),
 			)
 		);
 		$form = new TestValidTextField();
@@ -997,20 +860,13 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 */
 	function testVerifyAndSaveExpectsSuccess() {
 		// arrange
-		$_POST = array('post_ID' => 1, 'field_one' => 'value');
-		$actual = array();
 		$factory = $this->getMockBuilder('TestNumberField')
-						->setMethods( array( 'validate', 'save' ) )
+						->setMethods( array( 'validate', 'delete_old_data' ) )
 						->getMock();
-
+		$factory->fields['field_one']['old_key'] = $factory->fields['field_one']['key'];
 		$factory->expects($this->once())
 				->method('validate')
-				->will($this->returnValue(true))
-				->with(1, $factory->fields['field_one'], $actual);
-		$factory->expects($this->once())
-				->method('save')
-				->with(1, $actual);
-
+				->will($this->returnValue(null));
 		// act
 		$factory->validate_and_save( 1 );
 	}
@@ -1046,9 +902,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_year' => '1970' ,
 			'category_month' => 'January',
 			'category_day' => '01');
+		$anything = $this->anything();
 
 		// act
-		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $anything);
 	}
 	/**
 	 * Tests whether the validate_datetime method when called on an invalid field
@@ -1080,9 +937,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_year' => '' ,
 			'category_month' => 'January',
 			'category_day' => '01');
+		$anything = $this->anything();
 
 		// act
-		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $anything);
 	}
 	/**
 	 * Tests whether the validate_datetime method when called on a time field calls the
@@ -1117,9 +975,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_ampm' => array('am'),
 			'category_timezone' => array('America/New_York'),
 			);
+		$anything = $this->anything();
 
 		// act
-		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $anything);
 	}
 	/**
 	 * Tests whether the validate_datetime method when called on an invalid time 
@@ -1154,9 +1013,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_ampm' => array(''),
 			'category_timezone' => array('America/New_York'),
 		);
+		$anything = $this->anything();
 
 		// act
-		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $anything);
 	}
 	/**
 	 * Tests whether the validate_datetime method when called on a datetime field calls the
@@ -1193,11 +1053,12 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_year' => '2014' ,
 			'category_month' => 'January',
 			'category_day' => '01');
+		$anything = $this->anything();
 
 		// act
-		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $anything);
 	}
-	/**
+	/*
 	 * Tests whether the validate_datetime method when called on an invalid datetime 
 	 * does not call the date callback method.
 	 *
@@ -1232,9 +1093,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_year' => '' ,
 			'category_month' => 'January',
 			'category_day' => '01');
+		$anything = $this->anything();
 
 		// act
-		$form->validate_datetime( $form->fields['category'], $_POST['post_ID']);
+		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $anything);
 	}
 
 	/**
@@ -1269,170 +1131,12 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		);
 
 		// act
-		$form->validate_taxonomyselect($form->fields['field_one'], $_POST['post_ID']);
+		$form->validate_taxonomyselect($_POST['post_ID'], $form->fields['field_one'], 'field_one');
 
 		// Assert: test will fail if wp_set_object_terms, get_term_by or
 		// sanitize_text_field do not fire or fire more than once
 	}
 
-	/**
-	 * Tests whether validate_link will call add post meta with the correct values
-	 *
-	 * @group isolated
-	 * @group stable
-	 * @group validate_link
-	**/
-	function testValidateLinkExpectsAddPostMetaTwice() {
-		$_POST = array(
-			'link_url' => 'http://example.com',
-			'link_text' => 'example.com',
-		);
-		$field = array(
-			'slug' => 'link',
-			'type' => 'link',
-			'params' => array(),
-			'meta_key' => 'link',
-			'howto' => "Some howto text",
-		);
-		$form = new TestNumberField();
-		global $post;
-		$post = new StdClass();
-		$post_id = 1;
-		$form->fields = $field;
-		\WP_Mock::wpFunction(
-			'add_post_meta',
-			array( 'times' => 2, 'return' => true )
-		);
-		$post = new \StdClass;
-		\WP_Mock::wpFunction('get_post_meta', array( 'times' => 1, 'return' => false) );
-		\WP_Mock::wpFunction('delete_post_meta', array('times' => 0));
-		$form->validate_link( $field, $post_id);
-	}
-
-	/**
-	* Tests whether count will default to 1 if none is passed in the model
-	*
-	* @group stable
-	* @group isolated
-	* @group validate_link
-	**/
-	function testValidateLinkCountNotGivenExpectsUpdatePostMetaCalledOnce() {
-		// arrange
-		$_POST = array(
-			'link_url' => 'http://example.com',
-			'link_text' => 'example.com',
-		);
-		$field = array(
-			'slug' => 'link',
-			'type' => 'link',
-			'params' => array(),
-			'meta_key' => 'link',
-			'howto' => "Some howto text",
-		);
-		$form = new TestNumberField();
-		$post_id = 1;
-		$form->fields = $field;
-		\WP_Mock::wpFunction(
-			'add_post_meta',
-			array( 'times' => 2, 'return' => true )
-		);
-		$post = new \StdClass;
-		\WP_Mock::wpFunction('get_post_meta', array( 'times' => 1, 'return' => false) );
-
-		// act
-		$form->validate_link( $field, $post_id);
-
-		// assert: Test will fail if get_ or update_post_meta called more than once.
-	}
-	/**
-	 * Tests whether validate_link will use the $existing variable if it is set
-	 *
-	**/
-	function testValidateLinkWithExistingDataExpectsDataDeletedAndReplaced() {
-		// arrange
-		$_POST = array(
-			'link_url' => 'http://example.com',
-			'link_text' => 'example.com',
-		);
-		$field = array(
-			'slug' => 'link',
-			'type' => 'link',
-			'params' => array(),
-			'meta_key' => 'link',
-			'howto' => "Some howto text",
-		);
-		$existing = array( 'http://google.com', 'Google');
-		$form = new TestNumberField();
-		$post_id = 1;
-		$form->fields = $field;
-		// \WP_Mock::wpFunction(
-		//  'delete_post_meta',
-		//  array( 'times' => 1, 'return' => true)
-		// );
-		// \WP_Mock::wpFunction(
-		//  'add_post_meta',
-		//  array( 'times' => 2, 'return' => true)
-		// );
-		\WP_Mock::wpFunction(
-			'update_post_meta',
-			array( 'times' => 2, 'return' => true)
-		);
-		\WP_Mock::wpFunction(
-			'get_post_meta',
-			array( 'times' => 1, 'return' => $existing )
-		);
-
-
-		// act
-		$form->validate_link( $field, $post_id );
-
-		// assert
-		// Test will fail if add_post_meta is called more than twice, and if
-		// get_post_meta or delete_post_meta are called more than once.
-	}
-
-	/**
-	* Tests whether validate_link will return rather than re-save existing data
-	*
-	* @group stable
-	* @group link_validate
-	*
-	**/
-	function testValidateLinkWithExistingDataMatchingSubmittedExpectsNoaction() {
-		// arrange
-		$_POST = array(
-			'link_url' => 'http://example.com',
-			'link_text' => 'example.com',
-		);
-		$field = array(
-			'slug' => 'link',
-			'type' => 'link',
-			'params' => array(),
-			'meta_key' => 'link',
-			'howto' => "Some howto text",
-		);
-		$existing = array( 'http://example.com', 'example.com');
-		$form = new TestNumberField();
-		$post_id = 1;
-		$form->fields = $field;
-		\WP_Mock::wpFunction(
-			'add_post_meta',
-			array( 'times' => 0 )
-		);
-		\WP_Mock::wpFunction(
-			'get_post_meta',
-			array( 'times' => 1, 'return' => $existing )
-		);
-		\WP_Mock::wpFunction(
-			'update_post_meta',
-			array( 'times' => 0)
-		);
-		// act
-		$form->validate_link( $field, $post_id );
-		// assert
-		// Test will fail if add_post_meta or delete_post_meta is called and if
-		// get_post_meta is called more than once.
-	}
 	/**
 	 * Tests whether taxonomyselect will use the term object when a term exists
 	 *
@@ -1457,156 +1161,12 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		\WP_Mock::wpFunction('wp_set_object_terms', array( 'times' => 1 ) );
 
 		// act
-		$form->validate_taxonomyselect($form->fields['field_one'], $post->ID);
+		$form->validate_taxonomyselect(1, $form->fields['field_one'], 'field_one');
 
 		// Assert: test will fail if wp_set_object_terms, get_term_by or
 		// sanitize_text_field do not fire or fire more than once
 	}
 
-	/**
-	 * Tests whether if no existing metadata, add_post_meta is called by validate_select
-	 *
-	 * @group stable
-	 * @group select
-	 * @group isolated
-	**/
-	function testNoExistingDataValidateSelectExpectsAddPostMetaFiredOnce() {
-		// Arrange
-		global $post;
-		$form = new TestNumberField();
-		$form->fields['field_one']['type'] = 'select';
-		$form->fields['field_one']['multiple'] = false;
-		$_POST = array( 'field_one' => 'metadata');
-		\WP_Mock::wpFunction('sanitize_text_field', array('times' => 1));
-		\WP_Mock::wpFunction(
-			'get_post_meta',
-			array('times' => 1, 'return' => array() )
-		);
-		\WP_Mock::wpFunction('add_post_meta', array( 'times' => 1 ) );
-
-		// act
-		$form->validate_select($form->fields['field_one'],$post->ID);
-	}
-
-	/**
-	 * Tests whether if no existing metadata, add_post_meta will be called twice by 
-	 * validate_select if multiple values are in $_POST
-	 *
-	 * A multi select field will pass an array of values to the $_POST array, we 
-	 * expect cms-toolkit to iterate over that array adding new post data for each
-	 * entry.
-	 *
-	 * @group stable
-	 * @group select
-	 * @group isolated
-	 */
-	function testNoExistingDataValidateSelectExpectsAddPostMetaTwice() {
-		global $post;
-		$form = new TestNumberField();
-		$form->fields['field_one']['type'] = 'select';
-		$form->fields['field_one']['multiple'] = false;
-		$_POST = array( 'field_one' => array( 'metadata', 'otherdata' ) );
-		\WP_Mock::wpFunction('sanitize_text_field', array('times' => 2));
-		\WP_Mock::wpFunction(
-			'get_post_meta',
-			array('times' => 1, 'return' => array() )
-		);
-		\WP_Mock::wpFunction('add_post_meta', array( 'times' => 2 ) );
-
-		// act
-		$form->validate_select($form->fields['field_one'],$post->ID);
-
-	}
-
-	/**
-	 * Tests whether, if post has existing custom data but those data are
-	 * not in the $_POST array, delete_post_meta will be called on each
-	 * existing value.
-	 *
-	 * When a select field is submitted it will may contian values that 
-	 * exist already for this post in addition to new ones the user wants
-	 * to add. If a term is in both arrays ($existing and $_POST), we 
-	 * should keep it. If the term is in $existing but not $_POST, then a
-	 * user has removed it or chosen a different value and we should 
-	 * delete the previously stored metadata. This test verifies the latter
-	 * condition specifically where there is no _POST data set at all (a user
-	 * has set the <select> to a null value indicating they wish to delete 
-	 * the value and not replace it.
-	 *
-	 * @group stable
-	 * @group select
-	 * @group isolated
-	 */
-	function testExistingDataButEmptyPostValidateSelectExpectsDeletePostMetaOnce() {
-		global $post;
-		$form = new TestNumberField();
-		$form->fields['field_one']['type'] = 'select';
-		$form->fields['field_one']['multiple'] = false;
-		$_POST = array( 'field_one' => array( ) );
-		\WP_Mock::wpFunction(
-			'get_post_meta',
-			array('times' => 1, 'return' => array('existing') )
-		);
-		\WP_Mock::wpFunction('delete_post_meta', array( 'times' => 1 ) );
-
-		// act
-		$form->validate_select($form->fields['field_one'],$post->ID);
-
-	}
-
-	/**
-	 * Tests whether, if $_POST contains non-identical values to $existing delete_post_meta
-	 * will be called on each existing value. Similar to L978 _supra_
-	 *
-	 * @group stable
-	 * @group select
-	 * @group isolated
-	 */
-	function testExistingDataMismatchPostValidateSelectExpectsDeletePostMetaAndAddPostMetaOnceEach() {
-		global $post;
-		$form = new TestNumberField();
-		$form->fields['field_one']['type'] = 'select';
-		$form->fields['field_one']['multiple'] = false;
-		$_POST = array( 'field_one' => array( 'non-existent' ) );
-		\WP_Mock::wpFunction(
-			'get_post_meta',
-			array('times' => 1, 'return' => array('existing') )
-		);
-		\WP_Mock::wpFunction( 'sanitize_text_field', array( 'times' => 1 ) );
-		\WP_Mock::wpFunction( 'delete_post_meta', array( 'times' => 1 ) );
-		\WP_Mock::wpFunction( 'add_post_meta', array( 'times' => 1 ) );
-
-		// act
-		$form->validate_select($form->fields['field_one'],$post->ID);
-
-	}
-
-	/**
-	 * Tests whether, if $_POST is completley empty delete_post_meta will be called
-	 * on each existing value. Similar to L978 _supra_
-	 *
-	 * @group stable
-	 * @group select
-	 * @group isolated
-	 */
-	function testExistingDataEmptyPostValidateSelectExpectsDeletePostMetaAndAddPostMetaOnceEach() {
-		global $post;
-		$form = new TestNumberField();
-		$form->fields['field_one']['type'] = 'select';
-		$form->fields['field_one']['multiple'] = false;
-		$_POST = array();
-		\WP_Mock::wpFunction(
-			'get_post_meta',
-			array('times' => 0, 'return' => array('existing') )
-		);
-		\WP_Mock::wpFunction( 'sanitize_text_field', array( 'times' => 0 ) );
-		\WP_Mock::wpFunction( 'delete_post_meta', array( 'times' => 1 ) );
-		\WP_Mock::wpFunction( 'add_post_meta', array( 'times' => 0 ) );
-
-		// act
-		$form->validate_select($form->fields['field_one'],$post->ID);
-
-	}
 	/**
 	* Tests a fieldset to make sure that validate is called for each of the 
 	* fieldset's fields.
@@ -1626,10 +1186,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$factory->expects( $this->exactly( 2 ) )
 				->method( 'validate' )
 				->will( $this->returnValue( true ) );
-		$expected = array();
+		$validated = array();
 
 		//act
-		$factory->validate_fieldset( $factory->fields['field'], $expected, $post->ID );
+		$factory->validate_fieldset(  $post->ID, $factory->fields['field'], $validated, array());
 
 		//assert
 		// Test will fail if only each of the fields in the fieldset are validated
@@ -1650,63 +1210,37 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 		$_POST = array( 'field_num' => '0123456789', 'field_desc' => 'description' );
 		$testValidFieldsetField = new TestValidFieldsetField();
 		$actual = array();
-		$expected = array( 'field_num' => '0123456789', 'field_desc' => 'description' );
+		$expected = array( 'num' => '0123456789', 'desc' => 'description' );
 
 		//act
-		$testValidFieldsetField->validate_fieldset( $testValidFieldsetField->fields['field'], $actual, $post->ID );
+		$testValidFieldsetField->validate_fieldset( $post->ID, $testValidFieldsetField->fields['field'], $actual, array() );
 
 		//assert
 		$this->assertEquals( $expected, $actual );
 	}
 	/**
-	* Tests a formset to make sure that validate is called for each of the 
-	* formset's fields.
+	* Tests a repeated field to make sure that validate is called for each repetition
 	*
 	 * @group stable
 	 * @group validate
 	 * @group fieldset
-	 * @group validate_formset
-	 * @group isolated
-	*/
-	function testValidFormsetOfTwoFieldsCallsValidateTwice() {
-		//arrange
-		global $post;
-		$factory = $this->getMockBuilder('TestValidFormsetField')
-						->setMethods( array( 'validate', ) )
-						->getMock();
-		$factory->expects( $this->exactly( 2 ) )
-				->method( 'validate' )
-				->will( $this->returnValue( true ) );
-		$actual = array();
-
-		//act
-		$factory->validate_formset( $factory->fields['field'], $actual, $post->ID );
-
-		//assert
-	}
-	/**
-	* Tests a formset to make sure that validate adds validated values to the 
-	* array that was passed in by reference.
-	*
-	 * @group stable
-	 * @group validate
-	 * @group formset
 	 * @group validate_fieldset
 	 * @group isolated
 	*/
-	function testValidateAddsValidatedValuesToPassedInArrayByValidateFormset() {
+	function testValidateRepeatedFieldCallsValidateOnEachRepetition() {
 		// arrange
 		global $post;
-		$_POST = array( 'field_0_title' => 'Title 1', 'field_1_title' => 'Title 2' );
-		$testValidFormsetField = new TestValidFormsetField();
-		$actual = array();
-		$expected = array( 'field_0_title' => 'Title 1', 'field_1_title' => 'Title 2' );
+		$TestRepeatedFields = $this->getMockBuilder('TestRepeatedFields')
+						->setMethods( array( 'validate' ) )
+						->getMock();
+		$TestRepeatedFields->expects($this->exactly(2))
+						    ->method('validate');
+		$validated = array();
 
 		//act
-		$testValidFormsetField->validate_formset( $testValidFormsetField->fields['field'], $actual, $post->ID );
+		$TestRepeatedFields->validate_repeated_field( $post->ID, $TestRepeatedFields->fields['fields'], $validated, array() );
 
 		//assert
-		$this->assertEquals( $expected, $actual );
 	}
 /**************
  * Generators *

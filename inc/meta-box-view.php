@@ -77,6 +77,10 @@ class View {
 		$this->process_repeated_field_params( $field );
 		$repeated = $field['params']['repeated'];
 		unset( $field['params']['repeated'] );
+		if ( isset( $field['howto'] ) ) {
+			$howto = $field['howto'];
+			unset( $field['howto'] );
+		}
 		$processed = array();
 		for ( $i = 0; $i < $repeated['max']; $i++ ) {
 			$processed[$i] = $field;
@@ -89,6 +93,7 @@ class View {
 		}
 		$field['fields'] = $processed;
 		$field['params']['repeated'] = $repeated;
+		$field['howto'] = ( isset( $howto ) ) ? $howto: "";
 	}
 
 	public function process_repeated_field_params( $field ) {
@@ -139,20 +144,33 @@ class View {
 			$field['taxonomy'] = false;
 		}
 		if ( $field['type'] == 'wysiwyg' ) {
-			if ( ! isset( $field['params'] ) or empty( $field['params'] ) ) {
-				$field['params'] = array(
-					'textarea_rows' => 5,
+			if ( ! isset( $field['settings'] ) or empty( $field['settings'] ) ) {
+				$field['settings'] = array(
+					'textarea_rows' => 8,
 					'editor_class' => "cms-toolkit-wysiwyg",
 					'wpautop' => false
 				);
 			} else {
-				$field['params']['editor_class'] .= " cms-toolkit-wysiwyg";
-				if ( ! isset( $field['params']['wpautop'] ) ){
-					$field['params']['wpautop'] = false;
+				if ( ! isset( $field['settings']['textarea_rows'] ) ) {
+					$field['settings']['textarea_rows'] = 8;
+				}
+				if ( ! isset( $field['settings']['editor_class'] ) ) {
+					$field['settings']['editor_class'] = "cms-toolkit-wysiwyg";
+				} else {
+					$field['settings']['editor_class'] .= " cms-toolkit-wysiwyg";
+				}
+				if ( ! isset( $field['settings']['wpautop'] ) ){
+					$field['settings']['wpautop'] = false;
 				}
 			}
 		}
-		$field['value'] = $saved;
+		// the else is added for backwards compatibility and is to be phased out
+		if ( $saved or $saved === "" ) {
+			$field['value'] = $saved;
+		} else {
+			$existing = get_post_meta( $ID, $field['key'], false );
+			$field['value'] = isset( $existing[0] ) ? $existing[0] : null;
+		}
 	}
 
 	public function ready_and_print_html( $post, $fields ) {
@@ -163,6 +181,12 @@ class View {
 			$field['old_key'] = Models::validate_keys( $field );
 			$field['key'] = $field['old_key'];
 			$saved[$field['old_key']] = get_post_meta( $ID, $field['old_key'], $single = true );
+			if ( in_array( $field['type'], array( 'link', 'multiselect', 'post_multiselect' ) ) ) {
+				$existing = get_post_meta( $ID, $field['key'], false );
+				if ( $existing and ! is_array( $existing[0] ) ) {
+					$saved[$field['old_key']] = $existing;
+				}
+			}
 			$this->process_defaults( $ID, $field, $saved[$field['old_key']] );
 			$this->HTML->draw( $field );
 		}

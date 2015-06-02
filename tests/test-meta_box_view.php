@@ -50,7 +50,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	 */
 	function testNoRowsExpects2RowsAdded() {
 		// Arrange
-		$field = array('type'=>'text_area');
+		$field = array('key' => 'key', 'type'=>'text_area');
 		$expected = 2;
 		// Act
 		$View = new View();
@@ -69,7 +69,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	 */
 	function testRowsGivenDefaultRowsExpectsGivenValuesUsed() {
 		// Arrange
-		$field = array('type'=>'text_area','params' => array('rows' => 1));
+		$field = array('key' => 'key', 'type'=>'text_area','params' => array('rows' => 1));
 		$expected = 1;
 
 		// Act
@@ -90,7 +90,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	 */
 	function testNoColsExpects27ColsAdded() {
 		// Arrange
-		$field = array('type'=>'text_area','params' => array('cols' => 1));
+		$field = array('key' => 'key', 'type'=>'text_area','params' => array('cols' => 1));
 		$expected = 1;
 
 		// Act
@@ -110,7 +110,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	 */
 	function testIncludedOptionsEmptyDefaultOptionsExpectsEmptyIncludeKey () {
 		// Arrange
-		$field = array('type'=>'tax_as_meta');
+		$field = array('key' => 'key', 'type'=>'tax_as_meta');
 		$expected = array();
 
 		// Act
@@ -130,7 +130,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 	 * @group defaults
 	 */
 	function testDefaultOptionsExpectsGivenArrayReturned() {
-		$field = array('type'=>'tax_as_meta','params'=>array('include' => array(1,2,3,4,5)));
+		$field = array('key' => 'key', 'type'=>'tax_as_meta','params'=>array('include' => array(1,2,3,4,5)));
 		$expected = array(1,2,3,4,5,);
 
 		// Act
@@ -311,34 +311,34 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		// Passes when each field of each formset calls process_defaults
 	}
 
-	function testAssignDefaultsSetsParamArrayIfNotSet() {
+	function testAssignDefaultsSetsWYSIWYGSettingsArrayIfNotSet() {
 		//arrange
 		$View = new View();
-		$field = array( 'type' => 'wysiwyg', 'params' => null );
+		$field = array('key' => 'key', 'type' => 'wysiwyg', 'settings' => null );
 
 		//act
 		$View->assign_defaults( 1, $field, null );
 
 		// assert
-		$this->assertTrue( isset( $field['params'] ) );
+		$this->assertTrue( isset( $field['settings'] ) );
 	}
 
-	function testAssignDefaultsAddsClassToEditorClassParam() {
+	function testAssignDefaultsAddsClassToWYSIWYGEditorClassSetting() {
 		//arrange
 		$View = new View();
-		$field = array( 'type' => 'wysiwyg', 'params' => array( 'editor_class' => 'class') );
+		$field = array('key' => 'key', 'type' => 'wysiwyg', 'settings' => array( 'editor_class' => 'class') );
 
 		//act
 		$View->assign_defaults( 1, $field, null );
 
 		// assert
-		$this->assertEquals( $field['params']['editor_class'], "class cms-toolkit-wysiwyg" );
+		$this->assertEquals( $field['settings']['editor_class'], "class cms-toolkit-wysiwyg" );
 	}
 
 	function testAssignDefaultsDoesNotSetTaxonomyToFalseForGivenFields() {
 		// arrange
 		$View = new View();
-		$field = array( 'type' => '', 'taxonomy' => true );
+		$field = array('key' => 'key', 'type' => '', 'taxonomy' => true );
 		$types = array( 'taxonomyselect', 'tax_as_meta', 'date', 'time', 'datetime' );
 
 		//act
@@ -354,7 +354,7 @@ class MetaBoxGeneratorTest extends PHPUnit_Framework_TestCase {
 		// arrange
 		global $post;
 		$View = new View();
-		$field = array( 'type' => '' );
+		$field = array('key' => 'key', 'type' => '' );
 		$types = array( 'link', 'date', 'time', 'datetime' );
 
 		foreach ( $types as $type ) {

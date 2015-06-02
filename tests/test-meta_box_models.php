@@ -185,7 +185,9 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	function testEmptyFieldsArrayExpectsError() {
 		// arrange
 		global $post;
-		$TestValidTextField = new TestValidTextField();
+		$TestValidTextField = $this->getMockBuilder( 'TestValidTextField' )
+					 ->setMethods( array('delete_old_data') )
+					 ->getMock();
 		$TestValidTextField->fields = array();
 		\WP_Mock::wpFunction( 'wp_die', array( 'times' => 1 ) );
 
@@ -302,30 +304,6 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 /***************************
  * Validation method tests *
  ***************************/
-	/**
-	 * Tests whether the validate_and_save method will call validate_keys()
-	 *
-	 *
-	 * @group stable
-	 * @group isolated
-	 * @group validation
-	 */
-	function testValidateAndSaveCallsValidateKeys() {
-		// arrange
-		global $post;
-		$stub = $this->getMockBuilder( 'TestValidTextField' )
-					 ->setMethods( array('validate_keys') )
-					 ->getMock();
-		$stub->expects($this->once())
-			 ->method('validate_keys');
-		\WP_Mock::wpPassthruFunction('get_post_meta');
-
-		// act
-		$stub->validate_and_save( $post->ID );
-
-		// assert
-		// Passes when error is called
-	}
 	/**
 	 * Tests whether the validate method will save a null value to the array if
 	 * data from $_POST is missing
@@ -839,9 +817,6 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'with' => array( $post_id, 'field')
 			)
 		);
-		\WP_Mock::wpFunction( 'delete_post_meta', array(
-			'times' => 1)
-		);
 		\WP_Mock::wpFunction( 'update_post_meta', array(
 			'times' => 0,)
 		);
@@ -870,14 +845,6 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 				'return' => $existing,
 			)
 		);
-		\WP_Mock::wpFunction(
-			'delete_post_meta',
-			array(
-				'times' => 1,
-				'return' => true,
-				'with' => array('post_ID' => 1, 'key' => 'field'),
-			)
-		);
 		$form = new TestValidTextField();
 		// act
 		$form->save( $post_id, $postvalues);
@@ -893,19 +860,13 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 	 */
 	function testVerifyAndSaveExpectsSuccess() {
 		// arrange
-		$_POST = array('post_ID' => 1, 'field_one' => 'value');
-		$validated = array();
 		$factory = $this->getMockBuilder('TestNumberField')
-						->setMethods( array( 'validate', 'save' ) )
+						->setMethods( array( 'validate', 'delete_old_data' ) )
 						->getMock();
 		$factory->fields['field_one']['old_key'] = $factory->fields['field_one']['key'];
 		$factory->expects($this->once())
 				->method('validate')
-				->will($this->returnValue(true));
-		$factory->expects($this->once())
-				->method('save')
-				->with(1, $validated);
-
+				->will($this->returnValue(null));
 		// act
 		$factory->validate_and_save( 1 );
 	}
@@ -941,9 +902,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_year' => '1970' ,
 			'category_month' => 'January',
 			'category_day' => '01');
+		$anything = $this->anything();
 
 		// act
-		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $this->anything());
+		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $anything);
 	}
 	/**
 	 * Tests whether the validate_datetime method when called on an invalid field
@@ -975,9 +937,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_year' => '' ,
 			'category_month' => 'January',
 			'category_day' => '01');
+		$anything = $this->anything();
 
 		// act
-		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $this->anything());
+		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $anything);
 	}
 	/**
 	 * Tests whether the validate_datetime method when called on a time field calls the
@@ -1012,9 +975,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_ampm' => array('am'),
 			'category_timezone' => array('America/New_York'),
 			);
+		$anything = $this->anything();
 
 		// act
-		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $this->anything());
+		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $anything);
 	}
 	/**
 	 * Tests whether the validate_datetime method when called on an invalid time 
@@ -1049,9 +1013,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_ampm' => array(''),
 			'category_timezone' => array('America/New_York'),
 		);
+		$anything = $this->anything();
 
 		// act
-		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $this->anything());
+		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $anything);
 	}
 	/**
 	 * Tests whether the validate_datetime method when called on a datetime field calls the
@@ -1088,9 +1053,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_year' => '2014' ,
 			'category_month' => 'January',
 			'category_day' => '01');
+		$anything = $this->anything();
 
 		// act
-		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $this->anything());
+		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $anything);
 	}
 	/*
 	 * Tests whether the validate_datetime method when called on an invalid datetime 
@@ -1127,9 +1093,10 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'category_year' => '' ,
 			'category_month' => 'January',
 			'category_day' => '01');
+		$anything = $this->anything();
 
 		// act
-		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $this->anything());
+		$form->validate_datetime($_POST['post_ID'], $form->fields['category'], $anything);
 	}
 
 	/**

@@ -1,10 +1,9 @@
 function delete_form_data(slug, form_id) {
-    var selectorBase = "*[id='" + slug + "-set'] *[class*='set-input_" + form_id + "']";
-
+    var selectorBase = '#' + slug + '-set .set-input_' + form_id;
     // Clear text fields
     jQuery(selectorBase).each( function(index) {
         jQuery(this).val("");
-        var iframe = "iframe[id=" + this.id + "_ifr";
+        var iframe = '#' + this.id + '_ifr';
         var contents = jQuery(iframe).contents();
         var wysiwyg = contents.find("body");
         wysiwyg.html("");
@@ -52,11 +51,11 @@ function toggle_repeated_field(element) {
         jQuery(targeted_input).toggleClass('new');
         jQuery(targeted_input).toggleClass('hidden');
 
-        // // Hide the remove link
+        // Hide the remove link
         jQuery(element).toggleClass('hidden');
         jQuery(element).attr('disabled', true);
 
-        // // Show add link
+        // Show add link
         var add_link = jQuery("." + slug + ".add");
         jQuery(add_link).toggleClass('hidden');
         jQuery(add_link).attr('disabled', false);

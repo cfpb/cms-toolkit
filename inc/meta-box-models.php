@@ -161,15 +161,16 @@ class Models {
 	}
 
 	/**
-	* validate_repeated_field validates a formset
+	* validate_repeated_field validates a field that repeats
 	*
-	* @param  arr  $field     The formset to validate.
+	* @param  arr  $post_ID    The post's ID
+	* @param  arr  $field      The repeated field to validate.
 	* @param  arr  $validated  The array that holds all the data to save in an
-	*                         associative array that is passed by reference.
-	* @param  arr  $post_ID   The post's ID
+	*                           associative array that is passed by reference.
+	* @param  mixed  $saved    The data that is associated with the fields
 	*
-	* @return  void           No return value. The validate array is passed by reference
-	*                         so data is saved through that array.
+	* @return  void            No return value. The validate array is passed by
+								reference so data is saved through that array.
 	*/
 
 	public function validate_repeated_field( $post_ID, &$field, &$validated, $saved ) {
@@ -189,29 +190,31 @@ class Models {
 		if ( empty( $validated ) ) {
 			unset( $validated );
 		}
+		$field['fields'] = $processed;
 	}
 
 	/**
 	* validate_fieldset validates a fieldset
 	*
-	* @param  arr  $field     The formset to validate.
+	* @param  arr  $post_ID    The post's ID
+	* @param  arr  $field      The fieldset to validate.
 	* @param  arr  $validated  The array that holds all the data to save in an
-	*                         associative array that is passed by reference.
-	* @param  arr  $post_ID   The post's ID
+	*                              associative array that is passed by reference.
+	* @param  mixed  $saved    The data that is associated with the fields
 	*
-	* @return  void           No return value. The validate array is passed by reference
-	*                         so data is saved through that array.
+	* @return  void            No return value. The validate array is passed by reference
+	*                              so data is saved through that array.
 	*/
 
 	public function validate_fieldset( $post_ID, &$field, &$validated, $saved ) {
 		$validated = array();
-		foreach ( $field['fields'] as $f ) {
-			$field_key = $this->validate_keys( $f );
-			$f['old_key'] = $field_key;
-			$f['key'] = "{$field['key']}_{$field_key}";
+		foreach ( array_keys( $field['fields'] ) as $key ) {
+			$field_key = Models::validate_keys( $field['fields'][$key] );
+			$field['fields'][$key]['old_key'] = $field_key;
+			$field['fields'][$key]['key'] = "{$field['key']}_{$field_key}";
 			$validated[$field_key] = null;
 			$saved_field = ( $saved and isset( $saved[$field_key] ) ) ? $saved[$field_key] : null;
-			$this->validate( $post_ID, $f, $validated[$field_key], $saved_field );
+			$this->validate( $post_ID, $field['fields'][$key], $validated[$field_key], $saved_field );
 			if ( ! $validated[$field_key] ) {
 				unset( $validated[$field_key] );
 			}
@@ -224,12 +227,8 @@ class Models {
 	/**
 	 * validate_link validates a field with type = 'link'
 	 *
-	 * @param  arr $field   The field to validate, normally passed by looping through
-	 *                      $this->fields
-	 * @param  int $post_ID The post ID to have post values saved to
-	 * @return void         No return value, updates or adds post meta if successful. New
-	 *                      metadata are saved to the post as an array of the form
-	 *                      array(0 => 'url', 1 => 'text')
+	 * @param string $key         The key of the $_POST array
+	 * @param array  $validated   The array to hold the data to be saved
 	 */
 	public function validate_link( $key, &$validated ) {
 		if ( isset( $_POST["{$key}_label"] )
@@ -245,17 +244,13 @@ class Models {
 	/**
 	 * validate_select validates a <select> field
 	 *
-	 * @param  arr $field   The field to validate, normally passed by looping through
-	 *                      $this->fields
-	 * @param  int $post_ID The post ID to have post values saved to
-	 * @return void         No return value, adds or deletes post meta if successful. New
-	 *                      data are saved to the post as new values in an array or
-	 *                      deleted.
+	 * @param string $key       The key of the $_POST array
+	 * @param array $validated  The array to hold the data to be saved
 	 */
 
 	public function validate_select( $key, &$validated ) {
 		if ( isset( $_POST[$key] ) ) {
-			$validated = (array)$_POST[$key];
+			$validated = $_POST[$key];
 		}
 	}
 
@@ -286,8 +281,9 @@ class Models {
 	 * Validates a date, time, or datetime field by converting $_POST keys into date strings before passing
 	 * to a date method in $this->Callbacks->date()
 	 * 
-	 * @param  array $field    The field to be processed
-	 * @param  [type] $post_ID The ID of the object to be manipulated
+	 * @param int   $post_ID   The ID of the object to be manipulated
+	 * @param array $field     The field to be processed
+	 * @param array $validated The array to hold the data to be saved
 	 * @return void
 	 */
 
@@ -414,12 +410,13 @@ class Models {
 	 * Checks that data is coming through in the types we expect or ferries out form 
 	 * data to the appropriate validator. Run before save to ensure you're saving
 	 * correct data. Essentially this takes in $_POST and pushes all the good stuff from
-	 * $_POST into a separate, cleaned array and returns the cleaned data.
+	 * $_POST into a separate, cleaned array.
 	 *
-	 * @param int $post_ID The post targeted for custom data
+	 * @param int $post_ID   The post targeted for custom data
+	 * @param int $field     The field to be validated
+	 * @param int $validated The array that holds the data to save
+	 * @param int $saved     The data that is already associated with the field
 	 * 
-	 * @return array A version of $_POST with cleaned data ready to be sent to a save method
-	 *               like $this->save()
 	 */
 	public function validate( $post_ID, &$field, &$validated, $saved = NULL ) {
 		if ( isset( $field['do_not_validate'] ) ) {
@@ -470,7 +467,11 @@ class Models {
 					$_POST global to be properly saved.
 				*/
 				if ( $field['type'] == 'boolean' ) {
-					$_POST[$field['key']] = null;
+					if ( $field['key'] == $field['old_key'] ) {
+						$_POST[$field['key']] = "";
+					} else {
+						$_POST[$field['key']] = null;
+					}
 				} else {
 					return;
 				}
@@ -497,7 +498,7 @@ class Models {
 		}
 	}
 
-	public function validate_keys( $field ) {
+	public static function validate_keys( $field ) {
 		$field_key = null;
 		if ( isset( $field['key'] ) ) {
 			$field_key = $field['key'];
@@ -513,6 +514,19 @@ class Models {
 		return $field_key;
 	}
 
+// added to delete old-formatted data for phasing out backwards compatibility
+public function delete_old_data( $post_ID, $fields ) {
+	foreach ( $fields as $field ) {
+		if ( ! isset( $field['fields'] ) ) {
+			delete_post_meta( $post_ID, $field['key'] );
+		} else {
+			foreach ( array_keys($field['fields']) as $key ) {
+				$this->delete_old_data( $post_ID, array( $field['fields'][$key] ) );
+			}
+		}
+	}
+}
+
 	/**
 	 * Takes cleaned $_POST data and save it as custom post meta
 	 *
@@ -521,7 +535,7 @@ class Models {
 	 *                           data to be saved
 	 * @return nothing           Either deletes or updates post meta or returns empty
 	 */
-	public function save( $post_ID, $postvalues ) {
+	public static function save( $post_ID, $postvalues ) {
 		// Do nothing if we're auto saving
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 		return;
@@ -530,13 +544,10 @@ class Models {
 			// if we're passed an empty array, don't do anything
 			return;
 		}
-
 		// save post data for any fields that sent them
 		foreach ( $postvalues as $key => $value ) {
 			$existing = get_post_meta( $post_ID, $key, $single = true );
-			if ( $value == null && isset( $existing ) ) {
-				delete_post_meta( $post_ID, $key );
-			} elseif ( isset( $value ) ) {
+			if ( isset( $value ) ) {
 				update_post_meta( $post_ID, $key = $key, $meta_value = $value );
 			} else {
 				return;
@@ -560,26 +571,24 @@ class Models {
 		// duplicate metabox's fields to modify to match with $_POST array's keys
 		$saved = array();
 
-		foreach ( $this->fields as $field ) {
+		foreach ( array_keys( $this->fields ) as $key ) {
 			
 			//verify meta_key/slug/taxonomy and assign keys
-			$field['old_key'] = $this->validate_keys( $field );
-			$field['key'] = $field['old_key'];
+			$this->fields[$key]['old_key'] = Models::validate_keys( $this->fields[$key] );
+			$this->fields[$key]['key'] = $this->fields[$key]['old_key'];
 			
 			//create keys in array that are to be saved
-			$validated[$field['old_key']] = null;
+			$validated[$this->fields[$key]['old_key']] = null;
 
 			// retrieve saved data
-			$saved[$field['old_key']] = get_post_meta( $post_ID, $field['old_key'], $single = true );
+			$saved[$this->fields[$key]['old_key']] = get_post_meta( $post_ID, $this->fields[$key]['old_key'], $single = true );
 
 			//start validation
-			$this->validate( $post_ID, $field, $validated[$field['old_key']], $saved[$field['old_key']] );
-
-			//if no data is there to be saved then delete the entry
-			if ( empty( $validated[$field['old_key']] ) ) {
-				unset( $validated[$field['old_key']] );
-			}
+			$this->validate( $post_ID, $this->fields[$key], $validated[$this->fields[$key]['old_key']], $saved[$this->fields[$key]['old_key']] );
 		}
-		$this->save( $post_ID, $validated );
+		// delete old formatted data for phasing out backwards compatibility
+		$this->delete_old_data( $post_ID, $this->fields );
+
+		Models::save( $post_ID, $validated );
 	}
 }

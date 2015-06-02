@@ -71,3 +71,6 @@ h3.set-header, label.set-header {
 input:required {
     border: 1px solid red;
 }
+.toggle-repeated-field {
+cursor: pointer;
+}

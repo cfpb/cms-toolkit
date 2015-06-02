@@ -15,7 +15,7 @@ class HTML {
 		if ( empty( $field ) ) {
 			wp_die( 'field_required', 'You need to pass a field array to this method. You passed a '. gettype( $field ) . ' .');
 		}
-		?><div class="cms-toolkit-wrapper<?php echo isset( $field['class'] ) ?  ' ' . esc_attr( $field['class'] ) : null; ?>"><?php
+		?><div class="cms-toolkit-wrapper<?php if (isset( $field['class'] ) ) echo ' ' . esc_attr( $field['class'] ); ?>"><?php
 		if ( !isset( $field['params']['repeated'] ) and isset( $field['title'] ) ) {
 			?><h4 id="<?php echo "{$field['key']}"; ?>" ><?php
 				echo "{$field['title']}"; 
@@ -39,7 +39,7 @@ class HTML {
 			} elseif ( $field['type'] == 'nonce' ) {
 				wp_nonce_field( plugin_basename( __FILE__ ), $field['key'] );
 			}
-			if ( isset( $field['howto'] ) ) {
+			if ( isset( $field['howto'] ) and $field['type'] != 'fieldset' ) {
 				?><p class="howto"><?php echo esc_attr( $field['howto'] );?></p><?php
 			}
 		}
@@ -59,7 +59,7 @@ class HTML {
 				?><p class="howto"><?php echo esc_attr( $field['howto'] ); ?></p><?php
 			}
 			foreach ( $field['fields'] as $f ) {
-			?><div class="cms-toolkit-wrapper set <?php echo isset( $field['class'] ) ?  ' ' . esc_attr( $field['class'] ) : null; ?>"><?php
+			?><div class="cms-toolkit-wrapper set <?php if ( isset( $field['class'] ) ) echo  ' ' . esc_attr( $field['class'] ); ?>"><?php
 				$set_id = $this->get_set_id( $f['key'] );
 				$existing = $this->get_existing_data( $f );
 				if ( isset( $f['title'] ) and !empty( $f['title'] ) ) {
@@ -70,11 +70,11 @@ class HTML {
 						echo esc_attr( $f['label'] );
 				}
 					?><a class="toggle-repeated-field <?php echo "{$f['key']} add {$set_id}";
-						echo ( ! $existing and ! $f['init'] ) ? null : " hidden"; ?>"><?php
+						if ( $existing or $f['init'] ) echo " hidden"; ?>"><?php
 						?>&nbsp;<span class="dashicons dashicons-plus-alt"></span><?php
 					?></a><?php
 					?><a class="toggle-repeated-field <?php echo "{$f['key']} remove {$set_id}";
-						echo ( ! $existing and ! $f['init'] ) ? " hidden" : null; ?>"><?php
+						if ( ! $existing and ! $f['init'] ) echo " hidden"; ?>"><?php
 							?>&nbsp;<span class="dashicons dashicons-dismiss"></span><?php
 					?></a><?php
 				if ( isset( $f['title'] ) and !empty( $f['title'] ) ) {
@@ -108,21 +108,25 @@ class HTML {
 	}
 
 	public function get_existing_data( $field ) {
-		$existing = false;
 		if ( isset( $field['params']['repeated'] ) ) {
 			foreach ( $field['fields'] as $f ) {
-				$existing = $this->get_existing_data( $f );
+				if ( $this->get_existing_data( $f ) ) {
+					return true;
+				}
 			}
 		} elseif ( $field['type'] == 'fieldset' ) {
 			foreach ( $field['fields'] as $f ) {
-				$existing = $this->get_existing_data( $f );
+				if ( $this->get_existing_data( $f ) ) {
+					return true;
+				}
 			}
 		} else {
 			if ( isset( $field['value'] ) and !empty( $field['value'] ) ) {
-				$existing = true;
+				return true;
+			} else {
+				return false;
 			}
 		}
-		return $existing;
 	}
 
 	public function pass_select( $field, $set_id = NULL ) {
@@ -157,8 +161,8 @@ class HTML {
 			);
 		} elseif ( $field['type'] == 'post_select' or $field['type'] == 'post_multiselect' ) {
 			$post_id = get_the_ID();
-			$args = $field['params'];
-			$posts = get_posts($args);
+			$settings = $field['params'];
+			$posts = get_posts($settings);
 			$multiple = $field['type'] == 'post_multiselect' ? 'multiple' : null;
 			$placeholder = isset( $field['placeholder'] ) ? $field['placeholder'] : null;
 			$this->post_select(
@@ -179,17 +183,18 @@ class HTML {
 		$value      = isset( $field['value'] )      ? $field['value']      : null;
 		$label      = isset( $field['label'] )      ? $field['label']      : null;
 		$max_length = isset( $field['max_length'] ) ? $field['max_length'] : null;
+		$placeholder = isset( $field['placeholder'] ) ? $field['placeholder'] : null;
 		$timezone   = ( isset( $field['value'] ) and isset( $field['value']['timezone'] ) ) ? $field['value']['timezone'] : null;
 		if ( $field['type'] == 'text_area' ) {
-			$this->text_area( $field['key'], $value, $required, $field['rows'], $field['cols'], $label, $field['placeholder'], $set_id );
+			$this->text_area( $field['key'], $value, $required, $field['rows'], $field['cols'], $label, $placeholder, $set_id );
 		}
 
 		if ( $field['type'] == 'wysiwyg' ) {
-			$this->wysiwyg( $value, $field['key'], $field['params'], $label, $set_id );
+			$this->wysiwyg( $value, $field['key'], $field['settings'], $label, $set_id );
 		}
 
 		if ( in_array( $field['type'], array( 'number', 'text', 'email', 'url' ) ) ) {
-			$this->single_input( $field['key'], $value, $field['type'], $required, $max_length, $label, $field['placeholder'], $set_id );
+			$this->single_input( $field['key'], $value, $field['type'], $required, $max_length, $label, $placeholder, $set_id );
 		}
 
 		if ( $field['type'] == 'date' ) {
@@ -204,8 +209,8 @@ class HTML {
 		}
 
 		if ( $field['type'] == 'radio' ) {
-			$this->single_input( $field['key'], $value = 'true', $field['type'] = 'radio', $required, $max_length = null, $label, $field['placeholder'], $set_id );
-			$this->single_input( $field['key'], $value = 'false', $field['type'] = 'radio', $required, $max_length = null,  $label, $field['placeholder'], $set_id );
+			$this->single_input( $field['key'], $value = 'true', $field['type'] = 'radio', $required, $max_length = null, $label, $placeholder, $set_id );
+			$this->single_input( $field['key'], $value = 'false', $field['type'] = 'radio', $required, $max_length = null,  $label, $placeholder, $set_id );
 		}
 
 		if ( $field['type'] == 'boolean' ) {
@@ -263,14 +268,14 @@ class HTML {
 	 * @param str $set_id the numeric id for a formset that the field could be in
 	 *
 	**/
-	public function wysiwyg( $value, $key, $params, $label, $set_id = NULL ) {
+	public function wysiwyg( $value, $key, $settings, $label, $set_id = NULL ) {
 		if ( isset( $set_id ) ) {
-			$params['editor_class'] .= " set-input_{$set_id}";
+			$settings['editor_class'] .= " set-input_{$set_id}";
 		}
 		if ( $label ) {
 			?><label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $key ) ?>"><?php echo esc_attr( $label ) ?></label><?php
 		}
-		wp_editor( $value, $key, $params );
+		wp_editor( $value, $key, $settings );
 	}
 
 	/**
@@ -278,15 +283,13 @@ class HTML {
 	 *
 	 * A single <input> is generated based on defined parameters.
 	 *
-	 * Slug and type parameters are required, all others default to null. A
-	 * public function, this method may only be called from within this
-	 * class.
-	 *
-	 * @param str $key the key for this field, used as 'name' and 'id'
-	 * @param str $type the type of input field, use any valid HTML input type
-	 * @param int $max_length the maxlength attribute for number or text inputs
-	 * @param str $value a default value
-	 * @param str $placeholder a default placeholder value
+	 * @param str     $key         the key for this field, used as 'name' and 'id'
+	 * @param str     $value   	   value of the field
+	 * @param str     $type        the type of input field, use any valid HTML input type
+	 * @param boolean $required    boolean to apply required browser validation
+	 * @param int 	  $max_length  the maxlength attribute for number or text inputs
+	 * @param str 	  $placeholder a default placeholder value
+	 * @param int 	  $set_id      id of the set if it is or is in a repeated field
 	 *
 	 * @since 1.0
 	 *
@@ -323,15 +326,18 @@ class HTML {
 	}
 
 	public function link_input( $key, $value, $required, $label, $set_id = NULL ) {
-		$post_id = get_the_ID();
-		$existing = get_post_meta( $post_id, $key, false);
+		// $existing is set for backwards compatibility and is to be phased out
+		$existing = get_post_meta( get_the_ID(), $key, false);
 		?><div class="link-field <?php echo "{$key}" ?>"><?php
-		if ( ! isset( $existing[0] ) || ! isset( $existing[1] ) ) { 
-				$this->single_input( $key . "_label", $value['label'], 'text', $required, NULL, 'Link Label', 'Link label here', $set_id );
-				$this->single_input( $key . "_url", $value['url'], 'text', $required, NULL, 'Link URL', 'URL here', $set_id );
-		} else { 
-				$this->single_input( $key . "_label", $existing[1], 'text', $required, NULL, 'Link Label', NULL, $set_id );
-				$this->single_input( $key . "_url", $existing[0], 'text', $required, NULL, 'Link URL', NULL, $set_id );
+		if ( isset( $existing[0] ) and isset( $existing[1] ) ) {
+			$this->single_input( $key . "_label", $existing[1], 'text', $required, NULL, 'Link Label', 'Link label here', $set_id );
+			$this->single_input( $key . "_url", $existing[0], 'text', $required, NULL, 'Link URL', 'URL here', $set_id );
+		} elseif ( isset( $value['label'] ) and isset( $value['url'] ) ) {
+			$this->single_input( $key . "_label", $value['label'], 'text', $required, NULL, 'Link Label', NULL, $set_id );
+			$this->single_input( $key . "_url", $value['url'], 'text', $required, NULL, 'Link URL', NULL, $set_id );
+		} else {
+			$this->single_input( $key . "_label", NULL, 'text', $required, NULL, 'Link Label', NULL, $set_id );
+			$this->single_input( $key . "_url", NULL, 'text', $required, NULL, 'Link URL', NULL, $set_id );
 		}
 		?></div><?php
 	}
@@ -351,8 +357,8 @@ class HTML {
 		?><input id="<?php echo esc_attr( $key ) 
 			   ?>" name="<?php echo esc_attr( $key ) 
 			   ?>" class="cms-toolkit-input <?php echo "set-input_{$set_id}"; 
-			   ?>" type="file" value="<?php echo ( $value ) ? esc_attr( $value['url'] ) : null; ?>"<?php
-			   echo $required ? ' required ' : null; ?>/><?php
+			   ?>" type="file" value="<?php if ( $value ) echo esc_attr( $value['url'] ); ?>"<?php
+			   if ( $required ) echo ' required '; ?>/><?php
 	}
 
 	/**
@@ -382,17 +388,18 @@ class HTML {
 	 *
 	 * @uses wp_dropdown_categories
 	 *
-	 * @param array $field currently unused
-	 * @param str   $key the meta-key
-	 * @param array $param an array of values for the <option> elements,
-	 *              default empty, required for non-taxonomy selections
-	 * @param str/bool $taxonomy, pass a string with a valid taxonomy name to
-	 *                 generate a taxonomy dropdown. Default: false
-	 * @param bool  $multi if true, generates a multi-select. Default: false
-	 * @param str 	$value if not null, sets this value to selected.
-	 *				Default: null
-	 * @param str   $placeholder A string that will be the first value, default
-	 *              if no value selected. Default: '--'
+	 * @param str     $key         the field's key
+	 * @param array   $param       an array of values for the <option> elements,
+	 *                                 default empty, required for non-taxonomy selections
+	 * @param mixed   $taxonomy    pass a string with a valid taxonomy name to
+	 *                                 generate a taxonomy dropdown. Default: false
+	 * @param bool    $multi       if true, generates a multi-select. Default: false
+	 * @param str 	  $value       if not null, sets this value to selected.
+	 * @param boolean $required    boolean to apply required browser validation
+	 * @param str     $placeholder A string that will be the first value, default
+	 *              			       if no value selected. Default: '--'
+	 * @param str     $label       A string that will be the label
+	 * @param int 	  $set_id      id of the set if it is or is in a repeated field
 	 *
 	**/
 	public function select( $key, $params, $taxonomy, $multi, $value, $required, $placeholder, $label, $set_id = NULL ) {
@@ -478,10 +485,12 @@ class HTML {
 	 * @since 0.5.5
 	 *
 	 * @uses wp_locale to spit out the correct month names based on your WP install
-	 * @uses get_grandchildren() to spit out list items for term items
 	 *
 	 * @param str  $taxonomy      the slug of the target taxonomy for this metabox (i.e., cfpb_input_date)
-	 * @param bool $multiples     whether the term shoud append (true) or replace (false) existing terms
+	 * @param bool $multiple      whether the term shoud append (true) or replace (false) existing terms
+	 * @param bool $required      boolean to apply required browser validation
+	 * @param bool $label         the field's label
+	 * @param int  $set_id        id of the set if it is or is in a repeated field
 	 **/
 	public function date( $taxonomy, $multiple, $required, $label, $set_id = NULL ) {
 		global $wp_locale;

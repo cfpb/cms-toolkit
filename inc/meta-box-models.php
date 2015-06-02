@@ -189,6 +189,8 @@ class Models {
 		}
 		if ( empty( $validated ) ) {
 			unset( $validated );
+		} else {
+			$validated = array_values( $validated );
 		}
 		$field['fields'] = $processed;
 	}

@@ -239,7 +239,7 @@ class Models {
 			$url = $_POST["{$key}_url"];
 			$full_link = array( 'label' => $label, 'url' => $url );
 
-			$validated = ( empty( $label ) or empty( $url ) ) ? null : $full_link;
+			$validated = ( empty( $label ) or empty( $url ) ) ? "" : $full_link;
 		}
 	}
 
@@ -551,8 +551,6 @@ public function delete_old_data( $post_ID, $fields ) {
 			$existing = get_post_meta( $post_ID, $key, $single = true );
 			if ( isset( $value ) ) {
 				update_post_meta( $post_ID, $key = $key, $meta_value = $value );
-			} else {
-				return;
 			}
 		}
 	}
@@ -580,7 +578,7 @@ public function delete_old_data( $post_ID, $fields ) {
 			$this->fields[$key]['key'] = $this->fields[$key]['old_key'];
 			
 			//create keys in array that are to be saved
-			$validated[$this->fields[$key]['old_key']] = null;
+			$validated[$this->fields[$key]['old_key']] = "";
 
 			// retrieve saved data
 			$saved[$this->fields[$key]['old_key']] = get_post_meta( $post_ID, $this->fields[$key]['old_key'], $single = true );

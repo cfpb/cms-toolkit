@@ -384,22 +384,27 @@ class Models {
 			$supported_types = $this->supported_types;
 		}
 		if ( isset( $_POST['rm_' . $field['key']] ) and !empty( $_POST['rm_' . $field['key']] ) ) {
-			if ( ! unlink( $saved['file'] ) ) {
-				wp_die('There was an error trying to delete your file.');
+			if ( get_post( $saved['id'] ) ) {
+				if ( ! wp_delete_attachment( $saved['id'], $force_delete = false ) ) {
+					wp_die('There was an error trying to delete your file.');
+				}
 			}
 		}
 		if ( !empty( $_FILES[$field['key']] ) and !empty( $_FILES[$field['key']]['name'] ) ) {
 			$arr_file_type = wp_check_filetype( basename( $_FILES[$field['key']]['name'] ) );
 			$uploaded_type = $arr_file_type['type'];
 			if ( in_array( $uploaded_type, $supported_types ) ) {
-				$upload = wp_upload_bits( $_FILES[$field['key']]['name'], null, file_get_contents( $_FILES[$field['key']]['tmp_name'] ) );
-				if ( $upload['error'] ) {
-					wp_die( 'File upload error: ' . $upload['error'] );
+				$attachment_id = media_handle_upload( $field['key'], $post_ID );
+				if ( is_wp_error( $attachment_id ) ) {
+					wp_die( 'File upload error. WP_Error: ' . print_r( $attachment_id ) );
 				} else {
-					$upload['name'] = $_FILES[$field['key']]['name'];
-					$relative_url = parse_url( $upload['url'] );
-					$upload['url'] = $relative_url['path'];
-					$validated = $upload;
+					$attachment = get_post( $attachment_id );
+					$url = parse_url( $attachment->guid );
+					$validated = array(
+						'id' =>   $attachment_id,
+						'name' => $_FILES[$field['key']]['name'],
+						'url' =>  $url['path']
+					);
 				}
 			}
 			else {

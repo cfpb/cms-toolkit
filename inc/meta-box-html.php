@@ -348,16 +348,28 @@ class HTML {
 				echo esc_attr( $label );
 			?></label><?php
 		}
+		$hidden_value = null;
 		if ( $value ) {
-			?><div class="tagchecklist">
-				<span><a id="<?php echo esc_attr( $key ) ?>" class="filedelbutton <?php echo esc_attr( $key ) ?>"><?php echo esc_attr( $value['name'] ) ?></a>&nbsp;<?php echo $value['name'] ?></span><?php
-				$this->hidden( 'rm_' . $key, null, null );
+			if ( ! get_post( $value['id'] ) ) {
+				$hidden_value = $value['url'];
+			}
+			?><div class="tagchecklist"><?php
+			if ( ! isset( $hidden_value ) ) {
+				?><span>
+				  <a id="<?php echo esc_attr( $key ) ?>" class="filedelbutton <?php
+				   echo esc_attr( $key ); ?>"><?php
+					echo esc_attr( $value['name'] );
+				  ?></a>&nbsp;<?php
+				  echo esc_attr( $value['name'] );
+				?></span><?php
+			}
+				$this->hidden( 'rm_' . $key, $hidden_value, null );
 			?></div><?php
 		}
 		?><input id="<?php echo esc_attr( $key ) 
 			   ?>" name="<?php echo esc_attr( $key ) 
 			   ?>" class="cms-toolkit-input <?php echo "set-input_{$set_id}"; 
-			   ?>" type="file" value="<?php if ( $value ) echo esc_attr( $value['url'] ); ?>"<?php
+			   ?>" type="file" value="<?php if ( $value and isset( $value['url'] ) ) echo esc_attr( $value['url'] ); ?>"<?php
 			   if ( $required ) echo ' required '; ?>/><?php
 	}
 

@@ -901,7 +901,9 @@ class ValidationTest extends PHPUnit_Framework_TestCase {
 			'post_ID' => 1,
 			'category_year' => '1970' ,
 			'category_month' => 'January',
-			'category_day' => '01');
+			'category_day' => '01',
+			'category_timezone' => array('America/New_York')
+		);
 		$anything = $this->anything();
 
 		// act

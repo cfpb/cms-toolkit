@@ -634,7 +634,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 	 * @group unstable
 	 * @group date
 	 */
-	function testDateCallsGetMonth24Times() {
+	function testDateCallsGetMonth12Times() {
 		//arrange
 		global $wp_locale;
 		$term = new \StdClass;
@@ -642,7 +642,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( null )
 					 ->getMock();
-		$wp_locale->expects( $this->exactly( 24 ) )
+		$wp_locale->expects( $this->exactly( 12 ) )
 				  ->method( 'get_month' )
 				  ->will( $this->returnValue( 'month' ) );
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
@@ -653,7 +653,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		$HTML->date( 'tax', false ,false, '' );
 
 		//assert
-		// passes when get month is called 24 times
+		// passes when get month is called 12 times
 	}
 	/**
 	 * Tests that the wysiwyg() method will call wp_editor() once.
@@ -1320,7 +1320,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( null )
 					 ->getMock();
-		$wp_locale->expects( $this->exactly( 24 ) )
+		$wp_locale->expects( $this->exactly( 12 ) )
 				  ->method( 'get_month' )
 				  ->will( $this->returnValue( 'month' ) );
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
@@ -1338,7 +1338,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		$this->assertContains( $needle, $haystack );
 	}
 	/**
-	 * Tests that the date() method will draw 24 options
+	 * Tests that the date() method will draw 12 options
 	 *
 	 * @group unstable
 	 * @group date
@@ -1351,7 +1351,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
 					 ->setMethods( null )
 					 ->getMock();
-		$wp_locale->expects( $this->exactly( 24 ) )
+		$wp_locale->expects( $this->exactly( 12 ) )
 				  ->method( 'get_month' )
 				  ->will( $this->returnValue( 'month' ) );
 		\WP_Mock::wpPassthruFunction( 'esc_attr' );
@@ -1372,34 +1372,6 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 		//assert
 		$this->assertContains( $needle, $haystack );
 	}
-	/**
-	 * Tests that the date() method will draw 24 options
-	 *
-	 * @group unstable
-	 * @group date
-	 */
-	function testDatePrintsInputsForDayAndYear() {
-		//arrange
-		global $wp_locale;
-		$term = new \StdClass;
-		$term->name = '';
-		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
-					 ->setMethods( null )
-					 ->getMock();
-		\WP_Mock::wpPassthruFunction( 'esc_attr' );
-		\WP_Mock::wpFunction( 'has_term', array( 'return' => true ) );
-		\WP_Mock::wpFunction( 'get_the_terms', array( 'return' => array( $term ) ) );
-		$needle = '<input id="tax_day" type="text" name="tax_day" class="set-input_12" value="" size="2" maxlength="2" placeholder="DD"/>';
-		$needle .= '<input id="tax_year" type="text" name="tax_year" class="set-input_12" value="" size="4" maxlength="4" placeholder="YYYY"/>';
-
-		//act
-		ob_start();
-		$HTML->date( 'tax', false ,false, '', 12 );
-		$haystack = ob_get_flush();
-
-		//assert
-		$this->assertContains( $needle, $haystack );
-	}
 	function testTimeCallsSelect4Times() {
 		//arrange
 		$HTML = $this->getMockBuilder( '\CFPB\Utils\MetaBox\HTML' )
@@ -1409,7 +1381,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 			 ->method( 'select' );
 
 		//act
-		$HTML->time( 'slug', 'taxonomy', false, 'label', 1 );
+		$HTML->time( 'slug', array('date' => '1970-01-01T00:33:35+00:00'), false, 'label', 1 );
 	}
 
 	function testDatetimeCallsDateAndTime() {
@@ -1423,7 +1395,7 @@ class MetaBoxHTMLTest extends PHPUnit_Framework_TestCase {
 			 ->method( 'time' );
 
 		//act
-		$HTML->datetime( 'slug', 'taxonomy', false, 'label', 1 );
+		$HTML->datetime( 'slug', array('date' => '1970-01-01T00:33:35+00:00'), false, 'label', 1 );
 	}
 
 	function testDisplayTagsCallsHasTermToSeeIfTagsExistToBeShown() {

@@ -69,13 +69,13 @@ class HTML {
 					?><label id="<?php echo "{$f['key']}-header"; ?>" class="cms-toolkit-file block-label set-header ?>"><?php
 						echo esc_attr( $f['label'] );
 				}
-					?><a class="toggle-repeated-field <?php echo "{$f['key']} add {$set_id}";
-						if ( $existing or $f['init'] ) echo " hidden"; ?>"><?php
-						?>&nbsp;<span class="dashicons dashicons-plus-alt"></span><?php
+					?><a class="toggle-repeated-field<?php if ( $existing or $f['init'] ) echo " hidden"; ?>"
+						 data-term="<?php echo $f['key']; ?>" data-action-term="add" data-term-id="<?php echo $set_id; ?>">
+						&nbsp;<span class="dashicons dashicons-plus-alt"></span><?php
 					?></a><?php
-					?><a class="toggle-repeated-field <?php echo "{$f['key']} remove {$set_id}";
-						if ( ! $existing and ! $f['init'] ) echo " hidden"; ?>"><?php
-							?>&nbsp;<span class="dashicons dashicons-dismiss"></span><?php
+					?><a class="toggle-repeated-field<?php if ( ! $existing and ! $f['init'] ) echo " hidden"; ?>"
+						 data-term="<?php echo $f['key']; ?>" data-action-term="remove" data-term-id="<?php echo $set_id; ?>">
+						&nbsp;<span class="dashicons dashicons-dismiss"></span><?php
 					?></a><?php
 				if ( isset( $f['title'] ) and !empty( $f['title'] ) ) {
 					?></h3><?php
@@ -184,7 +184,6 @@ class HTML {
 		$label      = isset( $field['label'] )      ? $field['label']      : null;
 		$max_length = isset( $field['max_length'] ) ? $field['max_length'] : null;
 		$placeholder = isset( $field['placeholder'] ) ? $field['placeholder'] : null;
-		$timezone   = ( isset( $field['value'] ) and isset( $field['value']['timezone'] ) ) ? $field['value']['timezone'] : null;
 		if ( $field['type'] == 'text_area' ) {
 			$this->text_area( $field['key'], $value, $required, $field['rows'], $field['cols'], $label, $placeholder, $set_id );
 		}
@@ -198,14 +197,17 @@ class HTML {
 		}
 
 		if ( $field['type'] == 'date' ) {
-			$this->date( $field['taxonomy'], $field['multiple'], $required, $label, $set_id );
-			$this->displayTags( $field['taxonomy'], $field['type'] );
+			$value = ( $field['key'] == $field['taxonomy'] ) ? null : $value;
+			$this->date( $field['key'], $value, $required, $label, $set_id );
+			$this->displayTags( $field );
 		} elseif ( $field['type'] == 'time' ) {
-			$this->time( $field['taxonomy'], $required, $label, $set_id );
-			$this->displayTags( $field['taxonomy'], $field['type'], $timezone );
+			$value = ( $field['key'] == $field['taxonomy'] ) ? null : $value;
+			$this->time( $field['key'], $value, $required, $label, $set_id );
+			$this->displayTags( $field );
 		} elseif ( $field['type'] == 'datetime' ) {
-			$this->datetime( $field['taxonomy'], $required, $label, $set_id );
-			$this->displayTags( $field['taxonomy'], $field['type'], $timezone );
+			$value = ( $field['key'] == $field['taxonomy'] ) ? null : $value;
+			$this->datetime( $field['key'], $value, $required, $label, $set_id );
+			$this->displayTags( $field );
 		}
 
 		if ( $field['type'] == 'radio' ) {
@@ -504,91 +506,108 @@ class HTML {
 	 * @param bool $label         the field's label
 	 * @param int  $set_id        id of the set if it is or is in a repeated field
 	 **/
-	public function date( $taxonomy, $multiple, $required, $label, $set_id = NULL ) {
+	public function date( $key, $value, $required, $label, $set_id = NULL ) {
 		global $wp_locale;
-		$tax_name = stripslashes( $taxonomy );
-		global $wp_locale;
-		?><div id="<?php echo esc_attr( $taxonomy ) ?>" name="<?php echo esc_attr( $taxonomy ) ?>" class="cms-toolkit-date" ><?php
+		?><div id="<?php echo esc_attr( $key ) ?>" name="<?php echo esc_attr( $key ) ?>" class="cms-toolkit-date" ><?php
 			if ( $label ) {
-				?><label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $taxonomy ) ?>"><?php echo esc_attr( $label ); ?></label><?php
+				?><label class="cms-toolkit-label block-label" for="<?php echo esc_attr( $key ) ?>"><?php echo esc_attr( $label ); ?></label><?php
 			}
-			?><select id="<?php echo esc_attr( $tax_name ) ?>_month" name="<?php echo esc_attr( $tax_name ) ?>_month" class="<?php echo "set-input_{$set_id}"; ?>"><option selected="selected" value="" <?php if ( $required ): echo 'required'; endif; ?>>Month</option><?php
+			?><select id="<?php echo esc_attr( $key ) ?>_month" name="<?php echo esc_attr( $key ) ?>_month" class="<?php echo "set-input_{$set_id}"; ?>"><option selected="selected" value="" <?php if ( $required ): echo 'required'; endif; ?>>Month</option><?php
+			$date = ( $value ) ? DateTime::createFromFormat(Datetime::ISO8601, $value['date']) : null;
 			for ( $i = 1; $i < 13; $i++ ) {
-				?><option value="<?php echo esc_attr( $wp_locale->get_month( $i ) ) ?>"><?php echo esc_attr( $wp_locale->get_month( $i ) )  ?></option><?php 
+				$month = $wp_locale->get_month( $i );
+				if ( $date and $month == $date->format( 'F' ) ) {
+					?><option value="<?php echo esc_attr( $month ) ?>" selected="selected"><?php echo esc_attr( $month ); ?></option><?php
+				} else {
+					?><option value="<?php echo esc_attr( $month ) ?>"><?php echo esc_attr( $month )  ?></option><?php
+				}
 			} 
 			?></select><?php
-			?><input id="<?php echo esc_attr( $tax_name ) ?>_day" type="text" name="<?php echo esc_attr( $tax_name ) ?>_day" class="<?php echo "set-input_{$set_id}"; ?>" value="" size="2" maxlength="2" placeholder="DD"/><?php
-			?><input id="<?php echo esc_attr( $tax_name ) ?>_year" type="text" name="<?php echo esc_attr( $tax_name ) ?>_year" class="<?php echo "set-input_{$set_id}"; ?>" value="" size="4" maxlength="4" placeholder="YYYY"/><?php
+			$day  = ( $date ) ? $date->format( 'd' ) : '';
+			$year = ( $date ) ? $date->format( 'o' ) : '';
+			?><input id="<?php echo esc_attr( $key ) ?>_day" type="text" name="<?php echo esc_attr( $key ) ?>_day"
+				class="<?php echo "set-input_{$set_id}"; ?>" value="<?php echo esc_attr($day); ?>" size="2" maxlength="2" placeholder="DD"/><?php
+			?><input id="<?php echo esc_attr( $key ) ?>_year" type="text" name="<?php echo esc_attr( $key ) ?>_year"
+				class="<?php echo "set-input_{$set_id}"; ?>" value="<?php echo esc_attr($year); ?>" size="4" maxlength="4" placeholder="YYYY"/><?php
 		?></div><?php
 	}
 
-	public function time( $taxonomy, $required, $label = NULL, $set_id = NULL ) {
-		foreach ( DateTimeZone::listIdentifiers(DateTimeZone::PER_COUNTRY, 'US' ) as $key => $country ) {
+	public function time( $key, $value, $required, $label = NULL, $set_id = NULL ) {
+		$date =     ( $value ) ? DateTime::createFromFormat(Datetime::ISO8601, $value['date']) : null;
+		$hour =     ( $date )  ? $date->format( 'h' ) : '';
+		$min  =     ( $date )  ? $date->format( 'i' ) : '';
+		$ampm =     ( $date )  ? $date->format( 'a' ) : '';
+		$zone =     ( $value and isset($value['timezone']) ) ? @timezone_open($value['timezone']) : null;
+		$timezone = ( isset( $zone ) )  ? $zone->getName() : '';
+		foreach ( DateTimeZone::listIdentifiers( DateTimeZone::PER_COUNTRY, 'US' ) as $country_key => $country ) {
 			$countries[] = $country;
 		}
-		?><div id="<?php echo esc_attr( $taxonomy) ?>" name="<?php echo esc_attr( $taxonomy) ?>" class="cms-toolkit-time" ><?php
+		$hours = array( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 );
+		$minutes = array( '00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50' , '55' );
+		?><div id="<?php echo esc_attr( $key ) ?>" name="<?php echo esc_attr( $key ) ?>" class="cms-toolkit-time" ><?php
 			if ( $label ) { 
-				?><label for="<?php echo esc_attr( $taxonomy ) ?>" class="cms-toolkit-label block-label"><?php 
+				?><label for="<?php echo esc_attr( $key ) ?>" class="cms-toolkit-label block-label"><?php 
 					echo esc_attr( $label ); 
 				?></label><?php
 			}
-			$this->select( $taxonomy . "_hour", array( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ), null, null, null, $required, "Hour", null, $set_id );
+			$this->select( $key . "_hour", $hours, null, null, $hour, $required, "Hour", null, $set_id );
 			?> : <?php
-			$this->select( $taxonomy . "_minute", array( "00", "15", "30", "45" ), null, null, null, $required, "Minute", null, $set_id );
-			$this->select( $taxonomy . "_ampm", array( "am", "pm" ), null, null, null, $required, "am/pm", null, $set_id );
-			$this->select( $taxonomy . "_timezone", $countries, null, null, null, $required, "Timezone", null, $set_id );
+			$this->select( $key . "_minute", $minutes, null, null, $min, $required, "Minute", null, $set_id );
+			$this->select( $key . "_ampm", array( "am", "pm" ), null, null, $ampm, $required, "am/pm", null, $set_id );
+			$this->select( $key . "_timezone", $countries, null, null, $timezone, $required, "Timezone", null, $set_id );
 		?></div><?php
 	}
 
-	public function datetime( $taxonomy, $required, $label = NULL, $set_id = NULL ) {
-		?><div id="<?php echo esc_attr( $taxonomy) ?>" name="<?php echo esc_attr( $taxonomy) ?>" class="cms-toolkit-datetime" ><?php
+	public function datetime( $key, $value, $required, $label = NULL, $set_id = NULL ) {
+		?><div id="<?php echo esc_attr( $key ) ?>" name="<?php echo esc_attr( $key ) ?>" class="cms-toolkit-datetime" ><?php
 			if ( $label ) { 
-				?><label for="<?php echo esc_attr( $taxonomy ) ?>" class="cms-toolkit-label block-label"><?php 
+				?><label for="<?php echo esc_attr( $key ) ?>" class="cms-toolkit-label block-label"><?php 
 					echo esc_attr( $label ); 
 				?></label><?php
 			}
-			$this->date( $taxonomy, null, false, $required, null, $set_id );
+			$this->date( $key, $value, $required, null, $set_id );
 			?> @ <?php
-			$this->time( $taxonomy, $required, null, $set_id );
+			$this->time( $key, $value, $required, null, $set_id );
 		?></div><?php
 	}
 
-	public function displayTags( $taxonomy, $type, $timezone = NULL ) {
+	public function displayTags( $field ) {
 		$post_id = get_the_ID();
 		?><div class='tagchecklist'><?php
-			if ( $timezone ) date_default_timezone_set( $timezone );
-			if ( has_term( '', $taxonomy, $post_id ) ) {
-				$terms = get_the_terms( $post_id, $taxonomy );
+		if ( $field['key'] == $field['taxonomy'] ) {
+			if ( has_term( '', $field['taxonomy'], $post_id ) ) {
+				$terms = get_the_terms( $post_id, $field['taxonomy'] );
 				$i = 0;
 				foreach ( $terms as $term ) {
 					// Checks if the current set term is wholly numeric (in this case a timestamp)
 					if ( is_numeric( $term->name ) ) {
-						if ( $type == 'date' ) {
+						if ( $field['type'] == 'date' ) {
 							$natdate = date( 'j F Y', intval( $term->name ) );
-						} elseif ( $type == 'time' ) {
+						} elseif ( $field['type'] == 'time' ) {
 							$natdate = date( 'h:ia T', intval( $term->name ) );
-						} elseif ( $type == 'datetime' ) {
+						} elseif ( $field['type'] == 'datetime' ) {
 							$natdate = date( 'F j Y h:ia T', intval( $term->name ) );
 						}
-						?><span><a id="<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>"
-								  class="tagdelbutton -<?php echo esc_attr( $term->name ) ?>"><?php
+						?><span><a id="<?php echo esc_attr( $field['taxonomy'] ) ?>" data-term-tag-num="<?php echo esc_attr( $i ) ?>"
+								  class="tagdelbutton" data-term="<?php echo esc_attr( $term->name ) ?>"><?php
 									echo esc_attr( $term->name );
 								?></a><?php
 							?>&nbsp;<?php echo esc_attr( $term->name );
 						?></span><?php
 					} else {
 						$date = strtotime( $term->name );
-						?><span><a id="<?php echo esc_attr( $taxonomy ) ?>-check-num-<?php echo esc_attr( $i ) ?>"
-								  class="tagdelbutton -<?php echo esc_attr( $term->name ) ?>"><?php
+						?><span><a id="<?php echo esc_attr( $field['taxonomy'] ) ?>" data-term-tag-num="<?php echo esc_attr( $i ) ?>"
+								  class="tagdelbutton" data-term="<?php echo esc_attr( $term->name ) ?>"><?php
 									echo esc_attr( $date );
 								?></a><?php
 							?>&nbsp;<?php echo esc_attr( $term->name );
 						?></span><?php
 					}
-					$this->hidden( 'rm_' . $taxonomy . '_' . $i, null, null );
+					$this->hidden( 'rm_' . $field['key'] . '_' . $i, null, null );
 					$i++;
 				}
 			}
+		}
 		?></div><?php
 	}
 }

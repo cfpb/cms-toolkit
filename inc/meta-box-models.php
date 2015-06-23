@@ -293,80 +293,70 @@ class Models {
 		$terms = wp_get_post_terms( $post_ID, $field['taxonomy'], array( 'fields' => 'ids' ) );
 		$terms_to_remove = array();
 		for ( $i = 0; $i < count( $terms ); $i++ ) {
-			if ( isset( $_POST['rm_' . $field['taxonomy'] . '_' . $i ] ) ) {
+			if ( isset( $_POST['rm_' . $field['key'] . '_' . $i ] ) ) {
 				array_push( $terms_to_remove, $i );
 			}
 		}
 		foreach ( $terms_to_remove as $t ) {
 			$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], null, $t );
 		}
-		$data = array($field['taxonomy'] => '');
+		$data = array($field['key'] => '');
 		if ( $field['type'] != 'time') {
-			$month = $field['taxonomy'] . '_month';
-			$day = $field['taxonomy'] . '_day';
-			$year = $field['taxonomy'] . '_year';
+			$month = $field['key'] . '_month';
+			$day = $field['key'] . '_day';
+			$year = $field['key'] . '_year';
 			if ( isset($_POST[$month]) ) {
-				$data[$field['taxonomy']] .= $_POST[$month];
+				$data[$field['key']] .= $_POST[$month];
 			}
 			if ( isset( $_POST[$day] ) ) {
-				$data[$field['taxonomy']] .= ' ' . $_POST[$day];
+				$data[$field['key']] .= ' ' . $_POST[$day];
 			}
 			if ( isset( $_POST[$year] ) ) {
-				$data[$field['taxonomy']] .= ' ' . $_POST[$year];
+				$data[$field['key']] .= ' ' . $_POST[$year];
 			}
 		}
 		if ( $field['type'] == 'datetime' ) {
-			$data[$field['taxonomy']] .= ' ';
+			$data[$field['key']] .= ' ';
 		}
 		if ( $field['type'] != 'date') {
-			$hour = $field['taxonomy'] . '_hour';
-			$minute = $field['taxonomy'] . '_minute';
-			$ampm = $field['taxonomy'] . '_ampm';
-			$timezone = $field['taxonomy'] . '_timezone';
+			$hour = $field['key'] . '_hour';
+			$minute = $field['key'] . '_minute';
+			$ampm = $field['key'] . '_ampm';
+			$timezone = $field['key'] . '_timezone';
 			if ( isset($_POST[$hour]) ) {
-				$data[$field['taxonomy']] .= $_POST[$hour][0];
+				$data[$field['key']] .= $_POST[$hour][0];
 			}
 			if ( isset( $_POST[$minute] ) ) {
-				$data[$field['taxonomy']] .= ':' . $_POST[$minute][0];
+				$data[$field['key']] .= ':' . $_POST[$minute][0];
 			}
 			if ( isset( $_POST[$ampm] ) ) {
-				$data[$field['taxonomy']] .= $_POST[$ampm][0];
+				$data[$field['key']] .= $_POST[$ampm][0];
 			}
 			if ( isset( $_POST[$timezone] ) ) {
-				$data[$field['taxonomy']] .= ' ' . $_POST[$timezone][0];
+				$data[$field['key']] .= ' ' . $_POST[$timezone][0];
 			}
 		}
 		$timezone = null;
 		if ( $field['type'] == 'date' ) {
-			$date = DateTime::createFromFormat('F j Y', $data[$field['taxonomy']]);
+			$date = DateTime::createFromFormat('F j Y', $data[$field['key']]);
 		} else {
-			if ( isset( $_POST[$field['taxonomy'] . '_timezone'] ) and
-				 is_array( $_POST[$field['taxonomy'] . '_timezone'] ) and
-				 !empty( $_POST[$field['taxonomy'] . '_timezone'][0] ) ) {
+			if ( isset( $_POST[$field['key'] . '_timezone'] ) and
+				 is_array( $_POST[$field['key'] . '_timezone'] ) and
+				 !empty( $_POST[$field['key'] . '_timezone'][0] ) ) {
 				
-				date_default_timezone_set( $_POST[$field['taxonomy'] . '_timezone'][0] );
+				date_default_timezone_set( $_POST[$field['key'] . '_timezone'][0] );
 			}
 			if ( $field['type'] == 'time' ) {
-				$date = DateTime::createFromFormat('h:ia T', $data[$field['taxonomy']]);
+				$date = DateTime::createFromFormat('h:ia T', $data[$field['key']]);
 			} elseif ( $field['type'] == 'datetime' ) {
-				$date = DateTime::createFromFormat('F j Y h:ia T', $data[$field['taxonomy']]);
+				$date = DateTime::createFromFormat('F j Y h:ia T', $data[$field['key']]);
 			}
 		}
 		if ( $date ) {
-			$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], $data, null );
-			if ( $field['type'] == 'date' ) {
-				$validated = array( 'date' => date( Datetime::ISO8601, strval( strtotime( $data[$field['taxonomy']] ) ) ) );
-			} elseif ( $field['type'] == 'datetime' ) {
-				$validated = array(
-					'datetime' => date( Datetime::ISO8601, strval( strtotime( $data[$field['taxonomy']] ) ) ),
-					'timezone' => $_POST[$field['taxonomy'] . '_timezone'][0]
-				);
-			} else {
-				$validated = array(
-					'time' => date( Datetime::ISO8601, strval( strtotime( $data[$field['taxonomy']] ) ) ),
-					'timezone' => $_POST[$field['taxonomy'] . '_timezone'][0]
-				);
+			if ( $field['key'] == $field['taxonomy'] ) {
+				$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], $date, null );
 			}
+			$validated = array( 'date' => $date->format( Datetime::ISO8601 ), 'timezone' => $_POST[$field['key'] . '_timezone'][0] );
 		}
 	}
 

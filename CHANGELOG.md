@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 We follow the [Semantic Versioning 2.0.0](http://semver.org/) format.
 
 
+## 2.2.0 - 2015-06-23
+
+### Changed
+- `date`/`time`/`datetime` fields can be repeated but only single date fields
+    are saved into a taxonomy (plans to remove date types from a taxonomy are
+    being considered)
+
+## 2.1.0 - 2015-06-22
+
+### Changed
+- Uploading a file through the custom file upload field creates an attachment
+
 ## 2.0.2 - 2015-06-09
 
 ### Changed

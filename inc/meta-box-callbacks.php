@@ -37,21 +37,16 @@ class Callbacks {
 	 * @param boolean $multiples, Determines whether the term shoud append (true) or replace (false) existing terms
 	 * @return identical to wp_set_object_terms
 	 */
-	public function date( $post_id, $taxonomy, $multiples = false, $data = array(), $term_num = null ) {
+	public function date( $post_id, $taxonomy, $multiples = false, $date = array(), $term_num = null ) {
 		global $post;
-		
-		$rmTerm     = 'rm_' . $taxonomy . '_' . $term_num;
+		$rmTerm = 'rm_' . $taxonomy . '_' . $term_num;
 		if ( isset( $_POST[$rmTerm] ) and !empty( $_POST[$rmTerm] ) ) {
 			$tounset = get_term_by( 'name', $_POST[$rmTerm], $taxonomy );
 			if ( $tounset ) {
 				$this->Taxonomy->remove_post_term( $post_id, $tounset->term_id, $taxonomy );
 			}
-			if ( isset( $data[$taxonomy] ) ) {
-				Models::save( $post_id, array( $taxonomy => strval( strtotime( $data[$taxonomy] ) ) ) );
-			}
-		} elseif ( isset( $data[$taxonomy] ) and !empty( $data[$taxonomy] ) ) {
-			wp_set_object_terms( $post_id, $data[$taxonomy], $taxonomy, $append = $multiples );
-			Models::save( $post_id, array( $taxonomy => date( Datetime::ISO8601, strval( strtotime( $data[$taxonomy] ) ) ) ) );
+		} elseif ( isset( $date ) ) {
+			wp_set_object_terms( $post_id, $date->format('c'), $taxonomy, $append = $multiples );
 		}
 	}
 }

@@ -19,10 +19,9 @@ function delete_form_data(slug, form_id) {
 }
 
 function toggle_repeated_field(element) {
-    var classes = jQuery(element).attr('class').split(/\s+/);
-    var form_id = classes[3];
-    var action = classes[2];
-    var slug = classes[1];
+    var slug = jQuery(element).attr('data-term');
+    var action = jQuery(element).attr('data-action-term');
+    var form_id = jQuery(element).attr('data-term-id');
     var header = jQuery('#' + slug + '-header');
     var targeted_input = jQuery('#' + slug + '-set');
     if ( action == 'add') {
@@ -37,7 +36,7 @@ function toggle_repeated_field(element) {
         jQuery(element).attr('disabled', true);
         
         // show the remove link
-        var remove_link = jQuery("." + slug + ".remove");
+        var remove_link = jQuery("[data-term='" + slug +"'][data-action-term='remove']");
         jQuery(remove_link).toggleClass('hidden');
         jQuery(remove_link).attr('disabled', false);
 
@@ -56,7 +55,8 @@ function toggle_repeated_field(element) {
         jQuery(element).attr('disabled', true);
 
         // Show add link
-        var add_link = jQuery("." + slug + ".add");
+        var add_link = jQuery("[data-term='" + slug +"'][data-action-term='add']");
+        console.log(add_link.html());
         jQuery(add_link).toggleClass('hidden');
         jQuery(add_link).attr('disabled', false);
 
@@ -75,10 +75,9 @@ jQuery(document).ready(function($){
 } );
 
 jQuery('.tagdelbutton').click( function() {
-    var taxAndTagNum = jQuery(this).attr('id').split('-');
-    var taxonomy = taxAndTagNum[0];
-    var tagNum = taxAndTagNum[3];
-    var term = jQuery(this).attr('class').split('-')[1];
+    var taxonomy = jQuery(this).attr('id');
+    var tagNum = jQuery(this).attr('data-term-tag-num');
+    var term = jQuery(this).attr('data-term');
     jQuery('input[id=rm_' + taxonomy + '_' + tagNum + ']').val(term);
     jQuery(this).parent().html('');
 });

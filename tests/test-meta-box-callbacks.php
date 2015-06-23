@@ -2,6 +2,7 @@
 namespace CFPB\Tests;
 use \CFPB\Utils\MetaBox\Callbacks;
 use \CFPB\Utils\Taxonomy;
+use \DateTime;
 
 function strtotime() {
 	return MetaBoxCallbacksTest::$now ?: time('now');
@@ -36,7 +37,7 @@ class MetaBoxCallbacksTest extends \PHPUnit_Framework_TestCase {
 		\WP_Mock::wpFunction('wp_set_object_terms', array('times' => 1));
 		$post_id = 0;
 		$taxonomy = 'category';
-		$data['category'] = 'January 1, 1970';
+		$data = Datetime::createFromFormat('F j Y', 'January 12 2000');
 		// Act
 		$c = new Callbacks();
 		$c->date($post_id, $taxonomy, false, $data);

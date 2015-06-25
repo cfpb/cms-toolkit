@@ -298,7 +298,7 @@ class Models {
 			}
 		}
 		foreach ( $terms_to_remove as $t ) {
-			$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], null, $t );
+			$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], null, null, $t );
 		}
 		$data = array($field['key'] => '');
 		if ( $field['type'] != 'time') {
@@ -336,7 +336,7 @@ class Models {
 				$data[$field['key']] .= ' ' . $_POST[$timezone][0];
 			}
 		}
-		$timezone = null;
+		$timezone = $_POST[$field['key'] . '_timezone'][0];
 		if ( $field['type'] == 'date' ) {
 			$date = DateTime::createFromFormat('F j Y', $data[$field['key']]);
 		} else {
@@ -354,9 +354,9 @@ class Models {
 		}
 		if ( $date ) {
 			if ( $field['key'] == $field['taxonomy'] ) {
-				$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], $date, null );
+				$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], $date, $timezone, null );
 			}
-			$validated = array( 'date' => $date->format( Datetime::ISO8601 ), 'timezone' => $_POST[$field['key'] . '_timezone'][0] );
+			$validated = array( 'date' => $date->format( Datetime::ISO8601 ), 'timezone' => $timezone );
 		}
 	}
 

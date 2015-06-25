@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 We follow the [Semantic Versioning 2.0.0](http://semver.org/) format.
 
 
+## 2.2.1 - 2015-06-25
+
+### Changed
+- `time`/`datetime` fields saved under a taxonomy now save the timezone in the
+    term description
+
 ## 2.2.0 - 2015-06-23
 
 ### Changed

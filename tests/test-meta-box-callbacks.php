@@ -63,7 +63,7 @@ class MetaBoxCallbacksTest extends \PHPUnit_Framework_TestCase {
 		$_POST = array( 'rm_tax_0' => 'term' );
 		\WP_Mock::wpFunction('get_term_by', array('times' => 1, 'return' => false ) );
 		// Act
-		$c->date( 0, 'tax', false, array(), 0 );
+		$c->date( 0, 'tax', false, array(), null, 0 );
 		// Assert
 	}
 
@@ -94,7 +94,7 @@ class MetaBoxCallbacksTest extends \PHPUnit_Framework_TestCase {
 		$c = new Callbacks();
 		$c->replace_Taxonomy( $Taxonomy );
 		// Act
-		$c->date( 0, 'tax', false, array(), 0 );
+		$c->date( 0, 'tax', false, array(), null, 0 );
 		// Assert
 	}
 
@@ -124,9 +124,35 @@ class MetaBoxCallbacksTest extends \PHPUnit_Framework_TestCase {
 		$c->replace_Taxonomy($Mock);
 
 		// Act
-		$c->date($post_id, $taxonomy, false, array(), 1);
+		$c->date($post_id, $taxonomy, false, array(), null, 1);
 
 		// Assert: test fails if remove_post_term is called more or fewer than 1 time.
+	}
+
+	/**
+	 * Tests whether the date() method properly calls wp_set_objeect_terms,
+	 * get_term_by, wp_update_term
+	 *
+	 * @group isolated
+	 * @group stable
+	 * @group date
+	 * @group taxonomy_save
+	 * 
+	 */
+	function testDateGetTermByAndWPUpdateTermCalledOnceForDateData() {
+		// Arrange
+		\WP_Mock::wpFunction('wp_set_object_terms', array('times' => 1));
+		$term = new \StdClass;
+		$term->term_id = 1;
+		\WP_Mock::wpFunction('get_term_by', array('times' => 1, 'return' => $term));
+		\WP_Mock::wpFunction('wp_update_term', array('times' => 1));
+		$post_id = 0;
+		$taxonomy = 'category';
+		$data = Datetime::createFromFormat('F j Y', 'January 12 2000');
+		// Act
+		$c = new Callbacks();
+		$c->date($post_id, $taxonomy, false, $data, 'America/New_York');
+		// Assert
 	}
 }
 ?>

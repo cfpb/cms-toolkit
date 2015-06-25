@@ -45,10 +45,12 @@ class Callbacks {
 			if ( $tounset ) {
 				$this->Taxonomy->remove_post_term( $post_id, $tounset->term_id, $taxonomy );
 			}
-		} elseif ( isset( $date ) ) {
+		} elseif ( ! empty( $date ) ) {
 			wp_set_object_terms( $post_id, $date->format('c'), $taxonomy, $append = $multiples );
-			$term = get_term_by( 'name', $date->format('c'), $taxonomy );
-			wp_update_term( $term->term_id, $taxonomy, $args = array( 'description' => $timezone ) );
+			if ( isset( $timezone ) ) {
+				$term = get_term_by( 'name', $date->format('c'), $taxonomy );
+				wp_update_term( $term->term_id, $taxonomy, $args = array( 'description' => $timezone ) );
+			}
 		}
 	}
 }

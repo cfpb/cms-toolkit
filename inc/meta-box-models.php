@@ -356,7 +356,7 @@ class Models {
 			if ( $field['key'] == $field['taxonomy'] ) {
 				$this->Callbacks->date( $post_ID, $field['taxonomy'], $multiple = $field['multiple'], $date, $timezone, null );
 			}
-			$validated = array( 'date' => $date->format( Datetime::ISO8601 ), 'timezone' => $timezone );
+			$validated = array( 'date' => $date->format( 'c' ), 'timezone' => $timezone );
 		}
 	}
 

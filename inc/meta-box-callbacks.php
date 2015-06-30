@@ -37,7 +37,7 @@ class Callbacks {
 	 * @param boolean $multiples, Determines whether the term shoud append (true) or replace (false) existing terms
 	 * @return identical to wp_set_object_terms
 	 */
-	public function date( $post_id, $taxonomy, $multiples = false, $date = array(), $term_num = null ) {
+	public function date( $post_id, $taxonomy, $multiples = false, $date = array(), $timezone = null, $term_num = null ) {
 		global $post;
 		$rmTerm = 'rm_' . $taxonomy . '_' . $term_num;
 		if ( isset( $_POST[$rmTerm] ) and !empty( $_POST[$rmTerm] ) ) {
@@ -45,8 +45,12 @@ class Callbacks {
 			if ( $tounset ) {
 				$this->Taxonomy->remove_post_term( $post_id, $tounset->term_id, $taxonomy );
 			}
-		} elseif ( isset( $date ) ) {
+		} elseif ( ! empty( $date ) ) {
 			wp_set_object_terms( $post_id, $date->format('c'), $taxonomy, $append = $multiples );
+			if ( isset( $timezone ) ) {
+				$term = get_term_by( 'name', $date->format('c'), $taxonomy );
+				wp_update_term( $term->term_id, $taxonomy, $args = array( 'description' => $timezone ) );
+			}
 		}
 	}
 }

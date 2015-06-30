@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 We follow the [Semantic Versioning 2.0.0](http://semver.org/) format.
 
 
+## 2.2.2 - 2015-06-30
+
+### Changed
+- `display_tags()` now displays readable timestamps
+
+### Fixed
+- `placeholder` attribute for select fields is now checked so a Fatal Error is
+    is not thrown.
+
 ## 2.2.1 - 2015-06-25
 
 ### Changed

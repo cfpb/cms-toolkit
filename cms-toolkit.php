@@ -13,7 +13,7 @@ think of it as a library. A collection of methods which, when installed, are
 available throughout the application and make building complex functionality 
 in WordPress a little easier.
 
-Version: 2.2.1
+Version: 2.2.2
 Author: Greg Boone, Aman Kaur, Matthew Duran, Scott Cranfill, Kurt Wall
 Author URI: https://github.com/cfpb/
 License: Public Domain work of the Federal Government

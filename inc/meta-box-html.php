@@ -585,7 +585,7 @@ class HTML {
 							$natdate = date( 'j F Y', intval( $term->name ) );
 						} elseif ( $field['type'] == 'time' ) {
 							$natdate = date( 'h:ia T', intval( $term->name ) );
-						} elseif ( $field['type'] == 'datetime' ) {
+						} else {
 							$natdate = date( 'F j Y h:ia T', intval( $term->name ) );
 						}
 						?><span><a id="<?php echo esc_attr( $field['taxonomy'] ) ?>" data-term-tag-num="<?php echo esc_attr( $i ) ?>"

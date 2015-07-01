@@ -135,6 +135,7 @@ class HTML {
 		$required = isset( $field['required'] ) ? $field['required'] : false;
 		$multiple = isset( $field['multiple'] ) ? $field['multiple'] : false;
 		$label    = isset( $field['label'] )    ? $field['label']    : null;
+		$placeholder = isset( $field['placeholder'] ) ? $field['placeholder'] : null;
 		if ( in_array( $field['type'], array('multiselect', 'select', 'taxonomyselect' ) ) ) {
 			$this->select( 
 				$field['key'], 
@@ -143,7 +144,7 @@ class HTML {
 				$multiple,
 				$value,
 				$required,
-				$field['placeholder'],
+				$placeholder,
 				$label,
 				$set_id
 			);
@@ -156,7 +157,7 @@ class HTML {
 				$multiple,
 				$required,
 				$label,
-				$placeholder = $field['placeholder'],
+				$placeholder,
 				$set_id
 			);
 		} elseif ( $field['type'] == 'post_select' or $field['type'] == 'post_multiselect' ) {
@@ -164,7 +165,6 @@ class HTML {
 			$settings = $field['params'];
 			$posts = get_posts($settings);
 			$multiple = $field['type'] == 'post_multiselect' ? 'multiple' : null;
-			$placeholder = isset( $field['placeholder'] ) ? $field['placeholder'] : null;
 			$this->post_select(
 				$field['key'],
 				$posts,
@@ -592,15 +592,17 @@ class HTML {
 								  class="tagdelbutton" data-term="<?php echo esc_attr( $term->name ) ?>"><?php
 									echo esc_attr( $term->name );
 								?></a><?php
-							?>&nbsp;<?php echo esc_attr( $term->name );
+							?>&nbsp;<?php echo esc_attr( $natdate );
 						?></span><?php
 					} else {
-						$date = strtotime( $term->name );
+						$date = Datetime::createFromFormat(Datetime::ISO8601, $term->name );
+						$data_term = $date ? $date->format('c') : $term->name;
+						$display = $date ? $date->format('F j Y h:ia T') : $term->name;
 						?><span><a id="<?php echo esc_attr( $field['taxonomy'] ) ?>" data-term-tag-num="<?php echo esc_attr( $i ) ?>"
-								  class="tagdelbutton" data-term="<?php echo esc_attr( $term->name ) ?>"><?php
-									echo esc_attr( $date );
+								  class="tagdelbutton" data-term="<?php echo esc_attr( $data_term ) ?>"><?php
+									echo esc_attr( $data_term );
 								?></a><?php
-							?>&nbsp;<?php echo esc_attr( $term->name );
+							?>&nbsp;<?php echo esc_attr( $display );
 						?></span><?php
 					}
 					$this->hidden( 'rm_' . $field['key'] . '_' . $i, null, null );

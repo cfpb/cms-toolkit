@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 We follow the [Semantic Versioning 2.0.0](http://semver.org/) format.
 
 
+## 2.2.3 - 2015-06-23
+
+### Changed
+- Post type `menu-position` changed to 100 to move them down to the bottom
+
 ## 2.2.2 - 2015-06-30
 
 ### Changed

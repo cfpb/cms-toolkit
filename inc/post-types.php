@@ -53,7 +53,7 @@ class PostType {
 			'exclude_from_search' => false,
 			'show_ui'             => true,
 			'show_in_menu'        => true,
-			'menu_position'       => 20,
+			'menu_position'       => 100,
 			'capability_type'     => 'post',
 			'hierarchical'        => false,
 			'supports'            => array( 'title', 'author', 'editor', 'revisions', 'page-attributes', 'custom-fields', ),

@@ -9,7 +9,7 @@
     ],
     "require": {
         "10up/wp_mock": "dev-master",
-        "satooshi/php-coveralls": "dev-master",
+        "satooshi/php-coveralls": "1.0.0",
         "phpunit/phpcov": "dev-master"
 
     },

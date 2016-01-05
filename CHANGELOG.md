@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 We follow the [Semantic Versioning 2.0.0](http://semver.org/) format.
 
 
+## 2.2.4 - 2016-01-05
+
+### Changed
+- Fix build failure by pinning php-coveralls version at 1.0.0
+
 ## 2.2.3 - 2015-06-23
 
 ### Changed
